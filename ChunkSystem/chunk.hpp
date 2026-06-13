@@ -1,0 +1,7 @@
+namespace lve
+{
+    class chunk
+    {
+        
+    };
+}

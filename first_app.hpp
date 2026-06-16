@@ -7,6 +7,7 @@
 #include "lve_renderer.hpp"
 #include <unordered_map>
 #include "IVec3Hash.h"
+#include "World/Area.hpp"
 
 // std
 #include <memory>
@@ -33,12 +34,13 @@ namespace lve
         void createPipelineLayout();
         void createPipeline();
         void renderGameObjects(VkCommandBuffer commandBuffer);
-        glm::ivec3 *getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects);
+        bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
         LveWindow lveWindow{WIDTH, HEIGHT, "Hello Vulkan"};
         LveDevice lveDevice{lveWindow};
         LveRenderer lveRenderer{lveWindow, lveDevice};
         // std::vector<LveGameObject> gameObjects;
         // std::unordered_map<glm::vec3, LveGameObject> gameObjects;
         std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> gameObjects;
+        Area area;
     };
 }

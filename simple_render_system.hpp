@@ -23,6 +23,7 @@ namespace lve
         SimpleRenderSystem &operator=(const SimpleRenderSystem &) = delete;
 
         void renderGameObjects(VkCommandBuffer commandBuffer, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, const LveCamera &camera);
+        void renderChunk(VkCommandBuffer commandBuffer, std::vector<glm::ivec3>, const LveCamera &camera);
 
     private:
         void createPipelineLayout();

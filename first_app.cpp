@@ -1,9 +1,11 @@
 #include "first_app.hpp"
 #include "simple_render_system.hpp"
 #include "lve_camera.hpp"
-#include "keyboard_movement_controller.hpp"
+#include "Input/keyboard_movement_controller.hpp"
 #include "IVec3Hash.h"
-#include "ChunkSystem/cube.hpp"
+#include "World/cube.hpp"
+#include "World/Chunk.hpp"
+#include "Util/ray.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -15,13 +17,14 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <optional>
 
 namespace lve
 {
 
-    FirstApp::FirstApp()
+    FirstApp::FirstApp() : area(gameObjects, lveDevice, glm::vec3(0, 0, 0))
     {
-        loadGameObjects();
+        // loadGameObjects();
     }
 
     FirstApp::~FirstApp()
@@ -54,8 +57,10 @@ namespace lve
             camera.setViewYXZ((viewerObject.transform.translation), viewerObject.transform.rotation);
 
             float aspect = lveRenderer.getAspectRatio();
-            camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+            camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
+            // std::cout << "camera coordinate " << " " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
 
+            area.tick(gameObjects, lveDevice, viewerObject.transform.translation);
             // start frame and start swapchain pass are not combined to enable multiple render passes
             if (auto commandBuffer = lveRenderer.beginFrame())
             {
@@ -67,21 +72,20 @@ namespace lve
 
             static bool pWasPressed = false;
             bool pIsPressed = glfwGetMouseButton(lveWindow.getGLFWwindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
-
-            glm::vec3 rot = viewerObject.transform.rotation;
-            glm::vec3 rayDir = {glm::sin(rot.y) * glm::cos(rot.x), -glm::sin(rot.x), glm::cos(rot.y) * glm::cos(rot.x)};
-
-            glm::ivec3 *target = getTargetBlock(viewerObject.transform.translation, rayDir, gameObjects);
-            if (target != nullptr && (pIsPressed && !pWasPressed))
+            if (pWasPressed && !pIsPressed)
+                pWasPressed = false;
+            if (pIsPressed && !pWasPressed)
             {
-                vkDeviceWaitIdle(lveDevice.device());
-                gameObjects.find(*target)->second.model.reset();
-                gameObjects.erase(*target);
-                pWasPressed = pIsPressed;
-            }
-            else
-            {
-                vkDeviceWaitIdle(lveDevice.device());
+                pWasPressed = true;
+                glm::vec3 rot = viewerObject.transform.rotation;
+                glm::vec3 thingie = {glm::cos(rot.x) * glm::sin(rot.y), glm::cos(rot.x), glm::cos(rot.x) * glm::sin(rot.y)};
+                glm::vec3 rayDir = glm::normalize(thingie);
+
+                Ray ray(glm::ivec3(viewerObject.transform.translation), rayDir);
+                glm::ivec3 rayHit = ray.detectBlockHit(4.0f);
+                glm::vec3 chunkPos = glm::ivec3( viewerObject.transform.translation) / glm::ivec3(16,32,16);
+                Area::chunks.find(chunkPos)->second->blocks[rayHit.x][rayHit.y][rayHit.z] = 0;
+                std::cout << "Ray Hit " << rayHit.x << " " << rayHit.y << " " << rayHit.z << '\n';
             }
         }
         vkDeviceWaitIdle(lveDevice.device());
@@ -89,54 +93,9 @@ namespace lve
 
     void FirstApp::loadGameObjects()
     {
-        std::shared_ptr<LveModel> lveModel = LveModel::createModelFromFile(lveDevice, "models/colored_cube.obj");
-
-        auto cube = LveGameObject::createGameObject();
-        cube.model = lveModel;
-        cube.transform.translation = {.0f, .0f, .0f};
-        cube.transform.scale = {1.f, 1.f, 1.f};
-        gameObjects.insert({cube.transform.translation, std::move(cube)});
-
-        auto cube2 = LveGameObject::createGameObject();
-        cube2.model = lveModel;
-        cube2.transform.translation = {1.0f, .0f, .0f};
-        cube2.transform.scale = {1.f, 1.f, 1.f};
-        gameObjects.insert({cube2.transform.translation, std::move(cube2)});
-
-        auto cube3 = LveGameObject::createGameObject();
-        cube3.model = lveModel;
-        cube3.transform.translation = {2.0f, .0f, .0f};
-        cube3.transform.scale = {1.f, 1.f, 1.f};
-        gameObjects.insert({cube3.transform.translation, std::move(cube3)});
-
-        auto cube4 = LveGameObject::createGameObject();
-        cube4.model = lveModel;
-        cube4.transform.translation = {3.0f, .0f, .0f};
-        cube4.transform.scale = {1.f, 1.f, 1.f};
-        gameObjects.insert({cube4.transform.translation, std::move(cube4)});
-    }
-
-    glm::ivec3 *FirstApp::getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects)
-    {
-        const float REACH = 5.0f;
-        const float STEP = 0.1f;
-
-        glm::vec3 rayDir = glm::normalize(rayDirection);
-        float dist = 0.0f;
-
-        while (dist < REACH)
-        {
-            glm::vec3 point = rayOrigin + rayDir * dist;
-            glm::ivec3 coord = glm::ivec3(glm::floor(point));
-
-            auto it = gameObjects.find(coord);
-            if (it != gameObjects.end())
-            {
-                return const_cast<glm::ivec3 *>(&it->first);
-            }
-
-            dist += STEP;
-        }
-        return nullptr;
+        // LveGameObject chunk = Chunk::createChunk();
+        // std::cout << "load game objects" << '\n';
+        area = Area(gameObjects, lveDevice, glm::vec3(0, 0, 0));
+        // chunk::createChunk(&gameObjects, lveDevice);
     }
 }

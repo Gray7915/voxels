@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lve_game_object.hpp"
-#include "lve_window.hpp"
+#include "../lve_game_object.hpp"
+#include "../lve_window.hpp"
 
 namespace lve
 {
@@ -25,7 +25,7 @@ namespace lve
         void moveInPlaneXZ(GLFWwindow *window, float dt, LveGameObject &gameObject);
 
         KeyMappings keys{};
-        float moveSpeed{3.f};
+        float moveSpeed{18.f};
         float lookSpeed{1.5f};
         float mouseSensitivity{0.02f};
 

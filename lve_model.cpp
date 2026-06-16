@@ -5,7 +5,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include "lve_util.hpp"
 
 #include <cassert>
 #include <cstring>
@@ -15,9 +14,9 @@
 namespace std
 {
     template <>
-    struct hash<lve::LveModel::Vertex>
+    struct hash<lve::Vertex>
     {
-        size_t operator()(lve::LveModel::Vertex const &vertex) const
+        size_t operator()(lve::Vertex const &vertex) const
         {
             size_t seed = 0;
             lve::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
@@ -52,6 +51,17 @@ namespace lve
         Builder builder{};
         builder.loadModel(filepath);
         std::cout << "vertex count: " << builder.vertices.size() << '\n';
+        return std::make_unique<LveModel>(device, builder);
+    }
+
+    std::unique_ptr<LveModel> LveModel::createChunkModel(LveDevice &device, std::vector<Vertex> vertices, std::vector<uint32_t> indices){
+        Builder builder{};
+        for(Vertex vertex : vertices){
+            builder.vertices.push_back(vertex);
+        }
+        for(uint32_t indicie : indices){
+            builder.indices.push_back(indicie);
+        }
         return std::make_unique<LveModel>(device, builder);
     }
 
@@ -153,7 +163,7 @@ namespace lve
         }
     }
 
-    std::vector<VkVertexInputBindingDescription> LveModel::Vertex::getBindingDescriptions()
+    std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescriptions()
     {
         std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
         bindingDescriptions[0].binding = 0;
@@ -162,7 +172,7 @@ namespace lve
         return bindingDescriptions;
     }
 
-    std::vector<VkVertexInputAttributeDescription> LveModel::Vertex::getAttributeDescriptions()
+    std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescriptions()
     {
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 

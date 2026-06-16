@@ -1,7 +1,0 @@
-namespace lve
-{
-    class chunk
-    {
-        
-    };
-}

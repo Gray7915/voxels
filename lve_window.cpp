@@ -1,5 +1,5 @@
 #include "lve_window.hpp"
-#include "keyboard_movement_controller.hpp"
+#include "Input/keyboard_movement_controller.hpp"
 #include <stdexcept>
 namespace lve
 {

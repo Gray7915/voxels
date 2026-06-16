@@ -135,7 +135,7 @@ namespace lve
         renderPassInfo.renderArea.extent = lveSwapChain->getSwapChainExtent();
 
         std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {0.01f, 0.01f, 0.01f, 0.1f}; // index zero is color attatchment
+        clearValues[0].color = {0.4f, 0.7f, 1.0f, 1.0f}; // index zero is color attatchment
         clearValues[1].depthStencil = {1.0f, 0};            // index one is the depth attatchment
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();

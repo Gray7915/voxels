@@ -8,7 +8,7 @@ fragObjFiles = $(patsubst %.frag, %.frag.spv, $(fragSources))
 
 
 VulkanTest: *.cpp *.hpp
-	g++ $(CFLAGS) -o VulkanTest *.cpp $(LDFLAGS)
+	g++ $(CFLAGS) -o VulkanTest *.cpp World/*.cpp Input/*.cpp Util/*.cpp $(LDFLAGS)
 
 %.spv: %
 	${GLSLC} $< -o $@

@@ -73,7 +73,7 @@ namespace lve
 
                 vertex.position = glm::vec3(pos) + CUBE_VERTICES[cubeVertex];
                 vertex.normal = CUBE_NORMALS[face];
-                vertex.uv = CUBE_UVS[vert];
+                vertex.uv = getAtlasUV(face, CUBE_UVS[vert]);
                 vertex.color = {1, 1, 1};
                 vertices.push_back(vertex);
             }
@@ -114,5 +114,31 @@ namespace lve
         firstChunk.transform.translation = offset;
         firstChunk.transform.scale = {1.f, 1.f, 1.f};
         return firstChunk;
+    }
+
+    glm::vec2 ChunkRenderer::getAtlasUV(int face, glm::vec2 uv)
+    {
+        float tileHeight = 1.0f / 3.0f;
+
+        float offsetY = 0.0f;
+
+        switch (face)
+        {
+        case 4: 
+            offsetY = 2.0f * tileHeight;
+            break;
+
+        case 5:
+            offsetY = 0.0f;
+            break;
+
+        default: 
+            offsetY = 1.0f * tileHeight;
+            break;
+        }
+
+        return glm::vec2(
+            uv.x,
+            uv.y * tileHeight + offsetY);
     }
 }

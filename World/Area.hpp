@@ -9,7 +9,7 @@ namespace lve
     class Area
     {
     public:
-        static const int MinMaxOffset = 1;
+        static const int MinMaxOffset = 0;
         Area();
         Area(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice, glm::vec3 offset);
         ~Area();

@@ -19,9 +19,9 @@ namespace lve
 
             this->origin = origin;
             this->direction = direction;
-            
+
             std::cout << "Ray origin " << origin.x << " " << origin.y << " " << origin.z << '\n';
-            std::cout << "Ray direction " << direction.x << " " << direction.y << " " << direction.z << '\n';
+            std::cout << "Ray direction (normalized)" << direction.x << " " << direction.y << " " << direction.z << '\n';
 
             glm::ivec3 p, step, d;
             glm::vec3 t_max, t_delta;
@@ -50,10 +50,25 @@ namespace lve
 
             for (int steps = 0; steps < 64; ++steps)
             {
+
                 uint32_t voxel = 0;
-
-                glm::ivec3 chunkPos = pos / glm::ivec3(16, 32, 16);
-
+                std::cout
+                    << "Checking voxel "
+                    << pos.x << " "
+                    << pos.y << " "
+                    << pos.z
+                    << " value=" << voxel
+                    << '\n';
+                glm::ivec3 chunkPos(
+                    std::floor(pos.x / 16.0f),
+                    std::floor(pos.y / 32.0f),
+                    std::floor(pos.z / 16.0f));
+                std::cout
+                    << "Chunk "
+                    << chunkPos.x << " "
+                    << chunkPos.y << " "
+                    << chunkPos.z
+                    << '\n';
                 auto it = Area::chunks.find(chunkPos);
                 if (it != Area::chunks.end() && it->second)
                 {
@@ -70,7 +85,7 @@ namespace lve
                         return origin;
 
                     float tHit = tmax[axis] - delta[axis];
-                    return origin + direction * tHit;
+                    return pos;
                 }
 
                 if (tmax.x < tmax.y)

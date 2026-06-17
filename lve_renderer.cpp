@@ -136,7 +136,7 @@ namespace lve
 
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = {0.4f, 0.7f, 1.0f, 1.0f}; // index zero is color attatchment
-        clearValues[1].depthStencil = {1.0f, 0};            // index one is the depth attatchment
+        clearValues[1].depthStencil = {1.0f, 0};         // index one is the depth attatchment
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
 
@@ -161,35 +161,30 @@ namespace lve
         assert(commandBuffer == getCurrentCommandBuffer() && "Can't end renderpass on command buffer from different frame");
         vkCmdEndRenderPass(commandBuffer);
     }
-
-    void LveRenderer::createTextureImage()
-    {
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        int texWidth, texHeight, texChannels;
-        stbi_uc *pixels = stbi_load("textures/images.jpeg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        VkDeviceSize imageSize = texWidth * texHeight * 4;
-        if (!pixels)
+    /*
+       void LveRenderer::createTextureImage()
         {
-            throw std::runtime_error("failed to load texture image!");
+            VkBuffer stagingBuffer;
+            VkDeviceMemory stagingBufferMemory;
+            int texWidth, texHeight, texChannels;
+            stbi_uc *pixels = stbi_load("textures/images.jpeg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            VkDeviceSize imageSize = texWidth * texHeight * 4;
+            if (!pixels)
+            {
+                throw std::runtime_error("failed to load texture image!");
+            }
+
+            lveDevice.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+            void *data;
+            vkMapMemory(lveDevice.device(), stagingBufferMemory, 0, imageSize, 0, &data);
+            memcpy(data, pixels, static_cast<size_t>(imageSize));
+            vkUnmapMemory(lveDevice.device(), stagingBufferMemory);
+            stbi_image_free(pixels);
+
+            lveDevice::createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
         }
-
-        lveDevice.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-        void *data;
-        vkMapMemory(lveDevice.device(), stagingBufferMemory, 0, imageSize, 0, &data);
-        memcpy(data, pixels, static_cast<size_t>(imageSize));
-        vkUnmapMemory(lveDevice.device(), stagingBufferMemory);
-        stbi_image_free(pixels);
-
-        VkImageCreateInfo imageInfo{};
-        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageInfo.extent.width = static_cast<uint32_t>(texWidth);
-        imageInfo.extent.height = static_cast<uint32_t>(texHeight);
-        imageInfo.extent.depth = 1;
-        imageInfo.mipLevels = 1;
-        imageInfo.arrayLayers = 1;
-        imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
-    }
+    */
 }

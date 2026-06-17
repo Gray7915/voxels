@@ -6,6 +6,8 @@
 #include "lve_model.hpp"
 #include "lve_game_object.hpp"
 #include "IVec3Hash.h"
+#include "lve_frame_info.hpp"
+
 // std
 #include <memory>
 #include <vector>
@@ -16,17 +18,17 @@ namespace lve
     class SimpleRenderSystem
     {
     public:
-        SimpleRenderSystem(LveDevice &device, VkRenderPass renderPass);
+        SimpleRenderSystem(LveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
         ~SimpleRenderSystem();
 
         SimpleRenderSystem(const SimpleRenderSystem &) = delete;
         SimpleRenderSystem &operator=(const SimpleRenderSystem &) = delete;
 
-        void renderGameObjects(VkCommandBuffer commandBuffer, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, const LveCamera &camera);
+        void renderGameObjects(FrameInfo &frameInfo, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects);
         void renderChunk(VkCommandBuffer commandBuffer, std::vector<glm::ivec3>, const LveCamera &camera);
 
     private:
-        void createPipelineLayout();
+        void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
         void createPipeline(VkRenderPass renderPass);
         void createDescriptorSetLayout();
         void createDescriptorSet();

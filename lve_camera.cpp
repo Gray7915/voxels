@@ -79,5 +79,4 @@ namespace lve
         viewMatrix[3][1] = -glm::dot(v, position);
         viewMatrix[3][2] = -glm::dot(w, position);
     }
-
 }

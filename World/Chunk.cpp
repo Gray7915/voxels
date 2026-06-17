@@ -15,6 +15,7 @@ namespace lve
 
     void Chunk::createChunk(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice, glm::vec3 offset)
     {
+        
         for (int x = 0; x < width; x++)
             for (int z = 0; z < width; z++)
             {
@@ -25,7 +26,7 @@ namespace lve
                 heightValue = (heightValue + 1.0f) * 0.5f;
 
                 int surfaceHeight = (int)(heightValue * (height - 1));
-                               
+
                 for (int y = 0; y < height; y++)
                 {
                     if (y < surfaceHeight)
@@ -35,8 +36,13 @@ namespace lve
                 }
             }
 
+        //blocks[8][16][8] = 1;
         auto obj = ChunkRenderer::mesh(this->blocks, lveDevice, offset);
 
-        gameObjects.insert({obj.transform.translation, std::move(obj)});
+        gameObjects.insert({offset, std::move(obj)});
+    }
+
+    void buildMesh(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice)
+    {
     }
 }

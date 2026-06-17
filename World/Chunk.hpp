@@ -25,5 +25,7 @@ namespace lve
 
         int blocks[16][32][16];
         void createChunk(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice, glm::vec3 offset);
+        void buildMesh(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice);
+        std::shared_ptr<LveModel> model{};
     };
 }

@@ -57,8 +57,6 @@ namespace lve
     void createRenderPass();
     void createFramebuffers();
     void createSyncObjects();
-    
-    VkImageView createImageView(VkImage image, VkFormat format);
     // Helper functions
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(
         const std::vector<VkSurfaceFormatKHR> &availableFormats);

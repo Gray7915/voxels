@@ -8,7 +8,8 @@
 #include <unordered_map>
 #include "IVec3Hash.h"
 #include "World/Area.hpp"
-
+#include "lve_descriptors.hpp"
+#include "lve_Texture.hpp"
 // std
 #include <memory>
 #include <vector>
@@ -20,6 +21,7 @@ namespace lve
     public:
         static constexpr int WIDTH = 800;
         static constexpr int HEIGHT = 600;
+        std::unique_ptr<LveTexture> texture;
 
         FirstApp();
         ~FirstApp();
@@ -40,6 +42,7 @@ namespace lve
         LveRenderer lveRenderer{lveWindow, lveDevice};
         // std::vector<LveGameObject> gameObjects;
         // std::unordered_map<glm::vec3, LveGameObject> gameObjects;
+        std::unique_ptr<LveDescriptorPool> globalPool{};
         std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> gameObjects;
         Area area;
     };

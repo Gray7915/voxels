@@ -1,0 +1,26 @@
+# Local machine config
+.env.cmake
+
+# CMake output
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.a
+
+# IDE files
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+build.ps1
+build.sh

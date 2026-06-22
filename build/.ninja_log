@@ -1,0 +1,23 @@
+# ninja log v5
+2	742	1782169799398834493	CMakeFiles/voxels.dir/src/simple_render_system.cpp.o	a9bcb5254a8932e9
+2	757	1782169104787473110	CMakeFiles/voxels.dir/src/lve_buffer.cpp.o	257d77c59c30676e
+2	2294	1782169800928863863	CMakeFiles/voxels.dir/src/lve_model.cpp.o	91058ecd35eba359
+2294	2437	1782169801095867067	voxels	d843ffc9f214c72f
+3	1419	1782169105455495843	CMakeFiles/voxels.dir/src/lve_game_object.cpp.o	6b1496225bcdf6b7
+759	2320	1782169106355526447	CMakeFiles/voxels.dir/src/lve_renderer.cpp.o	6d3c23986d8f0747
+2	1853	1782169105886510506	CMakeFiles/voxels.dir/src/World/ChunkRenderer.cpp.o	39c45b64afd83aa7
+774	1851	1782169105887510540	CMakeFiles/voxels.dir/src/lve_swap_chain.cpp.o	68aafc41a3e81f86
+2	774	1782169104812473961	CMakeFiles/voxels.dir/src/lve_camera.cpp.o	dc61ca56c0c07e52
+2	1021	1782169105047481963	CMakeFiles/voxels.dir/src/lve_Texture.cpp.o	ed4d91327c74befb
+828	2046	1782169106085517272	CMakeFiles/voxels.dir/src/lve_window.cpp.o	f43e1ab87659cea
+1	1760	1782169105792507308	CMakeFiles/voxels.dir/src/World/Area.cpp.o	d5298cbe210c7a7
+1	824	1782169104854475392	CMakeFiles/voxels.dir/src/Util/noise.cpp.o	2e402db9b6b0234
+1022	2262	1782169106299524544	CMakeFiles/voxels.dir/src/main.cpp.o	2bdea929459ef8ee
+2	750	1782169799407834666	CMakeFiles/voxels.dir/src/lve_pipeline.cpp.o	ba49b618603017ae
+1	1594	1782169105626501661	CMakeFiles/voxels.dir/src/Input/keyboard_movement_controller.cpp.o	cc23dcaf7234ea21
+2	1512	1782169105535498565	CMakeFiles/voxels.dir/src/lve_descriptors.cpp.o	c72e18945336ce96
+1	1680	1782169105712504586	CMakeFiles/voxels.dir/src/World/Chunk.cpp.o	53429a6d5fd92108
+3	1544	1782169105575499926	CMakeFiles/voxels.dir/src/lve_device.cpp.o	99d77235c2fa46e9
+2	1022	1782169799676839831	CMakeFiles/voxels.dir/src/first_app.cpp.o	f7295e8db8ef6066
+1	66	1782170255277796527	/home/patrick/Documents/Projects/voxels/shaders/simple_shader.frag.spv	fad1a0e295f81d3f
+1	68	1782170255279796559	/home/patrick/Documents/Projects/voxels/shaders/simple_shader.vert.spv	8408c30dd3e839ba

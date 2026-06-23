@@ -15,7 +15,6 @@ namespace lve
     {
         glm::mat4 modelMatrix{1.f};
         glm::mat4 normalMatrix{1.f};
-        glm::ivec4 lookingAt;
     };
 
     SimpleRenderSystem::SimpleRenderSystem(LveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : lveDevice{device}
@@ -84,7 +83,6 @@ namespace lve
             SimplePushConstantData push{};
             push.modelMatrix = obj.transform.mat4();
             push.normalMatrix = obj.transform.normalMatrix();
-            push.lookingAt = hoveredBlockPos;
             vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
                                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                0, sizeof(SimplePushConstantData), &push);

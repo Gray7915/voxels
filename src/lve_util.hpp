@@ -18,7 +18,6 @@ namespace lve
     glm::vec3 color;
     glm::vec3 normal{};
     glm::vec2 uv{};
-    glm::ivec3 blockPos;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
     static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();

@@ -4,7 +4,6 @@ layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec3 fragWorldPos;
 layout(location = 2) in vec3 fragNormal;
 layout(location = 3) in vec2 fragUV;
-layout(location = 4) flat in ivec3 blockPos;
 
 layout(set = 0, binding = 1) uniform sampler2D texSampler;
 
@@ -20,7 +19,6 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 layout(push_constant) uniform Push {
     mat4 modelMatrix;
     mat4 normalMatrix;
-    ivec4 lookingAt;
 } push;
 
 void main()
@@ -33,7 +31,6 @@ void main()
     vec3 diffuseLight = lightColor * max(dot(normalize(fragNormal), normalize(directionToLight)), 0);
 
     vec4 texColor = texture(texSampler, fragUV);
-    vec3 highlightColor = vec3(0.9, 0.8, 0.8);
     
     outColor = texColor * vec4(fragColor, 1.0);
 }

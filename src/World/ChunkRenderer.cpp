@@ -76,7 +76,6 @@ namespace lve
                 vertex.color = {1, 1, 1};
                 glm::ivec3 chunkOrigin = glm::ivec3(worldOffset) * glm::ivec3(16, 32, 16);
 
-                vertex.blockPos = pos + chunkOrigin;
                 vertices.push_back(vertex);
             }
 

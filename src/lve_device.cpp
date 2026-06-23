@@ -175,7 +175,8 @@ namespace lve
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
-
+    deviceFeatures.wideLines = VK_TRUE;
+    
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
@@ -186,6 +187,7 @@ namespace lve
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
+    
     // might not really be necessary anymore because device specific validation layers
     // have been deprecated
     if (enableValidationLayers)

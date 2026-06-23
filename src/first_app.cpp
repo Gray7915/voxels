@@ -8,6 +8,7 @@
 #include "Util/ray.hpp"
 #include "World/ChunkRenderer.hpp"
 #include "lve_buffer.hpp"
+#include "highlight_render_system.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -26,11 +27,10 @@ namespace lve
     struct GlobalUbo
     {
         glm::mat4 projectionView{1.f};
-        //glm::vec3 lightDirection = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+        // glm::vec3 lightDirection = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
         glm::vec4 ambientLightColor{1.f, 1.f, 1.f, 0.02f};
         glm::vec3 lightPosition{-1.f};
-        alignas(16) glm::vec4 lightColor{1.f}; //w is for light intensity
-
+        alignas(16) glm::vec4 lightColor{1.f}; // w is for light intensity
     };
 
     FirstApp::FirstApp() : area(gameObjects, lveDevice, glm::vec3(0, 0, 0)), hoveredID(glm::ivec4(0, 0, 0, 0))
@@ -84,6 +84,7 @@ namespace lve
         }
 
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         LveCamera camera{};
         // camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
@@ -121,7 +122,7 @@ namespace lve
             glm::vec3 up = glm::cross(forward, right);
 
             glm::vec3 rayDir = glm::normalize(forward);
-            
+
             Ray ray(viewerObject.transform.translation, rayDir);
             glm::ivec3 rayHit = ray.detectBlockHit(4.0f); // worldspace
             glm::ivec3 chunkPos = glm::ivec3(viewerObject.transform.translation) / glm::ivec3(16, 32, 16);
@@ -132,7 +133,7 @@ namespace lve
             }
             else
             {
-                hoveredID = glm::ivec4(rayHit,1);
+                hoveredID = glm::ivec4(rayHit, 1);
             }
             // std::cout << hoveredID.x << " " << hoveredID.y << " " << hoveredID.z << "\n";
             //  area.tick(gameObjects, lveDevice, viewerObject.transform.translation);
@@ -156,6 +157,7 @@ namespace lve
                 // render
                 lveRenderer.beginSwapChainRenderPass(commandBuffer);
                 simpleRenderSystem.renderGameObjects(frameInfo, gameObjects, hoveredID);
+                highlightRenderSystem.render(frameInfo, hoveredID.w != 0, glm::ivec3(hoveredID));
                 lveRenderer.endSwapChainRenderPass(commandBuffer);
                 lveRenderer.endFrame();
             }
@@ -169,8 +171,8 @@ namespace lve
             {
                 pWasPressed = true;
                 std::cout << "Ray Hit " << rayHit.x << " " << rayHit.y << " " << rayHit.z << '\n';
-                //std::cout << "Ray Orgin " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
-                //std::cout << "Ray Direction " << forward.x << " " << forward.y << " " << forward.z << '\n';
+                // std::cout << "Ray Orgin " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
+                // std::cout << "Ray Direction " << forward.x << " " << forward.y << " " << forward.z << '\n';
 
                 Area::chunks.find(chunkPos)->second->blocks[rayHit.x % 16][rayHit.y % 32][rayHit.z % 16] = 0;
                 // std::cout << "array place found" << '\n';

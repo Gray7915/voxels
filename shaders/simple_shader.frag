@@ -34,9 +34,6 @@ void main()
 
     vec4 texColor = texture(texSampler, fragUV);
     vec3 highlightColor = vec3(0.9, 0.8, 0.8);
-    if(push.lookingAt.xyz == blockPos){
-       outColor = vec4(mix(texColor.rgb, highlightColor, 0.4), texColor.a);
-    }else{
-        outColor = texColor * vec4(fragColor, 1.0);
-    }
+    
+    outColor = texColor * vec4(fragColor, 1.0);
 }

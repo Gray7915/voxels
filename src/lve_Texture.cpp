@@ -5,6 +5,12 @@
 #include <stb_image.h>
 #include <iostream>
 
+
+
+#ifndef ENGINE_DIR
+#define ENGINE_DIR "../" 
+#endif
+
 namespace lve
 {
     LveTexture::LveTexture(LveDevice &device, const std::string &filepath) : lveDevice(device)
@@ -34,7 +40,7 @@ namespace lve
 
     void LveTexture::createTextureImage()
     {
-        stbi_uc *pixels = stbi_load("/home/patrick/Documents/Projects/voxels/Textures/dirt.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        stbi_uc *pixels = stbi_load("../Textures/dirt.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         imageSize = texWidth * texHeight * 4;
         if (!pixels)
         {

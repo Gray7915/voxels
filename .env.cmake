@@ -1,9 +1,17 @@
-set(GLFW_PATH X:/dev/Libraries/glfw-3.3.4.bin.WIN64)
-set(GLM_PATH X:/dev/Libraries/glm)
-set(VULKAN_SDK_PATH  X:/VulkanSDK/1.2.182.0)
- 
-# Set MINGW_PATH if using mingwBuild.bat and not VisualStudio20XX
-# set(MINGW_PATH "C:/Program Files/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64")
- 
-# Optional set TINYOBJ_PATH to target specific version, otherwise defaults to external/tinyobjloader
-# set(TINYOBJ_PATH X:/dev/Libraries/tinyobjloader)
+# Windows .env.cmake
+
+# MSYS2 UCRT64
+set(MINGW_PATH C:/msys64/ucrt64)
+
+# GLFW
+# contains include/glfw3.h and lib/libglfw3.a
+set(GLFW_PATH C:/msys64/ucrt64)
+
+# GLM
+set(GLM_PATH C:/msys64/ucrt64/include)
+
+# Vulkan SDK
+set(VULKAN_SDK_PATH C:/VulkanSDK/1.2.182.0)
+
+# optional
+# set(TINYOBJ_PATH external/tinyobjloader)

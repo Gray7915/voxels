@@ -1,10 +1,13 @@
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/glm.hpp>
 #include "glm/gtx/norm.hpp"
 #include <iostream>
 #include <functional>
 #include "../World/Area.hpp"
 #include "../Util/math.hpp"
+#include <algorithm>
 
 namespace lve
 {
@@ -108,7 +111,7 @@ namespace lve
                     }
                 }
 
-                if (std::min({tmax.x, tmax.y, tmax.z}) > max_distance)
+                if (std::min(std::min(tmax.x, tmax.y), tmax.z) > max_distance)
                     break;
             }
 

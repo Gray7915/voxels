@@ -1,116 +1,116 @@
 [
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/Input/keyboard_movement_controller.cpp.o -c /home/patrick/Documents/Projects/voxels/src/Input/keyboard_movement_controller.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/Input/keyboard_movement_controller.cpp",
-  "output": "CMakeFiles/voxels.dir/src/Input/keyboard_movement_controller.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\Input\\keyboard_movement_controller.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\Input\\keyboard_movement_controller.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/Input/keyboard_movement_controller.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/Input/keyboard_movement_controller.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/Util/noise.cpp.o -c /home/patrick/Documents/Projects/voxels/src/Util/noise.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/Util/noise.cpp",
-  "output": "CMakeFiles/voxels.dir/src/Util/noise.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\Util\\noise.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\Util\\noise.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/Util/noise.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/Util/noise.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/World/Area.cpp.o -c /home/patrick/Documents/Projects/voxels/src/World/Area.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/World/Area.cpp",
-  "output": "CMakeFiles/voxels.dir/src/World/Area.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\World\\Area.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\World\\Area.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/World/Area.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/World/Area.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/World/Chunk.cpp.o -c /home/patrick/Documents/Projects/voxels/src/World/Chunk.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/World/Chunk.cpp",
-  "output": "CMakeFiles/voxels.dir/src/World/Chunk.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\World\\Chunk.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\World\\Chunk.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/World/Chunk.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/World/Chunk.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/World/ChunkRenderer.cpp.o -c /home/patrick/Documents/Projects/voxels/src/World/ChunkRenderer.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/World/ChunkRenderer.cpp",
-  "output": "CMakeFiles/voxels.dir/src/World/ChunkRenderer.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\World\\ChunkRenderer.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\World\\ChunkRenderer.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/World/ChunkRenderer.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/World/ChunkRenderer.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/first_app.cpp.o -c /home/patrick/Documents/Projects/voxels/src/first_app.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/first_app.cpp",
-  "output": "CMakeFiles/voxels.dir/src/first_app.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\first_app.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\first_app.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/first_app.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/first_app.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_Texture.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_Texture.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_Texture.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_Texture.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_Texture.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_Texture.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_Texture.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_Texture.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_buffer.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_buffer.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_buffer.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_buffer.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_buffer.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_buffer.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_buffer.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_buffer.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_camera.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_camera.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_camera.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_camera.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_camera.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_camera.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_camera.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_camera.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_descriptors.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_descriptors.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_descriptors.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_descriptors.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_descriptors.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_descriptors.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_descriptors.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_descriptors.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_device.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_device.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_device.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_device.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_device.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_device.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_device.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_device.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_game_object.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_game_object.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_game_object.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_game_object.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_game_object.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_game_object.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_game_object.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_game_object.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_model.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_model.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_model.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_model.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_model.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_model.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_model.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_model.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_pipeline.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_pipeline.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_pipeline.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_pipeline.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_pipeline.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_pipeline.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_pipeline.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_pipeline.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_renderer.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_renderer.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_renderer.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_renderer.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_renderer.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_renderer.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_renderer.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_renderer.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_swap_chain.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_swap_chain.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_swap_chain.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_swap_chain.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_swap_chain.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_swap_chain.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_swap_chain.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_swap_chain.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/lve_window.cpp.o -c /home/patrick/Documents/Projects/voxels/src/lve_window.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/lve_window.cpp",
-  "output": "CMakeFiles/voxels.dir/src/lve_window.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\lve_window.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\lve_window.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/lve_window.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/lve_window.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/main.cpp.o -c /home/patrick/Documents/Projects/voxels/src/main.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/main.cpp",
-  "output": "CMakeFiles/voxels.dir/src/main.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\main.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\main.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/main.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/main.cpp.obj"
 },
 {
-  "directory": "/home/patrick/Documents/Projects/voxels/build",
-  "command": "/usr/bin/clang++ -I/home/patrick/Documents/Projects/voxels/external -I/home/patrick/Documents/Projects/voxels/src -I/home/patrick/Documents/Projects/voxels/external/tinyobjloader -g -o CMakeFiles/voxels.dir/src/simple_render_system.cpp.o -c /home/patrick/Documents/Projects/voxels/src/simple_render_system.cpp",
-  "file": "/home/patrick/Documents/Projects/voxels/src/simple_render_system.cpp",
-  "output": "CMakeFiles/voxels.dir/src/simple_render_system.cpp.o"
+  "directory": "C:/Users/Patrick/Documents/voxels/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -IC:/Users/Patrick/Documents/voxels/external -IC:/Users/Patrick/Documents/voxels/src -IC:/VulkanSDK/1.2.182.0/Include -IC:/Users/Patrick/Documents/voxels/external/tinyobjloader -g -o CMakeFiles\\voxels.dir\\src\\simple_render_system.cpp.obj -c C:\\Users\\Patrick\\Documents\\voxels\\src\\simple_render_system.cpp",
+  "file": "C:/Users/Patrick/Documents/voxels/src/simple_render_system.cpp",
+  "output": "C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir/src/simple_render_system.cpp.obj"
 }
 ]

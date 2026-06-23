@@ -1,4 +1,0 @@
-C:/Users/Patrick/Documents/voxels/build/CMakeFiles/voxels.dir
-C:/Users/Patrick/Documents/voxels/build/CMakeFiles/Shaders.dir
-C:/Users/Patrick/Documents/voxels/build/CMakeFiles/edit_cache.dir
-C:/Users/Patrick/Documents/voxels/build/CMakeFiles/rebuild_cache.dir

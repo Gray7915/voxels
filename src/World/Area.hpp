@@ -23,5 +23,6 @@ namespace lve
         glm::vec3 areaCenter;
         static std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> chunks;
         void tick(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice, glm::vec3 center);
+        static bool isBlockSolid(glm::vec3 worldBlockPos);
     };
 }

@@ -89,6 +89,7 @@ if (WIN32)
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/ECS/Components
     ${PROJECT_SOURCE_DIR}/src/ECS/Systems
+    ${PROJECT_SOURCE_DIR}/src/World
     ${Vulkan_INCLUDE_DIRS}
     ${TINYOBJ_PATH}
     ${GLFW_INCLUDE_DIRS}

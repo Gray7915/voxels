@@ -29,6 +29,8 @@
 #include "ECS/Components/Thrust.hpp"
 #include "ECS/Components/Input.hpp"
 #include "ECS/Components/MovementStats.hpp"
+#include "ECS/Components/ColliderComponent.hpp"
+#include "ECS/Components/AABBComponent.hpp"
 
 namespace lve
 {
@@ -104,9 +106,12 @@ namespace lve
 
         Entity mainCamera = coordinator.CreateEntity();
         coordinator.AddComponent(mainCamera, Transform{.position = {0, 0, 0}});
+        coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, 9.8, 0.0f)});
+        coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, CameraComponent{});
         coordinator.AddComponent(mainCamera, InputComponent{});
         coordinator.AddComponent(mainCamera, MovementStats{});
+        coordinator.AddComponent(mainCamera, AABBComponent{});
         float aspect = lveRenderer.getAspectRatio();
         cameraSystem->Update(aspect);
 
@@ -125,6 +130,15 @@ namespace lve
 
             inputSystem->Update(lveWindow.getGLFWwindow());
             movementSystem->Update(frameTime);
+            physicsSystem->Update(frameTime);
+            collisionSystem->Update(frameTime);
+            auto &camCollision = coordinator.GetComponent<AABBComponent>(mainCamera);
+            auto &camBody = coordinator.GetComponent<RigidBodyComponent>(mainCamera);
+
+            if (camCollision.isTrigger)
+            {
+                camBody.velocity.y = 0;
+            }
             // std::cout << "updated movement and input" << '\n';
 
             aspect = lveRenderer.getAspectRatio();
@@ -156,7 +170,7 @@ namespace lve
 
             if (rayHit == glm::ivec3(-1.0f))
             {
-                hoveredID = glm::ivec4();
+                hoveredID = glm::ivec4(-1.0f);
             }
             else
             {
@@ -194,17 +208,18 @@ namespace lve
             if (pWasPressed && !pIsPressed)
                 pWasPressed = false;
 
-            if (pIsPressed && !pWasPressed)
+            if (pIsPressed && !pWasPressed && rayHit != glm::ivec3(-1.0f))
             {
                 pWasPressed = true;
                 std::cout << "Ray Hit " << rayHit.x << " " << rayHit.y << " " << rayHit.z << '\n';
                 // std::cout << "Ray Orgin " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
                 // std::cout << "Ray Direction " << forward.x << " " << forward.y << " " << forward.z << '\n';
-
-                Area::chunks.find(chunkPos)->second->blocks[rayHit.x % 16][rayHit.y % 32][rayHit.z % 16] = 0;
+                glm::ivec3 blockCoord = WorldToChunkArray(rayHit);
+                glm::ivec3 chunkPosition = WorldToChunkId(rayHit);
+                Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 0;
                 // std::cout << "array place found" << '\n';
                 // gameObjects.find(chunkPos)->second.model.reset();
-                gameObjects.find(chunkPos)->second.model = ChunkRenderer::mesh(Area::chunks.find(chunkPos)->second->blocks, lveDevice, {0, 0, 0}).model;
+                gameObjects.find(chunkPosition)->second.model = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0}).model;
 
                 // std::cout << "chunk changed" << '\n';
 
@@ -231,6 +246,7 @@ namespace lve
         coordinator.RegisterComponent<CameraComponent>();
         coordinator.RegisterComponent<InputComponent>();
         coordinator.RegisterComponent<MovementStats>();
+        coordinator.RegisterComponent<AABBComponent>();
 
         physicsSystem = coordinator.RegisterSystem<PhysicsSystem>();
         {
@@ -265,8 +281,14 @@ namespace lve
             signature.set(coordinator.GetComponentType<MovementStats>());
             coordinator.SetSystemSignature<MovementSystem>(signature);
         }
-        std::cout << "cameraSystem: " << cameraSystem.get() << "\n";
-        std::cout << "inputSystem: " << inputSystem.get() << "\n";
-        std::cout << "movementSystem: " << movementSystem.get() << "\n";
+
+        collisionSystem = coordinator.RegisterSystem<CollisionSystem>();
+        {
+            Signature signature;
+            signature.set(coordinator.GetComponentType<Transform>());
+            signature.set(coordinator.GetComponentType<AABBComponent>());
+            signature.set(coordinator.GetComponentType<RigidBodyComponent>());
+            coordinator.SetSystemSignature<CollisionSystem>(signature);
+        }
     }
 }

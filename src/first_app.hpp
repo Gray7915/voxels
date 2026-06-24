@@ -10,12 +10,15 @@
 #include "World/Area.hpp"
 #include "lve_descriptors.hpp"
 #include "lve_Texture.hpp"
+
 #include "ECS/Coordinator.hpp"
 #include "ECS/Systems/PhysicsSystem.hpp"
 #include "ECS/Systems/CameraSystem.hpp"
 #include "ECS/Systems/InputSystem.hpp"
 #include "ECS/Systems/MovementSystem.hpp"
+#include "ECS/Systems/CollisionSystem.hpp"
 // std
+
 #include <memory>
 #include <vector>
 
@@ -57,5 +60,6 @@ namespace lve
         std::shared_ptr<PhysicsSystem> physicsSystem;
         std::shared_ptr<InputSystem> inputSystem;
         std::shared_ptr<MovementSystem> movementSystem;
+        std::shared_ptr<CollisionSystem> collisionSystem;
     };
 }

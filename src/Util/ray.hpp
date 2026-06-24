@@ -63,14 +63,7 @@ namespace lve
                     std::floor(pos.y / 32.0f),
                     std::floor(pos.z / 16.0f));
 
-                auto it = Area::chunks.find(chunkPos);
-                if (it != Area::chunks.end() && it->second)
-                {
-                    glm::ivec3 arrayPos = WorldToChunkArray(pos);
-                    voxel = it->second->blocks[arrayPos.x][arrayPos.y][arrayPos.z];
-                }
-
-                if (voxel)
+                if (Area::isBlockSolid(pos))
                 {
                     if (steps == 0)
                         return origin;

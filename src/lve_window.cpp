@@ -1,5 +1,5 @@
 #include "lve_window.hpp"
-#include "Input/keyboard_movement_controller.hpp"
+#include "ECS/Systems/InputSystem.hpp"
 #include <stdexcept>
 namespace lve
 {
@@ -23,7 +23,7 @@ namespace lve
         window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, frameBufferResizeCallback);
-        glfwSetCursorPosCallback(window, KeyboardMovementController::mouse_callback);
+        glfwSetCursorPosCallback(window, InputSystem::mouse_callback);
 
         if (glfwRawMouseMotionSupported())
         {

@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <array>
 #include <glm/ext/matrix_transform.hpp>
+#include <iostream>
 
 namespace lve
 {
@@ -63,8 +64,10 @@ namespace lve
         pipelineConfig.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
         pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
         pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE; // don't occlude things behind it... (see note below)
+        pipelineConfig.depthStencilInfo.depthTestEnable = VK_TRUE;
+        pipelineConfig.depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
         // depthTestEnable stays VK_TRUE so terrain in front still occludes the highlight
-        pipelineConfig.rasterizationInfo.lineWidth = 1.50f;
+        pipelineConfig.rasterizationInfo.lineWidth = 2.0f;
 
         lvePipeline = std::make_unique<LvePipeline>(
             lveDevice,
@@ -73,10 +76,11 @@ namespace lve
             pipelineConfig);
     }
 
-    void HighlightRenderSystem::render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos)
+    void HighlightRenderSystem::render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos, glm::vec3 direction)
     {
         if (!hasHit)
             return;
+        std::cout << "Ray hit in render " <<direction.x << " " << direction.y << " " << direction.z << '\n';
 
         lvePipeline->bind(frameInfo.commandBuffer);
         vkCmdBindDescriptorSets(
@@ -87,7 +91,7 @@ namespace lve
             0, nullptr);
 
         HighlightPushConstantData push{};
-        float inflate = 0.001f;
+        float inflate = 0.0001f;
         glm::vec3 origin = glm::vec3(blockPos) - glm::vec3(inflate);
         glm::vec3 size = glm::vec3(1.f + 2.f * inflate);
         push.modelMatrix = glm::translate(glm::mat4(1.f), origin) * glm::scale(glm::mat4(1.f), size);
@@ -96,7 +100,7 @@ namespace lve
                            VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(HighlightPushConstantData), &push);
 
         cubeModel->bind(frameInfo.commandBuffer);
-        cubeModel->draw(frameInfo.commandBuffer); // draws 24 vertices as LINE_LIST
+        cubeModel->draw(frameInfo.commandBuffer);
     }
 
 }

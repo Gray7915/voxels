@@ -76,6 +76,7 @@ namespace lve
             &frameInfo.globalDescriptorSet,
             0,
             nullptr);
+            std::cout << " game objects size " << gameObjects.size() << '\n';
 
         for (auto &[key, obj] : gameObjects)
         {

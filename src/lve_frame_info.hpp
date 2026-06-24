@@ -1,7 +1,5 @@
 #pragma once
 
-#include "lve_camera.hpp"
-
 #include <vulkan/vulkan.h>
 
 namespace lve{
@@ -9,7 +7,6 @@ namespace lve{
         int frameIndex;
         float frameTime;
         VkCommandBuffer commandBuffer;
-        LveCamera &camera;
         VkDescriptorSet globalDescriptorSet;
     };
 }

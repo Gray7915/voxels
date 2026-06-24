@@ -20,7 +20,7 @@ namespace lve
         HighlightRenderSystem &operator=(const HighlightRenderSystem &) = delete;
 
         // call every frame; hasHit=false skips drawing entirely
-        void render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos);
+        void render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos, glm::vec3 direction);
 
     private:
         void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);

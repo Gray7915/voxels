@@ -10,6 +10,11 @@
 #include "World/Area.hpp"
 #include "lve_descriptors.hpp"
 #include "lve_Texture.hpp"
+#include "ECS/Coordinator.hpp"
+#include "ECS/Systems/PhysicsSystem.hpp"
+#include "ECS/Systems/CameraSystem.hpp"
+#include "ECS/Systems/InputSystem.hpp"
+#include "ECS/Systems/MovementSystem.hpp"
 // std
 #include <memory>
 #include <vector>
@@ -22,7 +27,6 @@ namespace lve
         static constexpr int WIDTH = 800;
         static constexpr int HEIGHT = 600;
         std::unique_ptr<LveTexture> texture;
-
 
         FirstApp();
         ~FirstApp();
@@ -37,6 +41,7 @@ namespace lve
         void createPipelineLayout();
         void createPipeline();
         void renderGameObjects(VkCommandBuffer commandBuffer);
+        void registerECSComponents();
         bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
         LveWindow lveWindow{WIDTH, HEIGHT, "Hello Vulkan"};
         LveDevice lveDevice{lveWindow};
@@ -47,5 +52,10 @@ namespace lve
         std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> gameObjects;
         Area area;
         glm::ivec4 hoveredID;
+
+        std::shared_ptr<CameraSystem> cameraSystem;
+        std::shared_ptr<PhysicsSystem> physicsSystem;
+        std::shared_ptr<InputSystem> inputSystem;
+        std::shared_ptr<MovementSystem> movementSystem;
     };
 }

@@ -87,6 +87,8 @@ if (WIN32)
  
   target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/ECS/Components
+    ${PROJECT_SOURCE_DIR}/src/ECS/Systems
     ${Vulkan_INCLUDE_DIRS}
     ${TINYOBJ_PATH}
     ${GLFW_INCLUDE_DIRS}

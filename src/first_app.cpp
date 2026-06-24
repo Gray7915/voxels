@@ -1,7 +1,6 @@
 #include "first_app.hpp"
 #include "simple_render_system.hpp"
-#include "lve_camera.hpp"
-#include "Input/keyboard_movement_controller.hpp"
+// #include "Input/keyboard_movement_controller.hpp"
 #include "IVec3Hash.h"
 #include "World/cube.hpp"
 #include "World/Chunk.hpp"
@@ -9,6 +8,7 @@
 #include "World/ChunkRenderer.hpp"
 #include "lve_buffer.hpp"
 #include "highlight_render_system.hpp"
+#include "ECS/Coordinator.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -22,8 +22,18 @@
 #include <algorithm>
 #include <optional>
 
+#include "ECS/Components/Gravity.hpp"
+#include "ECS/Components/Camera.hpp"
+#include "ECS/Components/RigidBody.hpp"
+#include "ECS/Components/Transform.hpp"
+#include "ECS/Components/Thrust.hpp"
+#include "ECS/Components/Input.hpp"
+#include "ECS/Components/MovementStats.hpp"
+
 namespace lve
 {
+    Coordinator coordinator;
+
     struct GlobalUbo
     {
         glm::mat4 projectionView{1.f};
@@ -48,6 +58,11 @@ namespace lve
 
     void FirstApp::run()
     {
+        coordinator.Init();
+        // std::cout << "got past init" << '\n';
+        registerECSComponents();
+        // std::cout << "got past componnet register" << '\n';
+
         texture = std::make_unique<LveTexture>(lveDevice, "/home/patrick/Documents/Projects/voxels/Textures/images.jpeg");
         std::vector<std::unique_ptr<LveBuffer>> uboBuffers(LveSwapChain::MAX_FRAMES_IN_FLIGHT);
         for (int i = 0; i < uboBuffers.size(); i++)
@@ -85,33 +100,45 @@ namespace lve
 
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
-        LveCamera camera{};
-        // camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
+        // std::cout << "got to render system creation" << '\n';
 
-        auto viewerObject = LveGameObject::createGameObject();
-        KeyboardMovementController cameraController{};
-        KeyboardMovementController::instance = &cameraController;
+        Entity mainCamera = coordinator.CreateEntity();
+        coordinator.AddComponent(mainCamera, Transform{.position = {0, 0, 0}});
+        coordinator.AddComponent(mainCamera, CameraComponent{});
+        coordinator.AddComponent(mainCamera, InputComponent{});
+        coordinator.AddComponent(mainCamera, MovementStats{});
+        float aspect = lveRenderer.getAspectRatio();
+        cameraSystem->Update(aspect);
 
         auto currentTime = std::chrono::high_resolution_clock::now();
-
-        viewerObject.transform.translation.y = -4;
-
+        // std::cout << "got to while loop" << '\n';
+        assert(lveWindow.getGLFWwindow() != nullptr && "window null)");
         while (!lveWindow.shouldClose())
         {
             glfwPollEvents();
+            // std::cout << "polled glfw" << '\n';
 
             auto newTime = std::chrono::high_resolution_clock::now();
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
+            // std::cout << "got to timesetting" << '\n';
 
-            cameraController.moveInPlaneXZ(lveWindow.getGLFWwindow(), frameTime, viewerObject);
-            camera.setViewYXZ((viewerObject.transform.translation), viewerObject.transform.rotation);
+            inputSystem->Update(lveWindow.getGLFWwindow());
+            movementSystem->Update(frameTime);
+            // std::cout << "updated movement and input" << '\n';
+
+            aspect = lveRenderer.getAspectRatio();
+            cameraSystem->Update(aspect);
+
+            auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
 
             float aspect = lveRenderer.getAspectRatio();
-            camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
-            // std::cout << "camera coordinate " << " " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
 
-            glm::vec3 rot = viewerObject.transform.rotation;
+            auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
+            // std::cout << "got to getting camera transform" << '\n';
+            std::cout << "camera coordinate " << " " << camTransform.position.x << " " << camTransform.position.y << " " << camTransform.position.z << '\n';
+
+            glm::vec3 rot = camTransform.rotation;
             glm::vec3 forward = {
                 cos(rot.x) * sin(rot.y),
                 -sin(rot.x),
@@ -123,9 +150,9 @@ namespace lve
 
             glm::vec3 rayDir = glm::normalize(forward);
 
-            Ray ray(viewerObject.transform.translation, rayDir);
+            Ray ray(camTransform.position, rayDir);
             glm::ivec3 rayHit = ray.detectBlockHit(4.0f); // worldspace
-            glm::ivec3 chunkPos = glm::ivec3(viewerObject.transform.translation) / glm::ivec3(16, 32, 16);
+            glm::ivec3 chunkPos = glm::ivec3(camTransform.position) / glm::ivec3(16, 32, 16);
 
             if (rayHit == glm::ivec3(-1.0f))
             {
@@ -140,24 +167,24 @@ namespace lve
             //   start frame and start swapchain pass are not combined to enable multiple render passes
             if (auto commandBuffer = lveRenderer.beginFrame())
             {
-
+                // std::cout << "render game thingies" << "\n";
                 int frameIndex = lveRenderer.getFrameIndex();
                 FrameInfo frameInfo{
                     frameIndex,
                     frameTime,
                     commandBuffer,
-                    camera, globaDescriptorSets[frameIndex]};
+                    globaDescriptorSets[frameIndex]};
 
                 // update
                 GlobalUbo ubo{};
-                ubo.projectionView = camera.getProjection() * camera.getView();
+                ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
                 // render
                 lveRenderer.beginSwapChainRenderPass(commandBuffer);
                 simpleRenderSystem.renderGameObjects(frameInfo, gameObjects, hoveredID);
-                highlightRenderSystem.render(frameInfo, hoveredID.w != 0, glm::ivec3(hoveredID));
+                highlightRenderSystem.render(frameInfo, hoveredID.w != 0, glm::ivec3(hoveredID), rayDir);
                 lveRenderer.endSwapChainRenderPass(commandBuffer);
                 lveRenderer.endFrame();
             }
@@ -193,5 +220,53 @@ namespace lve
         // std::cout << "load game objects" << '\n';
         area = Area(gameObjects, lveDevice, glm::vec3(0, 0, 0));
         // chunk::createChunk(&gameObjects, lveDevice);
+    }
+
+    void FirstApp::registerECSComponents()
+    {
+        coordinator.RegisterComponent<GravityComponent>();
+        coordinator.RegisterComponent<RigidBodyComponent>();
+        coordinator.RegisterComponent<ThrustComponent>();
+        coordinator.RegisterComponent<Transform>();
+        coordinator.RegisterComponent<CameraComponent>();
+        coordinator.RegisterComponent<InputComponent>();
+        coordinator.RegisterComponent<MovementStats>();
+
+        physicsSystem = coordinator.RegisterSystem<PhysicsSystem>();
+        {
+            Signature signature;
+            signature.set(coordinator.GetComponentType<GravityComponent>());
+            signature.set(coordinator.GetComponentType<RigidBodyComponent>());
+            signature.set(coordinator.GetComponentType<Transform>());
+            coordinator.SetSystemSignature<PhysicsSystem>(signature);
+        }
+
+        cameraSystem = coordinator.RegisterSystem<CameraSystem>();
+        {
+            Signature signature;
+            signature.set(coordinator.GetComponentType<Transform>());
+            signature.set(coordinator.GetComponentType<CameraComponent>());
+            coordinator.SetSystemSignature<CameraSystem>(signature);
+        }
+
+        inputSystem = coordinator.RegisterSystem<InputSystem>();
+        {
+            Signature signature;
+            signature.set(coordinator.GetComponentType<InputComponent>());
+            coordinator.SetSystemSignature<InputSystem>(signature);
+            InputSystem::instance = inputSystem.get();
+        }
+
+        movementSystem = coordinator.RegisterSystem<MovementSystem>();
+        {
+            Signature signature;
+            signature.set(coordinator.GetComponentType<Transform>());
+            signature.set(coordinator.GetComponentType<InputComponent>());
+            signature.set(coordinator.GetComponentType<MovementStats>());
+            coordinator.SetSystemSignature<MovementSystem>(signature);
+        }
+        std::cout << "cameraSystem: " << cameraSystem.get() << "\n";
+        std::cout << "inputSystem: " << inputSystem.get() << "\n";
+        std::cout << "movementSystem: " << movementSystem.get() << "\n";
     }
 }

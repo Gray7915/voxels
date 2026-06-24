@@ -25,7 +25,7 @@ namespace lve
             this->direction = direction;
 
             // std::cout << "Ray origin " << origin.x << " " << origin.y << " " << origin.z << '\n';
-            // std::cout << "Ray direction (normalized)" << direction.x << " " << direction.y << " " << direction.z << '\n';
+            std::cout << "Ray direction (normalized)" << direction.x << " " << direction.y << " " << direction.z << '\n';
 
             glm::ivec3 p, step, d;
             glm::vec3 t_max, t_delta;

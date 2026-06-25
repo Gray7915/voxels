@@ -107,12 +107,12 @@ namespace lve
         // std::cout << "got to render system creation" << '\n';
 
         Entity mainCamera = coordinator.CreateEntity();
-        coordinator.AddComponent(mainCamera, Transform{.position = {0, 40, 0}});
+        coordinator.AddComponent(mainCamera, Transform{.position = {0, 25, 0}});
         coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, -15, 0.0f)});
         coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, CameraComponent{});
         coordinator.AddComponent(mainCamera, InputComponent{});
-        coordinator.AddComponent(mainCamera, MovementStats{.jumpForce = 5.8, .moveSpeed = 6.5f});
+        coordinator.AddComponent(mainCamera, MovementStats{.moveSpeed = 6.5f, .jumpForce = 5.8});
         coordinator.AddComponent(mainCamera, AABBComponent{.halfExtents = glm::vec3(0.4, 0.8, 0.4)});
 
         float aspect = lveRenderer.getAspectRatio();

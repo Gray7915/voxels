@@ -22,7 +22,7 @@ namespace lve
             // Forces
             auto const &gravity = coordinator.GetComponent<GravityComponent>(entity);
 
-            transform.position += rigidBody.velocity * dt;
+            //transform.position += rigidBody.velocity * dt;
 
             rigidBody.velocity += gravity.force * dt;
         }

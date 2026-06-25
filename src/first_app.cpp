@@ -111,7 +111,7 @@ namespace lve
         coordinator.AddComponent(mainCamera, CameraComponent{});
         coordinator.AddComponent(mainCamera, InputComponent{});
         coordinator.AddComponent(mainCamera, MovementStats{});
-        coordinator.AddComponent(mainCamera, AABBComponent{});
+        coordinator.AddComponent(mainCamera, AABBComponent{.halfExtents = glm::vec3(0.4, 0.8, 0.4)});
         float aspect = lveRenderer.getAspectRatio();
         cameraSystem->Update(aspect);
 
@@ -279,6 +279,7 @@ namespace lve
             signature.set(coordinator.GetComponentType<Transform>());
             signature.set(coordinator.GetComponentType<InputComponent>());
             signature.set(coordinator.GetComponentType<MovementStats>());
+            signature.set(coordinator.GetComponentType<RigidBodyComponent>());
             coordinator.SetSystemSignature<MovementSystem>(signature);
         }
 

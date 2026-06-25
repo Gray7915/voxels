@@ -11,7 +11,9 @@ namespace lve
     {
     public:
         void Update(float dt);
-        bool CheckTerrainOverlap(const Transform &transform, const AABBComponent &aabbComponent, const RigidBodyComponent &ridgidBody);
+        bool CheckTerrainOverlap(const Transform &transform, const AABBComponent &aabbComponent);
         void ResolveAxis(Transform transform, RigidBodyComponent rigidBody, AABBComponent aabb, int axis);
+        float MoveAxis(const Transform &transform, const AABBComponent &aabb, float movement, int axis);
+        glm::vec3 Move(const Transform &transform, const AABBComponent &aabb, glm::vec3 movement);
     };
 }

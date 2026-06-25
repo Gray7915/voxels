@@ -69,12 +69,12 @@ namespace lve
     bool Area::isBlockSolid(glm::vec3 worldBlockPos)
     {
         glm::vec3 chunkId = WorldToChunkId(worldBlockPos);
-        std::cout << "block hit chunk ID " << " " << chunkId.x << " " << chunkId.y << " " << chunkId.z << '\n';
+        //std::cout << "block hit chunk ID " << " " << chunkId.x << " " << chunkId.y << " " << chunkId.z << '\n';
         auto block = chunks.find(chunkId);
         if (block == chunks.end() || !block->second)
             return false;
         glm::ivec3 arrayPos = WorldToChunkArray(worldBlockPos);
-        std::cout << "block hit array " << " " << arrayPos.x << " " << arrayPos.y << " " << arrayPos.z << '\n';
+        //std::cout << "block hit array " << " " << arrayPos.x << " " << arrayPos.y << " " << arrayPos.z << '\n';
         return block->second->blocks[arrayPos.x][arrayPos.y][arrayPos.z] != 0;
     }
 

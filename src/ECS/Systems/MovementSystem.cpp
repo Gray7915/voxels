@@ -1,6 +1,7 @@
 #include "MovementSystem.hpp"
 #include "../Components/Transform.hpp"
 #include "../Components/Input.hpp"
+#include "../Components/RigidBody.hpp"
 #include "ECS/Components/MovementStats.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
@@ -16,6 +17,7 @@ namespace lve
             auto &transform = coordinator.GetComponent<Transform>(entity);
             auto &input = coordinator.GetComponent<InputComponent>(entity);
             auto &moveStats = coordinator.GetComponent<MovementStats>(entity);
+            auto &rigidBody = coordinator.GetComponent<RigidBodyComponent>(entity);
 
             transform.rotation.y += input.mouseDeltaX * moveStats.mouseSensitivity;
             transform.rotation.x -= input.mouseDeltaY * moveStats.mouseSensitivity;
@@ -43,7 +45,19 @@ namespace lve
 
             if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon())
             {
-                transform.position += moveStats.moveSpeed * dt * glm::normalize(moveDir);
+                glm::vec3 horizontalVelocity = moveStats.moveSpeed * glm::normalize(moveDir);
+                rigidBody.velocity.x = horizontalVelocity.x;
+                rigidBody.velocity.z = horizontalVelocity.z;
+            }
+            else
+            {
+                rigidBody.velocity.x = 0.f;
+                rigidBody.velocity.z = 0.f;
+            }
+
+            if (input.jump && rigidBody.isGrounded)
+            {
+                rigidBody.velocity.y = moveStats.jumpForce;
             }
         }
     }

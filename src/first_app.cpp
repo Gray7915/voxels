@@ -8,6 +8,7 @@
 #include "World/ChunkRenderer.hpp"
 #include "lve_buffer.hpp"
 #include "highlight_render_system.hpp"
+#include "ui_render_system.hpp"
 #include "ECS/Coordinator.hpp"
 
 #define GLM_FORCE_RADIANS
@@ -102,16 +103,18 @@ namespace lve
 
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        UiRenderSystem uiRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         // std::cout << "got to render system creation" << '\n';
 
         Entity mainCamera = coordinator.CreateEntity();
-        coordinator.AddComponent(mainCamera, Transform{.position = {0, 0, 0}});
-        coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, 9.8, 0.0f)});
+        coordinator.AddComponent(mainCamera, Transform{.position = {0, 40, 0}});
+        coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, -15, 0.0f)});
         coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, CameraComponent{});
         coordinator.AddComponent(mainCamera, InputComponent{});
-        coordinator.AddComponent(mainCamera, MovementStats{});
+        coordinator.AddComponent(mainCamera, MovementStats{.jumpForce = 5.8, .moveSpeed = 6.5f});
         coordinator.AddComponent(mainCamera, AABBComponent{.halfExtents = glm::vec3(0.4, 0.8, 0.4)});
+
         float aspect = lveRenderer.getAspectRatio();
         cameraSystem->Update(aspect);
 
@@ -150,7 +153,7 @@ namespace lve
 
             auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
             // std::cout << "got to getting camera transform" << '\n';
-            std::cout << "camera coordinate " << " " << camTransform.position.x << " " << camTransform.position.y << " " << camTransform.position.z << '\n';
+            // std::cout << "camera coordinate " << " " << camTransform.position.x << " " << camTransform.position.y << " " << camTransform.position.z << '\n';
 
             glm::vec3 rot = camTransform.rotation;
             glm::vec3 forward = {
@@ -164,7 +167,7 @@ namespace lve
 
             glm::vec3 rayDir = glm::normalize(forward);
 
-            Ray ray(camTransform.position, rayDir);
+            Ray ray((camTransform.position + camera.relativePosition), rayDir);
             glm::ivec3 rayHit = ray.detectBlockHit(4.0f); // worldspace
             glm::ivec3 chunkPos = glm::ivec3(camTransform.position) / glm::ivec3(16, 32, 16);
 
@@ -190,8 +193,9 @@ namespace lve
                     globaDescriptorSets[frameIndex]};
 
                 // update
+                camera.projectionMatrix[1][1] = camera.projectionMatrix[1][1] * -1;
                 GlobalUbo ubo{};
-                ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
+                ubo.projectionView = (camera.projectionMatrix) * camera.viewMatrix;
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
@@ -199,6 +203,7 @@ namespace lve
                 lveRenderer.beginSwapChainRenderPass(commandBuffer);
                 simpleRenderSystem.renderGameObjects(frameInfo, gameObjects, hoveredID);
                 highlightRenderSystem.render(frameInfo, hoveredID.w != 0, glm::ivec3(hoveredID), rayDir);
+                uiRenderSystem.renderUI(frameInfo);
                 lveRenderer.endSwapChainRenderPass(commandBuffer);
                 lveRenderer.endFrame();
             }

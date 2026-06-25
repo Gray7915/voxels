@@ -45,7 +45,7 @@ namespace lve
         glm::vec2(0, 1),
     };
 
-    void ChunkRenderer::emit_tile(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[16][32][16], glm::vec3 worldOffset)
+    void ChunkRenderer::emit_tile(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[16][32][16], glm::vec3 worldOffset, int blockType)
     {
         // std::cout << "start pos " << pos.x << " " << pos.y << " " << pos.z << '\n';
         const auto uv_unit = glm::vec2(1.0f) / glm::vec2(16.0f);
@@ -72,7 +72,7 @@ namespace lve
 
                 vertex.position = glm::vec3(pos) + CUBE_VERTICES[cubeVertex];
                 vertex.normal = CUBE_NORMALS[face];
-                vertex.uv = getAtlasUV(face, CUBE_UVS[vert]);
+                vertex.uv = getAtlasUV(face, CUBE_UVS[vert], blockType);
                 vertex.color = {1, 1, 1};
                 glm::ivec3 chunkOrigin = glm::ivec3(worldOffset) * glm::ivec3(16, 32, 16);
 
@@ -81,7 +81,7 @@ namespace lve
 
             glm::ivec3 blockWorldPosition = pos + (glm::ivec3(worldOffset) * glm::ivec3(16, 32, 16));
 
-            //std::cout << "block pos set " << blockWorldPosition.x << " " << blockWorldPosition.y << " " << blockWorldPosition.z << '\n';
+            // std::cout << "block pos set " << blockWorldPosition.x << " " << blockWorldPosition.y << " " << blockWorldPosition.z << '\n';
 
             for (size_t i : FACE_INDICES)
             {
@@ -108,7 +108,7 @@ namespace lve
                         continue;
 
                     pos.position = glm::vec3(x, y, z) + offset;
-                    emit_tile(vertices, indices, glm::ivec3(x, y, z), blocks, offset);
+                    emit_tile(vertices, indices, glm::ivec3(x, y, z), blocks, offset, blocks[x][y][z]);
                     // vertices.push_back(pos);
                 }
             }
@@ -125,29 +125,32 @@ namespace lve
         return firstChunk;
     }
 
-    glm::vec2 ChunkRenderer::getAtlasUV(int face, glm::vec2 uv)
+    glm::vec2 ChunkRenderer::getAtlasUV(int face, glm::vec2 uv, int blockType)
     {
         float tileHeight = 1.0f / 3.0f;
 
         float offsetY = 0.0f;
 
+        if (blockType == 2)
+        {
+            return glm::vec2(uv.x, uv.y * tileHeight + (2.0f * tileHeight));
+        }
+
         switch (face)
         {
         case 4:
-            offsetY = 2.0f * tileHeight;
+            offsetY = 2.0f * tileHeight; // bottom 16 pixels of texture
             break;
 
         case 5:
-            offsetY = 0.0f;
+            offsetY = 0.0f; // top 16 pixels of texture
             break;
 
         default:
-            offsetY = 1.0f * tileHeight;
+            offsetY = 1.0f * tileHeight; // middle 16 pixels of texture
             break;
         }
 
-        return glm::vec2(
-            uv.x,
-            uv.y * tileHeight + offsetY);
+        return glm::vec2(uv.x, 1.0f - (uv.y * tileHeight + offsetY));
     }
 }

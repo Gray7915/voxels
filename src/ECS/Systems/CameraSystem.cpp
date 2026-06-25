@@ -80,8 +80,9 @@ namespace lve
             auto &transform = coordinator.GetComponent<Transform>(entity);
             auto &camera = coordinator.GetComponent<CameraComponent>(entity);
 
+            glm::vec3 cameraRelativePosition = camera.relativePosition + transform.position;
             SetPerspectiveProjection(camera, camera.fovy, aspect, camera.nearPlane, camera.farPlane);
-            setViewXYZ(camera, transform.position, transform.rotation);
+            setViewXYZ(camera, cameraRelativePosition, transform.rotation);
         }
     }
 }

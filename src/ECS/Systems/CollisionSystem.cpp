@@ -30,7 +30,7 @@ namespace lve
             {
                 if (glm::abs(actualMove[i]) < glm::abs(desiredMove[i]) - 0.0001f)
                 {
-                    if (i == 1 && desiredMove[i] >= 0.f)
+                    if (i == 1 && desiredMove[i] <= 0.f)
                     {
                         rigidBody.isGrounded = true;
                     }

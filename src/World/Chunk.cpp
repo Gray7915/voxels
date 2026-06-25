@@ -29,10 +29,12 @@ namespace lve
 
                 for (int y = 0; y < height; y++)
                 {
-                    if (y < surfaceHeight)
+                    if (y > surfaceHeight)
                         blocks[x][y][z] = 0;
-                    else if (y >= surfaceHeight)
+                    else if (y == surfaceHeight)
                         blocks[x][y][z] = 1;
+                    else if(y < surfaceHeight)
+                        blocks[x][y][z] = 2;
                 }
             }
 

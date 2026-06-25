@@ -17,9 +17,9 @@ namespace lve
             Pass() : vertices(), indices() {};
         };
 
-        static void emit_tile(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[16][32][16], glm::vec3 worldOffset);
+        static void emit_tile(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[16][32][16], glm::vec3 worldOffset, int blockType);
         static LveGameObject mesh(int blocks[16][32][16], LveDevice &lveDevice, glm::vec3 offset);
-        glm::vec2 static getAtlasUV(int face, glm::vec2 uv);
+        glm::vec2 static getAtlasUV(int face, glm::vec2 uv, int blockType);
         static glm::ivec3 getDirection(int i)
         {
             return ((glm::ivec3[]){

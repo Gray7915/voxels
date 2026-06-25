@@ -80,7 +80,7 @@ namespace lve
     {
         if (!hasHit)
             return;
-        std::cout << "Ray hit in render " <<direction.x << " " << direction.y << " " << direction.z << '\n';
+        //std::cout << "Ray hit in render " <<direction.x << " " << direction.y << " " << direction.z << '\n';
 
         lvePipeline->bind(frameInfo.commandBuffer);
         vkCmdBindDescriptorSets(

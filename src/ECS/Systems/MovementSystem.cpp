@@ -20,14 +20,14 @@ namespace lve
             auto &rigidBody = coordinator.GetComponent<RigidBodyComponent>(entity);
 
             transform.rotation.y += input.mouseDeltaX * moveStats.mouseSensitivity;
-            transform.rotation.x -= input.mouseDeltaY * moveStats.mouseSensitivity;
+            transform.rotation.x += input.mouseDeltaY * moveStats.mouseSensitivity;
             transform.rotation.x = glm::clamp(transform.rotation.x, -1.5f, 1.5f);
             transform.rotation.y = glm::mod(transform.rotation.y, glm::two_pi<float>());
 
             float yaw = transform.rotation.y;
             const glm::vec3 forwardDir{sin(yaw), 0.f, cos(yaw)};
             const glm::vec3 rightDir{forwardDir.z, 0.f, -forwardDir.x};
-            const glm::vec3 upDir{0.f, -1.f, 0.f};
+            const glm::vec3 upDir{0.f, 1.f, 0.f};
 
             glm::vec3 moveDir{0.f};
             if (input.moveForward)
@@ -43,11 +43,25 @@ namespace lve
             if (input.moveDown)
                 moveDir -= upDir;
 
-            if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon())
+            if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon() && rigidBody.isGrounded)
             {
                 glm::vec3 horizontalVelocity = moveStats.moveSpeed * glm::normalize(moveDir);
                 rigidBody.velocity.x = horizontalVelocity.x;
                 rigidBody.velocity.z = horizontalVelocity.z;
+            }
+            else if (!rigidBody.isGrounded)
+            {
+                if (glm::length(moveDir) > 0.0f)
+                {
+                    glm::vec3 horizontalVelocity = (moveStats.moveSpeed * 0.4f) * glm::normalize(moveDir);
+                    rigidBody.velocity.x = horizontalVelocity.x;
+                    rigidBody.velocity.z = horizontalVelocity.z;
+                }
+
+                if (rigidBody.velocity.x > 0.02f)
+                    rigidBody.velocity.x = glm::mix(rigidBody.velocity.x, 0.0f, moveStats.drag * dt);
+                if (rigidBody.velocity.z > 0.02f)
+                    rigidBody.velocity.z = glm::mix(rigidBody.velocity.z, 0.0f, moveStats.drag * dt);
             }
             else
             {

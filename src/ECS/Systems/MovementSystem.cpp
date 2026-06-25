@@ -52,16 +52,12 @@ namespace lve
             else if (!rigidBody.isGrounded)
             {
                 if (glm::length(moveDir) > 0.0f)
+
                 {
-                    glm::vec3 horizontalVelocity = (moveStats.moveSpeed * 0.4f) * glm::normalize(moveDir);
+                    glm::vec3 horizontalVelocity = (moveStats.moveSpeed * 0.25f) * glm::normalize(moveDir);
                     rigidBody.velocity.x = horizontalVelocity.x;
                     rigidBody.velocity.z = horizontalVelocity.z;
                 }
-
-                if (rigidBody.velocity.x > 0.02f)
-                    rigidBody.velocity.x = glm::mix(rigidBody.velocity.x, 0.0f, moveStats.drag * dt);
-                if (rigidBody.velocity.z > 0.02f)
-                    rigidBody.velocity.z = glm::mix(rigidBody.velocity.z, 0.0f, moveStats.drag * dt);
             }
             else
             {

@@ -133,7 +133,7 @@ namespace lve
 
         if (blockType == 2)
         {
-            return glm::vec2(uv.x, uv.y * tileHeight + (2.0f * tileHeight));
+            return glm::vec2(uv.x, (1.0f - uv.y) * tileHeight + (2.0f * tileHeight));
         }
 
         switch (face)

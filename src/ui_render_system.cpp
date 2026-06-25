@@ -79,19 +79,19 @@ namespace lve
         LveModel::Builder builder{};
 
         Vertex v0{};
-        v0.position = {-0.1f, -0.1f, 0.0f};
+        v0.position = {-0.015f, -0.01f, 0.0f};
         v0.color = {1.f, 1.f, 1.f};
 
         Vertex v1{};
-        v1.position = {0.1f, -0.1f, 0.0f};
+        v1.position = {0.015f, -0.01f, 0.0f};
         v1.color = {1.f, 1.f, 1.f};
 
         Vertex v2{};
-        v2.position = {0.1f, 0.1f, 0.0f};
+        v2.position = {0.015f, 0.01f, 0.0f};
         v2.color = {1.f, 1.f, 1.f};
 
         Vertex v3{};
-        v3.position = {-0.1f, 0.1f, 0.0f};
+        v3.position = {-0.015f, 0.01f, 0.0f};
         v3.color = {1.f, 1.f, 1.f};
 
         builder.vertices = {

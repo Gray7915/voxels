@@ -110,7 +110,7 @@ namespace lve
         // std::cout << "got to render system creation" << '\n';
 
         Entity mainCamera = coordinator.CreateEntity();
-        coordinator.AddComponent(mainCamera, Transform{.position = {0, 25, 0}});
+        coordinator.AddComponent(mainCamera, Transform{.position = {0, 120, 0}});
         coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, -15, 0.0f)});
         coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, CameraComponent{});
@@ -183,7 +183,7 @@ namespace lve
                 hoveredID = glm::ivec4(rayHit, 1);
             }
             // std::cout << hoveredID.x << " " << hoveredID.y << " " << hoveredID.z << "\n";
-            //  area.tick(gameObjects, lveDevice, viewerObject.transform.translation);
+            //area.tick(lveDevice, camTransform.position);
             //   start frame and start swapchain pass are not combined to enable multiple render passes
             if (auto commandBuffer = lveRenderer.beginFrame())
             {
@@ -204,7 +204,7 @@ namespace lve
 
                 // render
                 lveRenderer.beginSwapChainRenderPass(commandBuffer);
-                std::cout << "before chunk render " << Area::chunks.size() << '\n';
+                //std::cout << "before chunk render " << Area::chunks.size() << '\n';
                 chunkRenderSystem.renderChunks(frameInfo, Area::chunks);
                 // std::cout << "after chunk render" << '\n';
 

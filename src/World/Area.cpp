@@ -23,14 +23,14 @@ namespace lve
                 // std::cout << "chunk coordinate " << " " << chunkCoord.x << " " << chunkCoord.y << " " << chunkCoord.z << '\n';
                 glm::ivec3 worldPos = chunkCoord * glm::ivec3(16, 1, 16);
 
-                //chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
+                // chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
                 new Chunk(lveDevice, worldPos);
             }
         }
         // std::cout << "chunks made " << i << '\n';
     }
 
-    void Area::tick(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice, glm::vec3 center)
+    void Area::tick(LveDevice &lveDevice, glm::vec3 center)
     {
         glm::ivec3 c = glm::ivec3(center) / glm::ivec3(16, 32, 16);
 
@@ -40,6 +40,7 @@ namespace lve
             if (coord.x < c.x - MinMaxOffset || coord.x > c.x + MinMaxOffset ||
                 coord.z < c.z - MinMaxOffset || coord.z > c.z + MinMaxOffset)
             {
+                vkDeviceWaitIdle(lveDevice.device());
                 it = chunks.erase(it);
             }
             else
@@ -60,8 +61,8 @@ namespace lve
                     // std::cout << "creating chunk\n";
                     glm::ivec3 worldPos = chunkCoord * glm::ivec3(16, 32, 16);
                     // std::cout << "chunk world pos " << " " << worldPos.x << " " << worldPos.y << " " << worldPos.z << '\n';
-
-                   // chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
+                    new Chunk(lveDevice, worldPos);
+                    // chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
                 }
             }
         }
@@ -81,7 +82,6 @@ namespace lve
 
     void Area::reMeshChunk(glm::ivec3 chunkPosition)
     {
-    
     }
 
 }

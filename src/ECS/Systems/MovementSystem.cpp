@@ -83,7 +83,7 @@ namespace lve
 
                 if (elapsed < 0.08f)
                 {
-                    moveStats.flying = !moveStats.flying;
+                    moveStats.flying = moveStats.flying;
                     std::cout << "is flying? " << moveStats.flying << '\n';
                 }
 

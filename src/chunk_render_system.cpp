@@ -82,7 +82,7 @@ namespace lve
 
         for (auto &[key, obj] : chunks)
         {
-            std::cout << "key " << obj->transform.translation.x << " " << obj->transform.translation.y << " " << obj->transform.translation.z << '\n';
+            //std::cout << "key " << obj->transform.translation.x << " " << obj->transform.translation.y << " " << obj->transform.translation.z << '\n';
             //  std::cout << "start loop with key " << key.x << " " << key.y << " " << key.z << '\n';
             SimplePushConstantData push{};
             push.modelMatrix = obj->transform.mat4();

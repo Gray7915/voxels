@@ -25,8 +25,6 @@ namespace lve
 
     float Combined::sample(glm::vec2 i) const
     {
-        return n->sample(glm::vec2(
-            i.x + m->sample(i),
-            i.y));
+        return n->sample(glm::vec2(i.x + m->sample(i), i.y));
     }
 }

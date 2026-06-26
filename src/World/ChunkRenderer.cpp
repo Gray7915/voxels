@@ -45,7 +45,7 @@ namespace lve
         glm::vec2(0, 1),
     };
 
-    void ChunkRenderer::emit_tile(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[18][32][18], glm::vec3 worldOffset, int blockType)
+    void ChunkRenderer::emit_tile(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[18][128][18], glm::vec3 worldOffset, int blockType)
     {
         // std::cout << "start pos " << pos.x << " " << pos.y << " " << pos.z << '\n';
         const auto uv_unit = glm::vec2(1.0f) / glm::vec2(16.0f);
@@ -55,7 +55,7 @@ namespace lve
             glm::ivec3 n = pos + getDirection(face);
 
             // std::cout << "pos " << n.x << " " << n.y << " " << n.z << '\n';
-            bool visible = n.x < 0 || n.y < 0 || n.z < 0 || n.x >= 18 || n.y >= 32 || n.z >= 18 || blocks[n.x][n.y][n.z] == 0;
+            bool visible = n.x < 0 || n.y < 0 || n.z < 0 || n.x >= 18 || n.y >= 128 || n.z >= 18 || blocks[n.x][n.y][n.z] == 0;
 
             if (!visible)
                 continue;
@@ -71,12 +71,12 @@ namespace lve
                 vertex.normal = CUBE_NORMALS[face];
                 vertex.uv = getAtlasUV(face, CUBE_UVS[vert], blockType);
                 vertex.color = {1, 1, 1};
-                glm::ivec3 chunkOrigin = glm::ivec3(worldOffset) * glm::ivec3(16, 32, 16);
+                glm::ivec3 chunkOrigin = glm::ivec3(worldOffset) * glm::ivec3(16, 128, 16);
 
                 vertices.push_back(vertex);
             }
 
-            glm::ivec3 blockWorldPosition = pos + (glm::ivec3(worldOffset) * glm::ivec3(16, 32, 16));
+            glm::ivec3 blockWorldPosition = pos + (glm::ivec3(worldOffset) * glm::ivec3(16, 128, 16));
 
             // std::cout << "block pos set " << blockWorldPosition.x << " " << blockWorldPosition.y << " " << blockWorldPosition.z << '\n';
 
@@ -88,7 +88,7 @@ namespace lve
         // std::cout << "finished block" << '\n';
     }
 
-    std::unique_ptr<lve::LveModel, std::default_delete<lve::LveModel>> ChunkRenderer::mesh(int blocks[18][32][18], LveDevice &lveDevice, glm::vec3 offset)
+    std::unique_ptr<lve::LveModel, std::default_delete<lve::LveModel>> ChunkRenderer::mesh(int blocks[18][128][18], LveDevice &lveDevice, glm::vec3 offset)
     {
 
         std::vector<Vertex> vertices;

@@ -11,7 +11,7 @@ struct MovementStats
 
     float groundFriction = 0.6f;       
     float airFriction = 0.93f;         
-    float groundAcceleration = 100.0f; 
+    float groundAcceleration = 170.0f; 
     float airAcceleration = 4.0f;      
     float jumpForce = 8.f;
 

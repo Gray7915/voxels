@@ -3,6 +3,7 @@
 #include "../Components/RigidBody.hpp"
 #include "../Components/Thrust.hpp"
 #include "../Components/Transform.hpp"
+#include "../Components/MovementStats.hpp"
 
 namespace lve
 {
@@ -18,13 +19,16 @@ namespace lve
         {
             auto &rigidBody = coordinator.GetComponent<RigidBodyComponent>(entity);
             auto &transform = coordinator.GetComponent<Transform>(entity);
+            auto &moveStats = coordinator.GetComponent<MovementStats>(entity);
 
             // Forces
             auto const &gravity = coordinator.GetComponent<GravityComponent>(entity);
 
-            //transform.position += rigidBody.velocity * dt;
-
-            rigidBody.velocity += gravity.force * dt;
+            // transform.position += rigidBody.velocity * dt;
+            if (!moveStats.flying)
+            {
+                rigidBody.velocity += gravity.force * dt;
+            }
         }
     }
 }

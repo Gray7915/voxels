@@ -26,6 +26,7 @@ namespace lve
         };
 
         LveModel(LveDevice &device, const LveModel::Builder &builder);
+        LveModel();
         ~LveModel();
 
         LveModel(const LveModel &) = delete;

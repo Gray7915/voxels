@@ -45,7 +45,7 @@ namespace lve
         glm::vec2(0, 1),
     };
 
-    void ChunkRenderer::emit_tile(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[16][32][16], glm::vec3 worldOffset, int blockType)
+    void ChunkRenderer::emit_tile(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[18][32][18], glm::vec3 worldOffset, int blockType)
     {
         // std::cout << "start pos " << pos.x << " " << pos.y << " " << pos.z << '\n';
         const auto uv_unit = glm::vec2(1.0f) / glm::vec2(16.0f);
@@ -55,10 +55,7 @@ namespace lve
             glm::ivec3 n = pos + getDirection(face);
 
             // std::cout << "pos " << n.x << " " << n.y << " " << n.z << '\n';
-            bool visible =
-                n.x < 0 || n.y < 0 || n.z < 0 ||
-                n.x >= 16 || n.y >= 32 || n.z >= 16 ||
-                blocks[n.x][n.y][n.z] == 0;
+            bool visible = n.x < 0 || n.y < 0 || n.z < 0 || n.x >= 18 || n.y >= 32 || n.z >= 18 || blocks[n.x][n.y][n.z] == 0;
 
             if (!visible)
                 continue;
@@ -91,7 +88,7 @@ namespace lve
         // std::cout << "finished block" << '\n';
     }
 
-    LveGameObject ChunkRenderer::mesh(int blocks[16][32][16], LveDevice &lveDevice, glm::vec3 offset)
+    std::unique_ptr<lve::LveModel, std::default_delete<lve::LveModel>> ChunkRenderer::mesh(int blocks[18][32][18], LveDevice &lveDevice, glm::vec3 offset)
     {
 
         std::vector<Vertex> vertices;
@@ -116,41 +113,54 @@ namespace lve
 
         // std::cout << "finished making mesh" << '\n';
         LveGameObject firstChunk = LveGameObject::createGameObject();
-        firstChunk.model = LveModel::createChunkModel(lveDevice, vertices, indices);
+        auto model = LveModel::createChunkModel(lveDevice, vertices, indices);
         // std::cout << "loaded model" << '\n';
+        std::cout << "chunk pos set " << offset.x << " " << offset.y << " " << offset.z << '\n';
 
         firstChunk.transform.translation = offset;
         firstChunk.transform.scale = {1.f, 1.f, 1.f};
         // std::cout << "returned chunk" << '\n';
-        return firstChunk;
+        return model;
     }
 
     glm::vec2 ChunkRenderer::getAtlasUV(int face, glm::vec2 uv, int blockType)
     {
-        float tileHeight = 1.0f / 3.0f;
+        const float tileWidth = 16.0f / 32.0f;
+        const float tileHeight = 16.0f / 48.0f;
 
-        float offsetY = 0.0f;
+        glm::vec2 v(uv.x, 1.0f - uv.y); // Vulkan-style flip applied once
 
-        if (blockType == 2)
+        int col = 0;
+        int row = 1;
+
+        if (blockType == 3)
         {
-            return glm::vec2(uv.x, (1.0f - uv.y) * tileHeight + (2.0f * tileHeight));
+            col = 1;
+            row = 0;
+        }
+        else if (blockType == 2)
+        {
+            col = 0;
+            row = 2;
+        }
+        else
+        {
+            switch (face)
+            {
+            case 4:
+                row = 0;
+                break;
+            case 5:
+                row = 2;
+                break;
+            default:
+                row = 1;
+                break;
+            }
         }
 
-        switch (face)
-        {
-        case 4:
-            offsetY = 2.0f * tileHeight; // bottom 16 pixels of texture
-            break;
+        glm::vec2 offset(col * tileWidth, row * tileHeight);
 
-        case 5:
-            offsetY = 0.0f; // top 16 pixels of texture
-            break;
-
-        default:
-            offsetY = 1.0f * tileHeight; // middle 16 pixels of texture
-            break;
-        }
-
-        return glm::vec2(uv.x, 1.0f - (uv.y * tileHeight + offsetY));
+        return offset + glm::vec2(v.x * tileWidth, v.y * tileHeight);
     }
 }

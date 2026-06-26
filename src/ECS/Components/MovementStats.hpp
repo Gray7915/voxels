@@ -3,10 +3,17 @@
 struct MovementStats
 {
     float moveSpeed = 10.f;
-    float lookSpeed = 1.5f;       
+    float fallMoveSpeed = 2.5f; //
+    float lookSpeed = 1.5f;
     float mouseSensitivity = 0.018f;
-    float jumpForce = 5.f;
     float drag = 0.8;
-    float acceleration = 5;
-    float decelleration = 5;
+    float decelleration = 0.5;
+
+    float groundFriction = 0.6f;       
+    float airFriction = 0.93f;         
+    float groundAcceleration = 100.0f; 
+    float airAcceleration = 4.0f;      
+    float jumpForce = 8.f;
+
+    bool flying = false;
 };

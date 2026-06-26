@@ -3,8 +3,16 @@
 #include "../Components/Input.hpp"
 #include "../Components/RigidBody.hpp"
 #include "ECS/Components/MovementStats.hpp"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <iostream>
+#include <stdexcept>
+#include <array>
+#include <iostream>
+#include <chrono>
+#include <algorithm>
+#include <optional>
 
 namespace lve
 {
@@ -19,17 +27,22 @@ namespace lve
             auto &moveStats = coordinator.GetComponent<MovementStats>(entity);
             auto &rigidBody = coordinator.GetComponent<RigidBodyComponent>(entity);
 
+            // Camera rotation
             transform.rotation.y += input.mouseDeltaX * moveStats.mouseSensitivity;
             transform.rotation.x += input.mouseDeltaY * moveStats.mouseSensitivity;
             transform.rotation.x = glm::clamp(transform.rotation.x, -1.5f, 1.5f);
             transform.rotation.y = glm::mod(transform.rotation.y, glm::two_pi<float>());
 
+            // Movement basis
             float yaw = transform.rotation.y;
+
             const glm::vec3 forwardDir{sin(yaw), 0.f, cos(yaw)};
             const glm::vec3 rightDir{forwardDir.z, 0.f, -forwardDir.x};
             const glm::vec3 upDir{0.f, 1.f, 0.f};
 
-            glm::vec3 moveDir{0.f};
+            // Build movement direction
+            glm::vec3 moveDir(0.0f);
+
             if (input.moveForward)
                 moveDir += forwardDir;
             if (input.moveBackward)
@@ -38,38 +51,48 @@ namespace lve
                 moveDir += rightDir;
             if (input.moveLeft)
                 moveDir -= rightDir;
-            if (input.moveUp)
-                moveDir += upDir;
-            if (input.moveDown)
-                moveDir -= upDir;
 
-            if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon() && rigidBody.isGrounded)
+            if (glm::length(moveDir) > 0.0f)
+                moveDir = glm::normalize(moveDir);
+
+            glm::vec2 horizontalVelocity(rigidBody.velocity.x, rigidBody.velocity.z);
+
+            float friction = rigidBody.isGrounded ? moveStats.groundFriction : moveStats.airFriction;
+            horizontalVelocity *= friction;
+
+            float accel = rigidBody.isGrounded ? moveStats.groundAcceleration : moveStats.airAcceleration;
+            horizontalVelocity.x += moveDir.x * accel * dt;
+            horizontalVelocity.y += moveDir.z * accel * dt;
+
+            rigidBody.velocity.x = horizontalVelocity.x;
+            rigidBody.velocity.z = horizontalVelocity.y;
+
+            if (moveStats.flying)
             {
-                glm::vec3 horizontalVelocity = moveStats.moveSpeed * glm::normalize(moveDir);
-                rigidBody.velocity.x = horizontalVelocity.x;
-                rigidBody.velocity.z = horizontalVelocity.z;
+                if (input.moveUp)
+                    rigidBody.velocity.y = moveStats.moveSpeed;
+                else if (input.moveDown)
+                    // std::chrono::duration<float, std::chrono::seconds::period>(std::chrono::steady_clock::now() - input.currentTime).count();
+                    rigidBody.velocity.y = -moveStats.moveSpeed;
             }
-            else if (!rigidBody.isGrounded)
-            {
-                if (glm::length(moveDir) > 0.0f)
 
+            if (input.jump)
+            {
+                auto now = std::chrono::steady_clock::now();
+                float elapsed = std::chrono::duration<float>(now - input.currentTime).count();
+
+                if (elapsed < 0.08f)
                 {
-                    glm::vec3 horizontalVelocity = (moveStats.moveSpeed * 0.25f) * glm::normalize(moveDir);
-                    rigidBody.velocity.x = horizontalVelocity.x;
-                    rigidBody.velocity.z = horizontalVelocity.z;
+                    moveStats.flying = !moveStats.flying;
+                    std::cout << "is flying? " << moveStats.flying << '\n';
                 }
-            }
-            else
-            {
-                rigidBody.velocity.x = 0.f;
-                rigidBody.velocity.z = 0.f;
-            }
 
-            if (input.jump && rigidBody.isGrounded)
-            {
-                rigidBody.velocity.y = moveStats.jumpForce;
+                input.currentTime = now;
+                if (rigidBody.isGrounded)
+                {
+                    rigidBody.velocity.y = moveStats.jumpForce;
+                }
             }
         }
     }
-
 }

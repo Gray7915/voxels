@@ -21,7 +21,15 @@ namespace lve
             }
 
             glm::vec3 desiredMove = rigidBody.velocity * dt;
-            glm::vec3 actualMove = Move(transform, aabb, desiredMove);
+            glm::vec3 actualMove;
+            if (aabb.collisionEnabled)
+            {
+                actualMove = Move(transform, aabb, desiredMove);
+            }
+            else
+            {
+                actualMove = desiredMove;
+            }
 
             transform.position += actualMove;
 

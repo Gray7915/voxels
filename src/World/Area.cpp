@@ -23,7 +23,8 @@ namespace lve
                 // std::cout << "chunk coordinate " << " " << chunkCoord.x << " " << chunkCoord.y << " " << chunkCoord.z << '\n';
                 glm::ivec3 worldPos = chunkCoord * glm::ivec3(16, 1, 16);
 
-                chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
+                //chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
+                new Chunk(lveDevice, worldPos);
             }
         }
         // std::cout << "chunks made " << i << '\n';
@@ -60,7 +61,7 @@ namespace lve
                     glm::ivec3 worldPos = chunkCoord * glm::ivec3(16, 32, 16);
                     // std::cout << "chunk world pos " << " " << worldPos.x << " " << worldPos.y << " " << worldPos.z << '\n';
 
-                    chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
+                   // chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
                 }
             }
         }
@@ -69,13 +70,18 @@ namespace lve
     bool Area::isBlockSolid(glm::vec3 worldBlockPos)
     {
         glm::vec3 chunkId = WorldToChunkId(worldBlockPos);
-        //std::cout << "block hit chunk ID " << " " << chunkId.x << " " << chunkId.y << " " << chunkId.z << '\n';
+        // std::cout << "block hit chunk ID " << " " << chunkId.x << " " << chunkId.y << " " << chunkId.z << '\n';
         auto block = chunks.find(chunkId);
         if (block == chunks.end() || !block->second)
             return false;
         glm::ivec3 arrayPos = WorldToChunkArray(worldBlockPos);
-        //std::cout << "block hit array " << " " << arrayPos.x << " " << arrayPos.y << " " << arrayPos.z << '\n';
+        // std::cout << "block hit array " << " " << arrayPos.x << " " << arrayPos.y << " " << arrayPos.z << '\n';
         return block->second->blocks[arrayPos.x][arrayPos.y][arrayPos.z] != 0;
+    }
+
+    void Area::reMeshChunk(glm::ivec3 chunkPosition)
+    {
+    
     }
 
 }

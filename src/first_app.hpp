@@ -61,5 +61,6 @@ namespace lve
         std::shared_ptr<InputSystem> inputSystem;
         std::shared_ptr<MovementSystem> movementSystem;
         std::shared_ptr<CollisionSystem> collisionSystem;
+        
     };
 }

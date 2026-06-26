@@ -1,5 +1,9 @@
 #include "first_app.hpp"
 #include "simple_render_system.hpp"
+#include "highlight_render_system.hpp"
+#include "ui_render_system.hpp"
+#include "chunk_render_system.hpp"
+
 // #include "Input/keyboard_movement_controller.hpp"
 #include "IVec3Hash.h"
 #include "World/cube.hpp"
@@ -7,8 +11,6 @@
 #include "Util/ray.hpp"
 #include "World/ChunkRenderer.hpp"
 #include "lve_buffer.hpp"
-#include "highlight_render_system.hpp"
-#include "ui_render_system.hpp"
 #include "ECS/Coordinator.hpp"
 
 #define GLM_FORCE_RADIANS
@@ -104,6 +106,7 @@ namespace lve
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         UiRenderSystem uiRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        ChunkRenderSystem chunkRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         // std::cout << "got to render system creation" << '\n';
 
         Entity mainCamera = coordinator.CreateEntity();
@@ -201,6 +204,10 @@ namespace lve
 
                 // render
                 lveRenderer.beginSwapChainRenderPass(commandBuffer);
+                std::cout << "before chunk render " << Area::chunks.size() << '\n';
+                chunkRenderSystem.renderChunks(frameInfo, Area::chunks);
+                // std::cout << "after chunk render" << '\n';
+
                 simpleRenderSystem.renderGameObjects(frameInfo, gameObjects, hoveredID);
                 highlightRenderSystem.render(frameInfo, hoveredID.w != 0, glm::ivec3(hoveredID), rayDir);
                 uiRenderSystem.renderUI(frameInfo);
@@ -224,11 +231,22 @@ namespace lve
                 Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 0;
                 // std::cout << "array place found" << '\n';
                 // gameObjects.find(chunkPos)->second.model.reset();
-                gameObjects.find(chunkPosition)->second.model = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0}).model;
+                Area::chunks.find(chunkPosition)->second->chunkModel = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0});
 
                 // std::cout << "chunk changed" << '\n';
 
                 vkDeviceWaitIdle(lveDevice.device());
+            }
+
+            static bool colWasPressed = false;
+            bool colIsPressed = glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_P) == GLFW_PRESS;
+            if (colWasPressed && !colIsPressed)
+                colWasPressed = false;
+
+            if (colIsPressed && !colWasPressed)
+            {
+                camCollision.collisionEnabled = !camCollision.collisionEnabled;
+                std::cout << "collision enabled / disabled" << '\n';
             }
         }
         vkDeviceWaitIdle(lveDevice.device());
@@ -259,6 +277,7 @@ namespace lve
             signature.set(coordinator.GetComponentType<GravityComponent>());
             signature.set(coordinator.GetComponentType<RigidBodyComponent>());
             signature.set(coordinator.GetComponentType<Transform>());
+            signature.set(coordinator.GetComponentType<MovementStats>());
             coordinator.SetSystemSignature<PhysicsSystem>(signature);
         }
 

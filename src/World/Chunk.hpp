@@ -12,12 +12,11 @@ namespace lve
         lve::Octave noise;
 
     public:
-        Chunk(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice, glm::vec3 offset);
+        Chunk(LveDevice &lveDevice, glm::vec3 offset);
         ~Chunk();
         static const int width = 16;
         static const int height = 32;
         inline static const glm::ivec3 CHUNK_SIZE{16, 32, 16};
-        
         glm::vec3 offset;
         enum BlockType : uint8_t
         {
@@ -25,9 +24,20 @@ namespace lve
             Solid
         };
 
-        int blocks[16][32][16];
-        void createChunk(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice, glm::vec3 offset);
-        void buildMesh(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice);
-        std::shared_ptr<LveModel> model{};
+        int blocks[18][32][18];
+        void createChunk(LveDevice &lveDevice, glm::vec3 offset);
+        void buildMesh(LveDevice &lveDevice);
+        std::shared_ptr<LveModel> chunkModel{};
+        TransformComponent transform{};
+
+        struct TransformComponent
+        {
+            glm::vec3 translation{};
+            glm::vec3 scale{1.f, 1.f, 1.f};
+            glm::vec3 rotation;
+
+            glm::mat4 mat4();
+            glm::mat3 normalMatrix();
+        };
     };
 }

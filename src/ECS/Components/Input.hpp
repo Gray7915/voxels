@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <chrono>
 
 struct InputComponent
 {
@@ -17,4 +18,7 @@ struct InputComponent
     float lastY = 0.0;
 
     bool firstMouse = true;
+
+    std::chrono::steady_clock::time_point currentTime{};
+    bool firstJump = false;
 };

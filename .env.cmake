@@ -15,3 +15,6 @@ set(VULKAN_SDK_PATH C:/VulkanSDK/1.2.182.0)
 
 # optional
 # set(TINYOBJ_PATH external/tinyobjloader)
+
+#IM GUI
+#set(IMGUI_PATH external/imgui/)

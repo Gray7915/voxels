@@ -10,6 +10,8 @@
 #include "World/Area.hpp"
 #include "lve_descriptors.hpp"
 #include "lve_Texture.hpp"
+#include "GeometryPass.hpp"
+#include "ImguiManager.hpp"
 
 #include "ECS/Coordinator.hpp"
 #include "ECS/Systems/PhysicsSystem.hpp"
@@ -46,6 +48,9 @@ namespace lve
         void renderGameObjects(VkCommandBuffer commandBuffer);
         void registerECSComponents();
         bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
+    
+      
+      
         LveWindow lveWindow{WIDTH, HEIGHT, "Hello Vulkan"};
         LveDevice lveDevice{lveWindow};
         LveRenderer lveRenderer{lveWindow, lveDevice};
@@ -61,6 +66,7 @@ namespace lve
         std::shared_ptr<InputSystem> inputSystem;
         std::shared_ptr<MovementSystem> movementSystem;
         std::shared_ptr<CollisionSystem> collisionSystem;
+        std::unique_ptr<ImguiManager> imguiManager;
         
     };
 }

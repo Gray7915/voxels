@@ -50,10 +50,12 @@ namespace lve
 
     FirstApp::FirstApp() : area(gameObjects, lveDevice, glm::vec3(0, 0, 0)), hoveredID(glm::ivec4(0, 0, 0, 0))
     {
+        std::cout << "do we construct?" << '\n';
+
         globalPool = LveDescriptorPool::Builder(lveDevice)
-                         .setMaxSets(LveSwapChain::MAX_FRAMES_IN_FLIGHT)
-                         .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, LveSwapChain::MAX_FRAMES_IN_FLIGHT)
-                         .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, LveSwapChain::MAX_FRAMES_IN_FLIGHT)
+                         .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
+                         .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
+                         .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, SwapChain::MAX_FRAMES_IN_FLIGHT)
                          .build();
     }
 
@@ -64,12 +66,12 @@ namespace lve
     void FirstApp::run()
     {
         coordinator.Init();
-        // std::cout << "got past init" << '\n';
+        std::cout << "got past init" << '\n';
         registerECSComponents();
-        // std::cout << "got past componnet register" << '\n';
+        std::cout << "got past componnet register" << '\n';
 
         texture = std::make_unique<LveTexture>(lveDevice, "/home/patrick/Documents/Projects/voxels/Textures/images.jpeg");
-        std::vector<std::unique_ptr<LveBuffer>> uboBuffers(LveSwapChain::MAX_FRAMES_IN_FLIGHT);
+        std::vector<std::unique_ptr<LveBuffer>> uboBuffers(SwapChain::MAX_FRAMES_IN_FLIGHT);
         for (int i = 0; i < uboBuffers.size(); i++)
         {
             uboBuffers[i] = std::make_unique<LveBuffer>(
@@ -80,14 +82,16 @@ namespace lve
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
             uboBuffers[i]->map();
         }
+        std::cout << "ubo buffers made" << '\n';
 
         auto globalSetLayout =
             LveDescriptorSetLayout::Builder(lveDevice)
                 .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
                 .addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
                 .build();
+        std::cout << "set layout made" << '\n';
 
-        std::vector<VkDescriptorSet> globaDescriptorSets(LveSwapChain::MAX_FRAMES_IN_FLIGHT);
+        std::vector<VkDescriptorSet> globaDescriptorSets(SwapChain::MAX_FRAMES_IN_FLIGHT);
         for (int i = 0; i < globaDescriptorSets.size(); i++)
         {
             auto bufferInfo = uboBuffers[i]->descriptorInfo();
@@ -102,15 +106,16 @@ namespace lve
                 .writeImage(1, &imageInfo)
                 .build(globaDescriptorSets[i]);
         }
+        std::cout << "descriptor sets made" << '\n';
 
-        SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        imguiManager = std::make_unique<ImguiManager>(lveDevice, lveWindow, lveRenderer);
         HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
-        UiRenderSystem uiRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+
         ChunkRenderSystem chunkRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
-        // std::cout << "got to render system creation" << '\n';
+        std::cout << "got to render system creation" << '\n';
 
         Entity mainCamera = coordinator.CreateEntity();
-        coordinator.AddComponent(mainCamera, Transform{.position = {0, 120, 0}});
+        coordinator.AddComponent(mainCamera, Transform{.position = {0, 70, 0}});
         coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, -15, 0.0f)});
         coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, CameraComponent{});
@@ -122,7 +127,7 @@ namespace lve
         cameraSystem->Update(aspect);
 
         auto currentTime = std::chrono::high_resolution_clock::now();
-        // std::cout << "got to while loop" << '\n';
+        std::cout << "got to while loop" << '\n';
         assert(lveWindow.getGLFWwindow() != nullptr && "window null)");
         while (!lveWindow.shouldClose())
         {
@@ -183,12 +188,12 @@ namespace lve
                 hoveredID = glm::ivec4(rayHit, 1);
             }
             // std::cout << hoveredID.x << " " << hoveredID.y << " " << hoveredID.z << "\n";
-            //area.tick(lveDevice, camTransform.position);
+            // area.tick(lveDevice, camTransform.position);
             //   start frame and start swapchain pass are not combined to enable multiple render passes
             if (auto commandBuffer = lveRenderer.beginFrame())
             {
-                // std::cout << "render game thingies" << "\n";
                 int frameIndex = lveRenderer.getFrameIndex();
+
                 FrameInfo frameInfo{
                     frameIndex,
                     frameTime,
@@ -196,22 +201,31 @@ namespace lve
                     globaDescriptorSets[frameIndex]};
 
                 // update
-                camera.projectionMatrix[1][1] = camera.projectionMatrix[1][1] * -1;
+                camera.projectionMatrix[1][1] *= -1;
+
                 GlobalUbo ubo{};
-                ubo.projectionView = (camera.projectionMatrix) * camera.viewMatrix;
+                ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
-                // render
-                lveRenderer.beginSwapChainRenderPass(commandBuffer);
-                //std::cout << "before chunk render " << Area::chunks.size() << '\n';
-                chunkRenderSystem.renderChunks(frameInfo, Area::chunks);
-                // std::cout << "after chunk render" << '\n';
+                // render pass START
+                lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
 
-                simpleRenderSystem.renderGameObjects(frameInfo, gameObjects, hoveredID);
+                chunkRenderSystem.renderChunks(frameInfo, Area::chunks);
+                // simpleRenderSystem.renderGameObjects(frameInfo, gameObjects, hoveredID);
                 highlightRenderSystem.render(frameInfo, hoveredID.w != 0, glm::ivec3(hoveredID), rayDir);
-                uiRenderSystem.renderUI(frameInfo);
-                lveRenderer.endSwapChainRenderPass(commandBuffer);
+                // uiRenderSystem.renderUI(frameInfo);
+
+                // render pass END
+                lveRenderer.geometryPass->end(commandBuffer);
+
+                lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
+                imguiManager->newFrame();
+                imguiManager->drawDebugWindow(frameTime);
+                imguiManager->drawCrosshair(WIDTH, HEIGHT);
+                imguiManager->render(commandBuffer);
+                lveRenderer.UiRenderPass->end(commandBuffer);
+
                 lveRenderer.endFrame();
             }
 

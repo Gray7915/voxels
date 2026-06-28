@@ -115,7 +115,7 @@ namespace lve
         LveGameObject firstChunk = LveGameObject::createGameObject();
         auto model = LveModel::createChunkModel(lveDevice, vertices, indices);
         // std::cout << "loaded model" << '\n';
-        std::cout << "chunk pos set " << offset.x << " " << offset.y << " " << offset.z << '\n';
+        //std::cout << "chunk pos set " << offset.x << " " << offset.y << " " << offset.z << '\n';
 
         firstChunk.transform.translation = offset;
         firstChunk.transform.scale = {1.f, 1.f, 1.f};

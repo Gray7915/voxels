@@ -176,7 +176,7 @@ namespace lve
     VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.wideLines = VK_TRUE;
-    
+
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
@@ -187,7 +187,6 @@ namespace lve
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-    
     // might not really be necessary anymore because device specific validation layers
     // have been deprecated
     if (enableValidationLayers)
@@ -434,7 +433,7 @@ namespace lve
   }
 
   VkFormat LveDevice::findSupportedFormat(
-      const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+      const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const
   {
     for (VkFormat format : candidates)
     {
@@ -629,5 +628,15 @@ namespace lve
     }
 
     return imageView;
+  }
+
+  VkFormat LveDevice::findDepthFormat() const
+  {
+    return findSupportedFormat(
+        {VK_FORMAT_D32_SFLOAT,
+         VK_FORMAT_D32_SFLOAT_S8_UINT,
+         VK_FORMAT_D24_UNORM_S8_UINT},
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
   }
 } // namespace lve

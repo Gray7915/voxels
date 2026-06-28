@@ -64,10 +64,23 @@ if (NOT TINYOBJ_PATH)
   message(STATUS "TINYOBJ_PATH not specified in .env.cmake, using external/tinyobjloader")
   set(TINYOBJ_PATH external/tinyobjloader)
 endif()
+
+if(NOT IMGUI_PATH)
+  message(STATUS "IMGUI not specified in .env.cmake, using external/tinyobjloader")
+  set(IMGUI_PATH external/imgui/)
+endif()
  
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
- 
-add_executable(${PROJECT_NAME} ${SOURCES})
+
+set(IMGUI_SOURCES
+    ${IMGUI_PATH}/imgui.cpp
+    ${IMGUI_PATH}/imgui_draw.cpp
+    ${IMGUI_PATH}/imgui_tables.cpp
+    ${IMGUI_PATH}/imgui_widgets.cpp
+    ${IMGUI_PATH}/imgui_impl_glfw.cpp
+    ${IMGUI_PATH}/imgui_impl_vulkan.cpp
+)
+add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES})
  
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
  
@@ -92,6 +105,7 @@ if (WIN32)
     ${PROJECT_SOURCE_DIR}/src/World
     ${Vulkan_INCLUDE_DIRS}
     ${TINYOBJ_PATH}
+    ${IMGUI_PATH}
     ${GLFW_INCLUDE_DIRS}
     ${GLM_PATH}
     )
@@ -107,6 +121,7 @@ elseif (UNIX)
     target_include_directories(${PROJECT_NAME} PUBLIC
       ${PROJECT_SOURCE_DIR}/src
       ${TINYOBJ_PATH}
+      ${IMGUI_PATH}
     )
     target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
 endif()

@@ -61,13 +61,13 @@ namespace lve
         pipelineConfig.pipelineLayout = pipelineLayout;
 
         // KEY DIFFERENCES from the default config:
-        pipelineConfig.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+       // pipelineConfig.inputAssemblyInfo.topology = VK_TOPOLOG;
         pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
         pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE; // don't occlude things behind it... (see note below)
         pipelineConfig.depthStencilInfo.depthTestEnable = VK_TRUE;
         pipelineConfig.depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
         // depthTestEnable stays VK_TRUE so terrain in front still occludes the highlight
-        pipelineConfig.rasterizationInfo.lineWidth = 2.0f;
+        pipelineConfig.rasterizationInfo.lineWidth = 16.0f;
 
         lvePipeline = std::make_unique<LvePipeline>(
             lveDevice,

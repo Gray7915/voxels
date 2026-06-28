@@ -30,17 +30,24 @@ namespace lve
 
     void InputSystem::mouse_callback(GLFWwindow *window, double xpos, double ypos)
     {
-        if (instance->firstMouse)
+        if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
         {
+            if (instance->firstMouse)
+            {
+                instance->lastX = xpos;
+                instance->lastY = ypos;
+                instance->firstMouse = false;
+                return;
+            }
+
+            instance->pendingMouseDeltaX = static_cast<float>(xpos - instance->lastX);
+            instance->pendingMouseDeltaY = static_cast<float>(ypos - instance->lastY);
             instance->lastX = xpos;
             instance->lastY = ypos;
-            instance->firstMouse = false;
-            return;
         }
-
-        instance->pendingMouseDeltaX = static_cast<float>(xpos - instance->lastX);
-        instance->pendingMouseDeltaY = static_cast<float>(ypos - instance->lastY);
-        instance->lastX = xpos;
-        instance->lastY = ypos;
+        else
+        {
+            instance->firstMouse = true;
+        }
     }
 }

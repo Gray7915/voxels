@@ -27,10 +27,10 @@ namespace lve
 
         if (glfwRawMouseMotionSupported())
         {
-            //Hide and lock the cursor to the window (required for raw motion)
+            // Hide and lock the cursor to the window (required for raw motion)
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-            //Enable raw mouse motion
+            // Enable raw mouse motion
             glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
         }
     }
@@ -50,4 +50,25 @@ namespace lve
         lveWindow->width = width;
         lveWindow->height = height;
     }
+
+    void LveWindow::setMouseActive()
+    {
+        if (glfwRawMouseMotionSupported())
+        {
+            int currentMode = glfwGetInputMode(window, GLFW_CURSOR);
+
+            if (currentMode == GLFW_CURSOR_DISABLED)
+            {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+                glfwSetCursorPos(window, width/2, height/2);
+            }
+            else
+            {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+            }
+        }
+    }
+
 }

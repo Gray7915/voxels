@@ -20,7 +20,6 @@ namespace lve
             input.jump = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
             input.moveUp = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
             input.moveDown = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
-
             input.mouseDeltaX = pendingMouseDeltaX;
             input.mouseDeltaY = pendingMouseDeltaY;
         }

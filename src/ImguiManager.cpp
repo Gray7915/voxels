@@ -104,7 +104,7 @@ namespace lve
 
     void ImguiManager::drawCrosshair(float windowWidth, float windowHeight)
     {
-        ImDrawList *drawList = ImGui::GetBackgroundDrawList();
+        ImDrawList *drawList = ImGui::GetForegroundDrawList();
 
         float centerX = windowWidth / 2.0f;
         float centerY = windowHeight / 2.0f;
@@ -118,5 +118,19 @@ namespace lve
         drawList->AddLine({centerX, centerY - crosshairSize - gapSize}, {centerX, centerY - gapSize}, ImColor(255, 255, 255), lineWidth);
         drawList->AddLine({centerX, centerY + gapSize}, {centerX, centerY + crosshairSize + gapSize}, ImColor(255, 255, 255), lineWidth);
         drawList->AddCircleFilled({centerX, centerY}, dotSize, ImColor(255, 255, 255));
+    }
+
+    void ImguiManager::drawQuitMenu(float windowWidth, float windowHeight)
+    {
+        ImGui::SetNextWindowSize(ImVec2(50, 100), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSizeConstraints(ImVec2(50, 100), ImVec2(FLT_MAX, FLT_MAX));
+        ImGui::SetNextWindowPos(ImVec2((windowWidth/2) - 100, (windowHeight/2)-50));
+        ImGui::Begin("new window");
+        ImGui::Text("Hello Vulkan");
+        ImGui::End();
+    }
+
+    void ImguiManager::activateMouse(){
+        
     }
 }

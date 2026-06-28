@@ -20,6 +20,8 @@ namespace lve
         void render(VkCommandBuffer commandBuffer);
         void drawCrosshair(float windowWidth, float windowHeight);
         void drawDebugWindow(float frameTime);
+        void drawQuitMenu(float windowWidth, float windowHeight);
+        void activateMouse();
 
     private:
         void initDescriptorPool();

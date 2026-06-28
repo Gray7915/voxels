@@ -32,6 +32,9 @@ namespace lve
 
         GLFWwindow *getGLFWwindow() const { return window; };
 
+        void setMouseActive();
+
+
     private:
         static void frameBufferResizeCallback(GLFWwindow *window, int width, int height);
         void initWindow();

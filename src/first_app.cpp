@@ -221,8 +221,9 @@ namespace lve
 
                 lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
                 imguiManager->newFrame();
-                imguiManager->drawDebugWindow(frameTime);
+                // imguiManager->drawDebugWindow(frameTime);
                 imguiManager->drawCrosshair(WIDTH, HEIGHT);
+                imguiManager->drawQuitMenu(WIDTH, HEIGHT);
                 imguiManager->render(commandBuffer);
                 lveRenderer.UiRenderPass->end(commandBuffer);
 
@@ -261,6 +262,11 @@ namespace lve
             {
                 camCollision.collisionEnabled = !camCollision.collisionEnabled;
                 std::cout << "collision enabled / disabled" << '\n';
+            }
+            
+            if (glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            {
+                lveWindow.setMouseActive();
             }
         }
         vkDeviceWaitIdle(lveDevice.device());

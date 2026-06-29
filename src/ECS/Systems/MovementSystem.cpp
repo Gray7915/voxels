@@ -59,6 +59,7 @@ namespace lve
             float friction = rigidBody.isGrounded ? moveStats.groundFriction : moveStats.airFriction;
             if (moveStats.flying)
                 rigidBody.velocity.y *= friction;
+                
             rigidBody.velocity.x *= friction;
             rigidBody.velocity.z *= friction;
 
@@ -72,7 +73,7 @@ namespace lve
             rigidBody.velocity.x += moveDir.x * accel * dt;
             rigidBody.velocity.z += moveDir.z * accel * dt;
 
-            std::cout << "acceleration " << accel << '\n';
+            //std::cout << "acceleration " << accel << '\n';
 
             // rigidBody.velocity.x = rigidBody.velocity.x;
 

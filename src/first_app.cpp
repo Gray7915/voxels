@@ -3,6 +3,7 @@
 #include "highlight_render_system.hpp"
 #include "ui_render_system.hpp"
 #include "chunk_render_system.hpp"
+#include "lve_util.hpp"
 
 // #include "Input/keyboard_movement_controller.hpp"
 #include "IVec3Hash.h"
@@ -101,16 +102,16 @@ namespace lve
             glm::vec3 rayDir = glm::normalize(forward);
 
             Ray ray((camTransform.position + camera.relativePosition), rayDir);
-            glm::ivec3 rayHit = ray.detectBlockHit(4.0f); // worldspace
+            RayHit rayHit = ray.detectBlockHit(4.0f); // worldspace
             glm::ivec3 chunkPos = glm::ivec3(camTransform.position) / glm::ivec3(16, 32, 16);
 
-            if (rayHit == glm::ivec3(-1.0f))
+            if (rayHit.hitPosition == glm::ivec3(-1.0f))
             {
                 hoveredID = glm::ivec4(-1.0f);
             }
             else
             {
-                hoveredID = glm::ivec4(rayHit, 1);
+                hoveredID = glm::ivec4(rayHit.hitPosition, 1);
             }
 
             if (auto commandBuffer = lveRenderer.beginFrame())
@@ -138,7 +139,7 @@ namespace lve
                 imguiManager->newFrame();
                 imguiManager->drawDebugWindow(frameTime);
                 imguiManager->drawCrosshair(WIDTH, HEIGHT);
-                //imguiManager->drawQuitMenu(WIDTH, HEIGHT);
+                // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
                 imguiManager->render(commandBuffer);
                 lveRenderer.UiRenderPass->end(commandBuffer);
 
@@ -150,15 +151,40 @@ namespace lve
             if (pWasPressed && !pIsPressed)
                 pWasPressed = false;
 
-            if (pIsPressed && !pWasPressed && rayHit != glm::ivec3(-1.0f))
+            if (pIsPressed && !pWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
             {
                 pWasPressed = true;
-                std::cout << "Ray Hit " << rayHit.x << " " << rayHit.y << " " << rayHit.z << '\n';
+                std::cout << "Ray Hit " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';
                 // std::cout << "Ray Orgin " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
                 // std::cout << "Ray Direction " << forward.x << " " << forward.y << " " << forward.z << '\n';
-                glm::ivec3 blockCoord = WorldToChunkArray(rayHit);
-                glm::ivec3 chunkPosition = WorldToChunkId(rayHit);
+                glm::ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
+                glm::ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
                 Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 0;
+                // std::cout << "array place found" << '\n';
+                // gameObjects.find(chunkPos)->second.model.reset();
+                Area::chunks.find(chunkPosition)->second->chunkModel = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0});
+
+                // std::cout << "chunk changed" << '\n';
+
+                vkDeviceWaitIdle(lveDevice.device());
+            }
+
+            static bool rightWasPressed = false;
+            bool rightIsPressed = glfwGetMouseButton(lveWindow.getGLFWwindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+            if (rightWasPressed && !rightIsPressed)
+                rightWasPressed = false;
+
+            if (rightIsPressed && !rightWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
+            {
+                rightWasPressed = true;
+                std::cout << "Ray Hit " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';
+                glm::ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
+                // std::cout << "Ray Orgin " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
+                // std::cout << "Ray Direction " << forward.x << " " << forward.y << " " << forward.z << '\n';
+                glm::ivec3 blockCoord = WorldToChunkArray(blockPos);
+                glm::ivec3 chunkPosition = WorldToChunkId(blockPos);
+                if (Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] != 1)
+                    Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 1;
                 // std::cout << "array place found" << '\n';
                 // gameObjects.find(chunkPos)->second.model.reset();
                 Area::chunks.find(chunkPosition)->second->chunkModel = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0});

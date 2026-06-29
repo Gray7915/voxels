@@ -49,7 +49,7 @@ namespace lve
     {
         // std::cout << "start pos " << pos.x << " " << pos.y << " " << pos.z << '\n';
         const auto uv_unit = glm::vec2(1.0f) / glm::vec2(16.0f);
-
+        
         for (int face = 0; face < 6; face++)
         {
             glm::ivec3 n = pos + getDirection(face);
@@ -75,9 +75,6 @@ namespace lve
 
                 vertices.push_back(vertex);
             }
-
-            glm::ivec3 blockWorldPosition = pos + (glm::ivec3(worldOffset) * glm::ivec3(16, 128, 16));
-
             // std::cout << "block pos set " << blockWorldPosition.x << " " << blockWorldPosition.y << " " << blockWorldPosition.z << '\n';
 
             for (size_t i : FACE_INDICES)
@@ -115,7 +112,7 @@ namespace lve
         LveGameObject firstChunk = LveGameObject::createGameObject();
         auto model = LveModel::createChunkModel(lveDevice, vertices, indices);
         // std::cout << "loaded model" << '\n';
-        //std::cout << "chunk pos set " << offset.x << " " << offset.y << " " << offset.z << '\n';
+        // std::cout << "chunk pos set " << offset.x << " " << offset.y << " " << offset.z << '\n';
 
         firstChunk.transform.translation = offset;
         firstChunk.transform.scale = {1.f, 1.f, 1.f};

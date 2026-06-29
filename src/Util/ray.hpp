@@ -7,6 +7,7 @@
 #include <functional>
 #include "../World/Area.hpp"
 #include "../Util/math.hpp"
+#include "lve_util.hpp"
 #include <algorithm>
 
 namespace lve
@@ -38,7 +39,7 @@ namespace lve
             radius = 4 / glm::l2Norm(direction);
         }
 
-        glm::vec3 detectBlockHit(float max_distance)
+        RayHit detectBlockHit(float max_distance)
         {
             const glm::vec3 step = glm::sign(direction);
 
@@ -50,7 +51,7 @@ namespace lve
             glm::ivec3 pos = glm::floor(origin);
             glm::vec3 tmax = intbound(origin, direction);
 
-            int axis = 0;
+            glm::ivec3 direction;
 
             for (int steps = 0; steps < 64; ++steps)
             {
@@ -66,11 +67,10 @@ namespace lve
                 if (Area::isBlockSolid(pos))
                 {
                     if (steps == 0)
-                        return origin;
+                        return RayHit{.hitPosition = origin, .hitDirection = glm::vec3(0, 0, 0)};
                     // std::cout << "Chunk " << chunkPos.x << " " << chunkPos.y << " " << chunkPos.z << '\n';
 
-                    float tHit = tmax[axis] - delta[axis];
-                    return pos;
+                    return RayHit{.hitPosition = pos, .hitDirection = direction};
                 }
 
                 if (tmax.x < tmax.y)
@@ -78,13 +78,14 @@ namespace lve
                     if (tmax.x < tmax.z)
                     {
                         pos.x += step.x;
-                        axis = 0;
+                        direction = glm::ivec3(-step.x, 0, 0);
                         tmax.x += delta.x;
                     }
                     else
                     {
                         pos.z += step.z;
-                        axis = 2;
+                        direction = glm::ivec3(0, 0, -step.z);
+                        ;
                         tmax.z += delta.z;
                     }
                 }
@@ -93,13 +94,13 @@ namespace lve
                     if (tmax.y < tmax.z)
                     {
                         pos.y += step.y;
-                        axis = 1;
+                        direction = glm::ivec3(0, -step.y, 0);
                         tmax.y += delta.y;
                     }
                     else
                     {
                         pos.z += step.z;
-                        axis = 2;
+                        direction = glm::ivec3(0, 0, -step.z);
                         tmax.z += delta.z;
                     }
                 }
@@ -108,7 +109,7 @@ namespace lve
                     break;
             }
 
-            return glm::vec3(-1.0f);
+            return RayHit{.hitPosition = glm::vec3(-1.0f), .hitDirection = glm::vec3(0, 0, 0)};
         }
 
         glm::vec3 intbound(glm::vec3 s, glm::vec3 ds)

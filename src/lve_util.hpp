@@ -28,4 +28,9 @@ namespace lve
     }
   };
 
+  struct RayHit
+  {
+    glm::vec3 hitPosition;
+    glm::vec3 hitDirection;
+  };
 }

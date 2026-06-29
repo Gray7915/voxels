@@ -43,13 +43,6 @@ namespace lve
 
     FirstApp::FirstApp() : area(gameObjects, lveDevice, glm::vec3(0, 0, 0)), hoveredID(glm::ivec4(0, 0, 0, 0))
     {
-        std::cout << "do we construct?" << '\n';
-
-        globalPool = LveDescriptorPool::Builder(lveDevice)
-                         .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
-                         .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
-                         .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, SwapChain::MAX_FRAMES_IN_FLIGHT)
-                         .build();
     }
 
     FirstApp::~FirstApp()
@@ -63,6 +56,7 @@ namespace lve
         auto renderSetup = setupRender(lveDevice);
 
         imguiManager = std::make_unique<ImguiManager>(lveDevice, lveWindow, lveRenderer);
+
         HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         ChunkRenderSystem chunkRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
 
@@ -74,50 +68,36 @@ namespace lve
         coordinator.AddComponent(mainCamera, InputComponent{});
         coordinator.AddComponent(mainCamera, MovementStats{.moveSpeed = 6.5f, .jumpForce = 5.8});
         coordinator.AddComponent(mainCamera, AABBComponent{.halfExtents = glm::vec3(0.4, 0.8, 0.4)});
-
         float aspect = lveRenderer.getAspectRatio();
         systems.cameraSystem->Update(aspect);
+        auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
+        camera.projectionMatrix[1][1] *= -1;
 
         auto currentTime = std::chrono::high_resolution_clock::now();
-        std::cout << "got to while loop" << '\n';
         assert(lveWindow.getGLFWwindow() != nullptr && "window null)");
         while (!lveWindow.shouldClose())
         {
             glfwPollEvents();
-            // std::cout << "polled glfw" << '\n';
 
             auto newTime = std::chrono::high_resolution_clock::now();
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
-            // std::cout << "got to timesetting" << '\n';
 
             systems.inputSystem->Update(&lveWindow);
             systems.movementSystem->Update(frameTime);
             systems.physicsSystem->Update(frameTime);
             systems.collisionSystem->Update(frameTime);
-            auto &camCollision = coordinator.GetComponent<AABBComponent>(mainCamera);
-            auto &camBody = coordinator.GetComponent<RigidBodyComponent>(mainCamera);
-
-            if (camCollision.isTrigger)
-            {
-                camBody.velocity.y = 0;
-            }
-            // std::cout << "updated movement and input" << '\n';
 
             aspect = lveRenderer.getAspectRatio();
             systems.cameraSystem->Update(aspect);
 
+            auto &camCollision = coordinator.GetComponent<AABBComponent>(mainCamera);
+            auto &camBody = coordinator.GetComponent<RigidBodyComponent>(mainCamera);
             auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
-
-            float aspect = lveRenderer.getAspectRatio();
-
             auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
-            // std::cout << "got to getting camera transform" << '\n';
-            // std::cout << "camera coordinate " << " " << camTransform.position.x << " " << camTransform.position.y << " " << camTransform.position.z << '\n';
 
             glm::vec3 rot = camTransform.rotation;
             glm::vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
-
             glm::vec3 rayDir = glm::normalize(forward);
 
             Ray ray((camTransform.position + camera.relativePosition), rayDir);
@@ -137,13 +117,9 @@ namespace lve
             {
                 int frameIndex = lveRenderer.getFrameIndex();
 
-                FrameInfo frameInfo{
-                    frameIndex,
-                    frameTime,
-                    commandBuffer,
-                    renderSetup.globalDescriptorSets[frameIndex]};
+                FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
 
-                // update
+                // flip so pos y is up and neg y is downs
                 camera.projectionMatrix[1][1] *= -1;
 
                 GlobalUbo ubo{};
@@ -151,20 +127,16 @@ namespace lve
                 renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 renderSetup.uboBuffers[frameIndex]->flush();
 
-                // render pass START
                 lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
 
                 chunkRenderSystem.renderChunks(frameInfo, Area::chunks);
-                // simpleRenderSystem.renderGameObjects(frameInfo, gameObjects, hoveredID);
                 highlightRenderSystem.render(frameInfo, hoveredID.w != 0, glm::ivec3(hoveredID), rayDir);
-                // uiRenderSystem.renderUI(frameInfo);
 
-                // render pass END
                 lveRenderer.geometryPass->end(commandBuffer);
 
                 lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
                 imguiManager->newFrame();
-                // imguiManager->drawDebugWindow(frameTime);
+                imguiManager->drawDebugWindow(frameTime);
                 imguiManager->drawCrosshair(WIDTH, HEIGHT);
                 imguiManager->drawQuitMenu(WIDTH, HEIGHT);
                 imguiManager->render(commandBuffer);

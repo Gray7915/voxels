@@ -48,11 +48,9 @@ namespace lve
         void createPipelineLayout();
         void createPipeline();
         void renderGameObjects(VkCommandBuffer commandBuffer);
-       // void registerECSComponents();
+        // void registerECSComponents();
         bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
-    
-      
-      
+
         LveWindow lveWindow{WIDTH, HEIGHT, "Hello Vulkan"};
         LveDevice lveDevice{lveWindow};
         LveRenderer lveRenderer{lveWindow, lveDevice};
@@ -62,16 +60,15 @@ namespace lve
         std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> gameObjects;
         Area area;
         glm::ivec4 hoveredID;
-        
+
         ECSSystems systems;
         RenderSetup renderSetup;
+        std::unique_ptr<ImguiManager> imguiManager;
 
         std::shared_ptr<CameraSystem> cameraSystem;
         std::shared_ptr<PhysicsSystem> physicsSystem;
         std::shared_ptr<InputSystem> inputSystem;
         std::shared_ptr<MovementSystem> movementSystem;
         std::shared_ptr<CollisionSystem> collisionSystem;
-        std::unique_ptr<ImguiManager> imguiManager;
-        
     };
 }

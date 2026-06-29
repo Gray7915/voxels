@@ -18,7 +18,7 @@ namespace lve
             int moveDown = GLFW_KEY_LEFT_SHIFT;
         };
 
-        void Update(GLFWwindow *window);
+        void Update(LveWindow *window);
 
         static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
         static InputSystem *instance;

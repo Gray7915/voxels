@@ -21,4 +21,6 @@ struct InputComponent
 
     std::chrono::steady_clock::time_point currentTime{};
     bool firstJump = false;
+
+    bool escape = false;
 };

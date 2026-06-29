@@ -19,6 +19,8 @@
 #include "ECS/Systems/InputSystem.hpp"
 #include "ECS/Systems/MovementSystem.hpp"
 #include "ECS/Systems/CollisionSystem.hpp"
+#include "SetupECS.hpp"
+#include "RenderSetup.hpp"
 // std
 
 #include <memory>
@@ -46,7 +48,7 @@ namespace lve
         void createPipelineLayout();
         void createPipeline();
         void renderGameObjects(VkCommandBuffer commandBuffer);
-        void registerECSComponents();
+       // void registerECSComponents();
         bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
     
       
@@ -60,6 +62,9 @@ namespace lve
         std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> gameObjects;
         Area area;
         glm::ivec4 hoveredID;
+        
+        ECSSystems systems;
+        RenderSetup renderSetup;
 
         std::shared_ptr<CameraSystem> cameraSystem;
         std::shared_ptr<PhysicsSystem> physicsSystem;

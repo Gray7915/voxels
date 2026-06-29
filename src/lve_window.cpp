@@ -61,7 +61,7 @@ namespace lve
             {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
-                glfwSetCursorPos(window, width/2, height/2);
+                glfwSetCursorPos(window, width / 2, height / 2);
             }
             else
             {
@@ -70,5 +70,4 @@ namespace lve
             }
         }
     }
-
 }

@@ -34,7 +34,7 @@ namespace lve
 
         void setMouseActive();
 
-
+        static void mouseThingie();
     private:
         static void frameBufferResizeCallback(GLFWwindow *window, int width, int height);
         void initWindow();

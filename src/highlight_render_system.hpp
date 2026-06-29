@@ -37,7 +37,7 @@ namespace lve
         {
             LveModel::Builder builder{};
 
-            constexpr float inset = 1.f / 16.f;
+            constexpr float inset = 1.f / 32.f;
             constexpr float scale = 1.01f; // slightly larger than the block to avoid z-fighting
             const glm::vec3 center{0.5f, 0.5f, 0.5f};
 

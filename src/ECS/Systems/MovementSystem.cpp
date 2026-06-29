@@ -13,6 +13,7 @@
 #include <chrono>
 #include <algorithm>
 #include <optional>
+#include <GLFW/glfw3.h>
 
 namespace lve
 {

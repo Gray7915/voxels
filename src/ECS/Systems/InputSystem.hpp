@@ -16,6 +16,8 @@ namespace lve
             int moveBackward = GLFW_KEY_S;
             int moveUp = GLFW_KEY_SPACE;
             int moveDown = GLFW_KEY_LEFT_SHIFT;
+
+            int releaseSpace = GLFW_KEY_SPACE;
         };
 
         void Update(LveWindow *window);

@@ -138,7 +138,7 @@ namespace lve
                 imguiManager->newFrame();
                 imguiManager->drawDebugWindow(frameTime);
                 imguiManager->drawCrosshair(WIDTH, HEIGHT);
-                imguiManager->drawQuitMenu(WIDTH, HEIGHT);
+                //imguiManager->drawQuitMenu(WIDTH, HEIGHT);
                 imguiManager->render(commandBuffer);
                 lveRenderer.UiRenderPass->end(commandBuffer);
 

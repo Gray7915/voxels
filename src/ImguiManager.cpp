@@ -94,7 +94,8 @@ namespace lve
         fpsAccumulator = 0.0f;
         fpsFrameCount = 0;
         ImGui::SetNextWindowSize(ImVec2(50, 100), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSizeConstraints(ImVec2(250, 150), ImVec2(FLT_MAX, FLT_MAX));
+        ImGui::SetNextWindowSizeConstraints(ImVec2(50, 100), ImVec2(FLT_MAX, FLT_MAX));
+        ImGui::SetNextWindowPos(ImVec2(100.f, 50.f));
         ImGui::Begin("Debug");
         // ImGui::Text("Hello Vulkan");
         ImGui::Text("FPS: %.1f", displayedFps);
@@ -124,13 +125,13 @@ namespace lve
     {
         ImGui::SetNextWindowSize(ImVec2(50, 100), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSizeConstraints(ImVec2(50, 100), ImVec2(FLT_MAX, FLT_MAX));
-        ImGui::SetNextWindowPos(ImVec2((windowWidth/2) - 100, (windowHeight/2)-50));
+        ImGui::SetNextWindowPos(ImVec2((windowWidth / 2) - 100, (windowHeight / 2) - 50));
         ImGui::Begin("new window");
         ImGui::Text("Hello Vulkan");
         ImGui::End();
     }
 
-    void ImguiManager::activateMouse(){
-        
+    void ImguiManager::activateMouse()
+    {
     }
 }

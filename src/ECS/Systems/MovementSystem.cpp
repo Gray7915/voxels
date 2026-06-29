@@ -56,24 +56,31 @@ namespace lve
             if (glm::length(moveDir) > 0.0f)
                 moveDir = glm::normalize(moveDir);
 
-            glm::vec2 horizontalVelocity(rigidBody.velocity.x, rigidBody.velocity.z);
-
             float friction = rigidBody.isGrounded ? moveStats.groundFriction : moveStats.airFriction;
-            horizontalVelocity *= friction;
+            if (moveStats.flying)
+                rigidBody.velocity.y *= friction;
+            rigidBody.velocity.x *= friction;
+            rigidBody.velocity.z *= friction;
 
             float accel = rigidBody.isGrounded ? moveStats.groundAcceleration : moveStats.airAcceleration;
-            horizontalVelocity.x += moveDir.x * accel * dt;
-            horizontalVelocity.y += moveDir.z * accel * dt;
+            if (moveStats.flying)
+            {
+                accel = moveStats.groundAcceleration;
+                rigidBody.velocity.y += moveDir.y * accel * dt;
+            }
 
-            rigidBody.velocity.x = horizontalVelocity.x;
-            rigidBody.velocity.z = horizontalVelocity.y;
+            rigidBody.velocity.x += moveDir.x * accel * dt;
+            rigidBody.velocity.z += moveDir.z * accel * dt;
+
+            std::cout << "acceleration " << accel << '\n';
+
+            // rigidBody.velocity.x = rigidBody.velocity.x;
 
             if (moveStats.flying)
             {
                 if (input.moveUp)
                     rigidBody.velocity.y = moveStats.moveSpeed;
                 else if (input.moveDown)
-                    // std::chrono::duration<float, std::chrono::seconds::period>(std::chrono::steady_clock::now() - input.currentTime).count();
                     rigidBody.velocity.y = -moveStats.moveSpeed;
             }
 
@@ -81,11 +88,14 @@ namespace lve
             {
                 auto now = std::chrono::steady_clock::now();
                 float elapsed = std::chrono::duration<float>(now - input.currentTime).count();
-
-                if (elapsed < 0.08f)
+                if (elapsed < 0.1f && releaseSpace)
                 {
-                    moveStats.flying = moveStats.flying;
+                    moveStats.flying = !moveStats.flying;
                     std::cout << "is flying? " << moveStats.flying << '\n';
+                }
+                else if (elapsed > 0.1f)
+                {
+                    releaseSpace = false;
                 }
 
                 input.currentTime = now;
@@ -93,6 +103,10 @@ namespace lve
                 {
                     rigidBody.velocity.y = moveStats.jumpForce;
                 }
+            }
+            else if (!releaseSpace && !input.jump)
+            {
+                releaseSpace = true;
             }
         }
     }

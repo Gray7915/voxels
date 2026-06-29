@@ -12,6 +12,8 @@ struct InputComponent
     bool moveUp = false;
     bool moveDown = false;
 
+    bool releaseSpace = false;
+
     float mouseDeltaX = 0.f;
     float mouseDeltaY = 0.f;
     float lastX = 0.0;

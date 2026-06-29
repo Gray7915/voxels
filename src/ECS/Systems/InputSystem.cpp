@@ -21,6 +21,8 @@ namespace lve
             input.moveUp = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_SPACE) == GLFW_PRESS;
             input.moveDown = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
 
+            input.releaseSpace = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_SPACE) == GLFW_RELEASE;
+
             input.escape = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS;
 
             input.mouseDeltaX = pendingMouseDeltaX;

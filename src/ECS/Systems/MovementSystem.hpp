@@ -8,5 +8,6 @@ namespace lve
     {
     public:
         void Update(float deltaTime);
+        bool releaseSpace = false;
     };
 }

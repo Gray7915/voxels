@@ -23,6 +23,7 @@ namespace lve
         void Update(LveWindow *window);
 
         static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+
         static InputSystem *instance;
 
     private:

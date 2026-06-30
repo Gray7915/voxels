@@ -27,6 +27,10 @@ namespace lve
 
             input.mouseDeltaX = pendingMouseDeltaX;
             input.mouseDeltaY = pendingMouseDeltaY;
+
+            input.leftMouseClicked = glfwGetMouseButton(window->getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+            input.middleMouseClicked = glfwGetMouseButton(window->getGLFWwindow(), GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS;
+            input.rightMouseClicked = glfwGetMouseButton(window->getGLFWwindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
         }
 
         pendingMouseDeltaX = 0.f;

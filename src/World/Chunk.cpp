@@ -11,7 +11,7 @@ namespace lve
     Chunk::Chunk(LveDevice &lveDevice, glm::vec3 offset) : noise(4, 6, 0.0f)
     {
         Chunk::createChunk(lveDevice, offset);
-        //std::cout << "created chunk at " << offset.x << offset.y << offset.z << '\n';
+        // std::cout << "created chunk at " << offset.x << offset.y << offset.z << '\n';
     }
 
     void Chunk::createChunk(LveDevice &lveDevice, glm::vec3 offset)
@@ -25,7 +25,7 @@ namespace lve
                 float heightValue = noise.sample(worldPos * 0.009f);
 
                 heightValue = (heightValue + 1.0f) * 0.5f;
-                //std::cout << "height noise val " << heightValue << "\n";
+                // std::cout << "height noise val " << heightValue << "\n";
 
                 int surfaceHeight = (int)(heightValue * (height - 1));
                 int stoneHeight = surfaceHeight - 3;
@@ -45,8 +45,8 @@ namespace lve
                 }
             }
 
-        //createTrees();
-        // blocks[8][16][8] = 1;
+        // createTrees();
+        //  blocks[8][16][8] = 1;
 
         chunkModel = ChunkRenderer::mesh(this->blocks, lveDevice, offset);
         transform.translation = glm::ivec3(offset);

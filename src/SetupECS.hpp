@@ -7,6 +7,8 @@
 #include "ECS/Systems/InputSystem.hpp"
 #include "ECS/Systems/MovementSystem.hpp"
 #include "ECS/Systems/CollisionSystem.hpp"
+#include "ECS/Systems/InteractionSystem.hpp"
+
 
 namespace lve
 {
@@ -17,6 +19,7 @@ namespace lve
         std::shared_ptr<InputSystem> inputSystem;
         std::shared_ptr<MovementSystem> movementSystem;
         std::shared_ptr<CollisionSystem> collisionSystem;
+        std::shared_ptr<InteractionSystem> interactionSystem;
     };
 
     ECSSystems registerECSComponents(Coordinator &coordinator);

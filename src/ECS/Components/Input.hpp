@@ -25,4 +25,12 @@ struct InputComponent
     bool firstJump = false;
 
     bool escape = false;
+
+    bool leftMouseClicked = false;
+    bool middleMouseClicked = false;
+    bool rightMouseClicked = false;
+    
+    std::chrono::steady_clock::time_point leftMouseWasClicked;
+    std::chrono::steady_clock::time_point middleMouseWasClicked;
+    std::chrono::steady_clock::time_point rightMouseWasClicked;
 };

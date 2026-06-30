@@ -76,7 +76,7 @@ namespace lve
             pipelineConfig);
     }
 
-    void HighlightRenderSystem::render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos, glm::vec3 direction)
+    void HighlightRenderSystem::render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos)
     {
         if (!hasHit)
             return;

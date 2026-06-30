@@ -25,6 +25,7 @@
 #include <chrono>
 #include <algorithm>
 #include <optional>
+#include <cassert>
 
 #include "SetupECS.hpp"
 
@@ -42,7 +43,7 @@ namespace lve
 {
     Coordinator coordinator;
 
-    FirstApp::FirstApp() : area(gameObjects, lveDevice, glm::vec3(0, 0, 0)), hoveredID(glm::ivec4(0, 0, 0, 0))
+    FirstApp::FirstApp() : area(gameObjects, lveDevice, glm::vec3(0, 0, 0))
     {
     }
 
@@ -67,7 +68,7 @@ namespace lve
         coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, CameraComponent{});
         coordinator.AddComponent(mainCamera, InputComponent{});
-        coordinator.AddComponent(mainCamera, MovementStats{.moveSpeed = 6.5f, .jumpForce = 5.8});
+        coordinator.AddComponent(mainCamera, MovementStats{.moveSpeed = 6.5f, .jumpForce = 6.1});
         coordinator.AddComponent(mainCamera, AABBComponent{.halfExtents = glm::vec3(0.4, 0.8, 0.4)});
         float aspect = lveRenderer.getAspectRatio();
         systems.cameraSystem->Update(aspect);
@@ -88,6 +89,7 @@ namespace lve
             systems.movementSystem->Update(frameTime);
             systems.physicsSystem->Update(frameTime);
             systems.collisionSystem->Update(frameTime);
+            systems.interactionSystem->Update(frameTime, lveWindow, lveDevice);
 
             aspect = lveRenderer.getAspectRatio();
             systems.cameraSystem->Update(aspect);
@@ -96,23 +98,6 @@ namespace lve
             auto &camBody = coordinator.GetComponent<RigidBodyComponent>(mainCamera);
             auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
             auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
-
-            glm::vec3 rot = camTransform.rotation;
-            glm::vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
-            glm::vec3 rayDir = glm::normalize(forward);
-
-            Ray ray((camTransform.position + camera.relativePosition), rayDir);
-            RayHit rayHit = ray.detectBlockHit(4.0f); // worldspace
-            glm::ivec3 chunkPos = glm::ivec3(camTransform.position) / glm::ivec3(16, 32, 16);
-
-            if (rayHit.hitPosition == glm::ivec3(-1.0f))
-            {
-                hoveredID = glm::ivec4(-1.0f);
-            }
-            else
-            {
-                hoveredID = glm::ivec4(rayHit.hitPosition, 1);
-            }
 
             if (auto commandBuffer = lveRenderer.beginFrame())
             {
@@ -125,13 +110,16 @@ namespace lve
 
                 GlobalUbo ubo{};
                 ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
+                ubo.lightPosition = camTransform.position;
                 renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 renderSetup.uboBuffers[frameIndex]->flush();
+
+
 
                 lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
 
                 chunkRenderSystem.renderChunks(frameInfo, Area::chunks);
-                highlightRenderSystem.render(frameInfo, hoveredID.w != 0, glm::ivec3(hoveredID), rayDir);
+                highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID);
 
                 lveRenderer.geometryPass->end(commandBuffer);
 
@@ -144,54 +132,6 @@ namespace lve
                 lveRenderer.UiRenderPass->end(commandBuffer);
 
                 lveRenderer.endFrame();
-            }
-
-            static bool pWasPressed = false;
-            bool pIsPressed = glfwGetMouseButton(lveWindow.getGLFWwindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
-            if (pWasPressed && !pIsPressed)
-                pWasPressed = false;
-
-            if (pIsPressed && !pWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
-            {
-                pWasPressed = true;
-                std::cout << "Ray Hit " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';
-                // std::cout << "Ray Orgin " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
-                // std::cout << "Ray Direction " << forward.x << " " << forward.y << " " << forward.z << '\n';
-                glm::ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
-                glm::ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
-                Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 0;
-                // std::cout << "array place found" << '\n';
-                // gameObjects.find(chunkPos)->second.model.reset();
-                Area::chunks.find(chunkPosition)->second->chunkModel = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0});
-
-                // std::cout << "chunk changed" << '\n';
-
-                vkDeviceWaitIdle(lveDevice.device());
-            }
-
-            static bool rightWasPressed = false;
-            bool rightIsPressed = glfwGetMouseButton(lveWindow.getGLFWwindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
-            if (rightWasPressed && !rightIsPressed)
-                rightWasPressed = false;
-
-            if (rightIsPressed && !rightWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
-            {
-                rightWasPressed = true;
-                std::cout << "Ray Hit " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';
-                glm::ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
-                // std::cout << "Ray Orgin " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
-                // std::cout << "Ray Direction " << forward.x << " " << forward.y << " " << forward.z << '\n';
-                glm::ivec3 blockCoord = WorldToChunkArray(blockPos);
-                glm::ivec3 chunkPosition = WorldToChunkId(blockPos);
-                if (Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] != 1)
-                    Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 1;
-                // std::cout << "array place found" << '\n';
-                // gameObjects.find(chunkPos)->second.model.reset();
-                Area::chunks.find(chunkPosition)->second->chunkModel = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0});
-
-                // std::cout << "chunk changed" << '\n';
-
-                vkDeviceWaitIdle(lveDevice.device());
             }
 
             static bool colWasPressed = false;

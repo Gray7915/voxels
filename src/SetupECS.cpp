@@ -1,5 +1,5 @@
 #include "SetupECS.hpp"
- 
+
 #include "ECS/Components/Gravity.hpp"
 #include "ECS/Components/Camera.hpp"
 #include "ECS/Components/RigidBody.hpp"
@@ -9,7 +9,6 @@
 #include "ECS/Components/MovementStats.hpp"
 #include "ECS/Components/ColliderComponent.hpp"
 #include "ECS/Components/AABBComponent.hpp"
-
 
 namespace lve
 {
@@ -80,6 +79,15 @@ namespace lve
             signature.set(coordinator.GetComponentType<AABBComponent>());
             signature.set(coordinator.GetComponentType<RigidBodyComponent>());
             coordinator.SetSystemSignature<CollisionSystem>(signature);
+        }
+
+        systems.interactionSystem = coordinator.RegisterSystem<InteractionSystem>();
+        {
+            Signature signature;
+            signature.set(coordinator.GetComponentType<Transform>());
+            signature.set(coordinator.GetComponentType<AABBComponent>());
+            signature.set(coordinator.GetComponentType<CameraComponent>());
+            coordinator.SetSystemSignature<InteractionSystem>(signature);
         }
 
         return systems;

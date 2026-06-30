@@ -69,6 +69,26 @@ namespace lve
         return false;
     }
 
+    bool CollisionSystem::CheckBlockPlacement(const Transform &transform, const AABBComponent &aabbComponent, glm::ivec3 position)
+    {
+        glm::vec3 minPos = transform.position - aabbComponent.halfExtents;
+        glm::vec3 maxPos = transform.position + aabbComponent.halfExtents;
+
+        glm::ivec3 minBlock = glm::floor(minPos);
+        glm::ivec3 maxBlock = glm::floor(maxPos);
+
+        for (int x = minBlock.x; x <= maxBlock.x; ++x)
+            for (int y = minBlock.y; y <= maxBlock.y; ++y)
+                for (int z = minBlock.z; z <= maxBlock.z; ++z)
+                {
+                    if (glm::ivec3(glm::floor(glm::vec3(x, y, z))) == position)
+                    {
+                        return true;
+                    }
+                }
+        return false;
+    }
+
     float CollisionSystem::MoveAxis(const Transform &transform, const AABBComponent &aabb, float movement, int axis)
     {
         constexpr float EPSILON = 0.05f;

@@ -19,6 +19,8 @@
 #include "ECS/Systems/InputSystem.hpp"
 #include "ECS/Systems/MovementSystem.hpp"
 #include "ECS/Systems/CollisionSystem.hpp"
+#include "ECS/Systems/InteractionSystem.hpp"
+
 #include "SetupECS.hpp"
 #include "RenderSetup.hpp"
 // std
@@ -59,16 +61,10 @@ namespace lve
         std::unique_ptr<LveDescriptorPool> globalPool{};
         std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> gameObjects;
         Area area;
-        glm::ivec4 hoveredID;
+        //glm::ivec4 hoveredID;
 
         ECSSystems systems;
         RenderSetup renderSetup;
         std::unique_ptr<ImguiManager> imguiManager;
-
-        std::shared_ptr<CameraSystem> cameraSystem;
-        std::shared_ptr<PhysicsSystem> physicsSystem;
-        std::shared_ptr<InputSystem> inputSystem;
-        std::shared_ptr<MovementSystem> movementSystem;
-        std::shared_ptr<CollisionSystem> collisionSystem;
     };
 }

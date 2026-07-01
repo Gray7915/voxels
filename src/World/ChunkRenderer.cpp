@@ -55,7 +55,7 @@ namespace lve
             glm::ivec3 n = pos + getDirection(face);
 
             // std::cout << "pos " << n.x << " " << n.y << " " << n.z << '\n';
-            bool visible = n.x < 0 || n.y < 0 || n.z < 0 || n.x >= 18 || n.y >= 128 || n.z >= 18 || blocks[n.x][n.y][n.z] == 0;
+            bool visible = n.x < 0 || n.y < 0 || n.z < 0 || n.x >= 18 || n.y >= 128 || n.z >= 18 || blocks[n.x][n.y][n.z] == 0 || blocks[n.x][n.y][n.z] == 4;
 
             if (!visible)
                 continue;
@@ -88,6 +88,26 @@ namespace lve
         // std::cout << "finished block" << '\n';
     }
 
+    void ChunkRenderer::emitCustomModel(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[18][128][18], glm::vec3 worldOffset, int blockType)
+    {
+        LveModel::Builder builder{};
+        builder.loadModel("/home/patrick/Documents/Projects/voxels/models/flat_vase.obj");
+        uint32_t baseVertex = static_cast<uint32_t>(vertices.size());
+        for (Vertex vert : builder.vertices)
+        {
+            vert.position = vert.position + glm::vec3(pos) + glm::vec3(0.5, 0, 0.5);
+            vert.uv = glm::vec2(0, 0);
+            vert.color = glm::vec3(0.5, 0.5, 0.5);
+
+            vertices.push_back(vert);
+        }
+
+        for (auto index : builder.indices)
+        {
+            indices.push_back(baseVertex + index);
+        }
+    }
+
     std::unique_ptr<lve::LveModel, std::default_delete<lve::LveModel>> ChunkRenderer::mesh(int blocks[18][128][18], LveDevice &lveDevice, glm::vec3 offset)
     {
 
@@ -105,7 +125,14 @@ namespace lve
                         continue;
 
                     pos.position = glm::vec3(x, y, z) + offset;
-                    emit_tile(vertices, indices, glm::ivec3(x, y, z), blocks, offset, blocks[x][y][z]);
+                    if (blocks[x][y][z] == 4)
+                    {
+                        emitCustomModel(vertices, indices, glm::ivec3(x, y, z), blocks, offset, blocks[x][y][z]);
+                    }
+                    else
+                    {
+                        emit_tile(vertices, indices, glm::ivec3(x, y, z), blocks, offset, blocks[x][y][z]);
+                    }
                     // vertices.push_back(pos);
                 }
             }
@@ -115,7 +142,7 @@ namespace lve
         LveGameObject firstChunk = LveGameObject::createGameObject();
         auto model = LveModel::createChunkModel(lveDevice, vertices, indices);
         // std::cout << "loaded model" << '\n';
-        //std::cout << "chunk pos set " << offset.x << " " << offset.y << " " << offset.z << '\n';
+        // std::cout << "chunk pos set " << offset.x << " " << offset.y << " " << offset.z << '\n';
 
         firstChunk.transform.translation = offset;
         firstChunk.transform.scale = {1.f, 1.f, 1.f};

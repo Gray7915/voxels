@@ -75,7 +75,7 @@ namespace lve
                 glm::ivec3 chunkPosition = WorldToChunkId(blockPos);
                 bool blockPlaceOkay = CheckBlockPlacement(transform, aabb, blockPos);
                 if (Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] != 1 && !blockPlaceOkay)
-                    Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 1;
+                    Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 4;
 
                 Area::chunks.find(chunkPosition)->second->chunkModel = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0});
 

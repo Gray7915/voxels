@@ -38,6 +38,7 @@
 #include "ECS/Components/MovementStats.hpp"
 #include "ECS/Components/ColliderComponent.hpp"
 #include "ECS/Components/AABBComponent.hpp"
+#include "ECS/Components/Renderable.hpp"
 
 namespace lve
 {
@@ -61,6 +62,7 @@ namespace lve
 
         HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         ChunkRenderSystem chunkRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
+        SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
 
         Entity mainCamera = coordinator.CreateEntity();
         coordinator.AddComponent(mainCamera, Transform{.position = {0, 70, 0}});
@@ -70,10 +72,16 @@ namespace lve
         coordinator.AddComponent(mainCamera, InputComponent{});
         coordinator.AddComponent(mainCamera, MovementStats{.moveSpeed = 6.5f, .jumpForce = 6.1});
         coordinator.AddComponent(mainCamera, AABBComponent{.halfExtents = glm::vec3(0.4, 0.8, 0.4)});
+
         float aspect = lveRenderer.getAspectRatio();
         systems.cameraSystem->Update(aspect);
         auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
         camera.projectionMatrix[1][1] *= -1;
+
+        Entity testEntity = coordinator.CreateEntity();
+        coordinator.AddComponent(testEntity, Transform{.position = {0, 70, 0}});
+        coordinator.AddComponent(testEntity, RenderableComponent{.model = LveModel::createModelFromFile(lveDevice, "models/flat_vase.obj")});
+        //    auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         assert(lveWindow.getGLFWwindow() != nullptr && "window null)");
@@ -114,13 +122,15 @@ namespace lve
                 renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 renderSetup.uboBuffers[frameIndex]->flush();
 
-
-
                 lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
 
                 chunkRenderSystem.renderChunks(frameInfo, Area::chunks);
+                //systems.renderSystem->Update(frameInfo, simpleRenderSystem);
                 highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID);
+                auto &testTrans = coordinator.GetComponent<Transform>(testEntity);
+                auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
 
+                simpleRenderSystem.renderGameObjects(frameInfo, testTrans.mat4(), testTrans.normalMatrix(), testModel.model);
                 lveRenderer.geometryPass->end(commandBuffer);
 
                 lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());

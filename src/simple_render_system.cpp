@@ -63,32 +63,21 @@ namespace lve
             pipelineConfig);
     }
 
-    void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec4 hoveredBlockPos)
+    void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo, glm::mat4 modelMatrix, glm::mat3 normalMatrix, std::shared_ptr<lve::LveModel> model)
     {
+        std::cout << "render ran" << '\n';
         lvePipeline->bind(frameInfo.commandBuffer);
 
-        vkCmdBindDescriptorSets(
-            frameInfo.commandBuffer,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipelineLayout,
-            0,
-            1,
-            &frameInfo.globalDescriptorSet,
-            0,
-            nullptr);
-            //std::cout << " game objects size " << gameObjects.size() << '\n';
+        vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,
+                                0, 1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
-        for (auto &[key, obj] : gameObjects)
-        {
-            //std::cout << "key " << key.x << " " << key.y << " " << key.z << '\n';
-            SimplePushConstantData push{};
-            push.modelMatrix = obj.transform.mat4();
-            push.normalMatrix = obj.transform.normalMatrix();
-            vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
-                               VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                               0, sizeof(SimplePushConstantData), &push);
-            obj.model->bind(frameInfo.commandBuffer);
-            obj.model->draw(frameInfo.commandBuffer);
-        }
+        SimplePushConstantData push{};
+        push.modelMatrix = modelMatrix;
+        push.normalMatrix = normalMatrix;
+        vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
+                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                           0, sizeof(SimplePushConstantData), &push);
+        model->bind(frameInfo.commandBuffer);
+        model->draw(frameInfo.commandBuffer);
     }
 }

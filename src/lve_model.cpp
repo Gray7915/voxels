@@ -10,9 +10,8 @@
 #include <iostream>
 #include <unordered_map>
 
-
 #ifndef ENGINE_DIR
-#define ENGINE_DIR "../" 
+#define ENGINE_DIR "../"
 #endif
 
 namespace std
@@ -165,7 +164,7 @@ namespace lve
         attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)});
         attributeDescriptions.push_back({2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)});
         attributeDescriptions.push_back({3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)});
-        //attributeDescriptions.push_back({4, 0, VK_FORMAT_R32G32B32_SINT, offsetof(Vertex, blockPos)});
+        // attributeDescriptions.push_back({4, 0, VK_FORMAT_R32G32B32_SINT, offsetof(Vertex, blockPos)});
         return attributeDescriptions;
     }
 
@@ -197,6 +196,8 @@ namespace lve
                         attrib.vertices[3 * index.vertex_index + 1], // y
                         attrib.vertices[3 * index.vertex_index + 2], // z
                     };
+                    vertex.position.y = -vertex.position.y;
+                    vertex.position.z = -vertex.position.z;
 
                     auto colorIndex = 3 * index.vertex_index + 2;
                     vertex.color = {
@@ -213,6 +214,8 @@ namespace lve
                         attrib.normals[3 * index.normal_index + 1], // y
                         attrib.normals[3 * index.normal_index + 2], // z
                     };
+                    vertex.normal.y = -vertex.normal.y;
+                    vertex.normal.z = -vertex.normal.z;
                 }
 
                 if (index.texcoord_index >= 0)

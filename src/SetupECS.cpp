@@ -9,6 +9,7 @@
 #include "ECS/Components/MovementStats.hpp"
 #include "ECS/Components/ColliderComponent.hpp"
 #include "ECS/Components/AABBComponent.hpp"
+#include "ECS/Components/Renderable.hpp"
 
 namespace lve
 {
@@ -25,6 +26,7 @@ namespace lve
         coordinator.RegisterComponent<InputComponent>();
         coordinator.RegisterComponent<MovementStats>();
         coordinator.RegisterComponent<AABBComponent>();
+        coordinator.RegisterComponent<RenderableComponent>();
 
         // --- PhysicsSystem ---
         systems.physicsSystem = coordinator.RegisterSystem<PhysicsSystem>();
@@ -88,6 +90,14 @@ namespace lve
             signature.set(coordinator.GetComponentType<AABBComponent>());
             signature.set(coordinator.GetComponentType<CameraComponent>());
             coordinator.SetSystemSignature<InteractionSystem>(signature);
+        }
+
+        systems.renderSystem = coordinator.RegisterSystem<RenderSystem>();
+        {
+            Signature signature;
+            signature.set(coordinator.GetComponentType<Transform>());
+            signature.set(coordinator.GetComponentType<RenderableComponent>());
+            coordinator.SetSystemSignature<RenderSystem>(signature);
         }
 
         return systems;

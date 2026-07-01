@@ -23,8 +23,8 @@ namespace lve
         SimpleRenderSystem(const SimpleRenderSystem &) = delete;
         SimpleRenderSystem &operator=(const SimpleRenderSystem &) = delete;
 
-        void renderGameObjects(FrameInfo &frameInfo, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec4 hoveredID);
-    
+        void renderGameObjects(FrameInfo &frameInfo, glm::mat4 modelMatrix, glm::mat3 normalMatrix, std::shared_ptr<lve::LveModel> model);
+
     private:
         void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
         void createPipeline(VkRenderPass renderPass);

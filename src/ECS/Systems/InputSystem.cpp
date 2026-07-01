@@ -25,6 +25,17 @@ namespace lve
 
             input.escape = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS;
 
+            input.onePressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_1) == GLFW_PRESS;
+            input.twoPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_2) == GLFW_PRESS;
+            input.threePressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_3) == GLFW_PRESS;
+            input.fourPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_4) == GLFW_PRESS;
+            input.fivePressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_5) == GLFW_PRESS;
+            input.sixPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_6) == GLFW_PRESS;
+            input.sevenPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_7) == GLFW_PRESS;
+            input.eightPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_8) == GLFW_PRESS;
+            input.ninePressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_9) == GLFW_PRESS;
+            input.zeroPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_0) == GLFW_PRESS;
+
             input.mouseDeltaX = pendingMouseDeltaX;
             input.mouseDeltaY = pendingMouseDeltaY;
 

@@ -30,6 +30,19 @@ struct InputComponent
     bool middleMouseClicked = false;
     bool rightMouseClicked = false;
     
+    bool escapePressed;
+
+    bool onePressed;
+    bool twoPressed;
+    bool threePressed;
+    bool fourPressed;
+    bool fivePressed;
+    bool sixPressed;
+    bool sevenPressed;
+    bool eightPressed;
+    bool ninePressed;
+    bool zeroPressed;
+
     std::chrono::steady_clock::time_point leftMouseWasClicked;
     std::chrono::steady_clock::time_point middleMouseWasClicked;
     std::chrono::steady_clock::time_point rightMouseWasClicked;

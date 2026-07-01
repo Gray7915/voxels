@@ -65,7 +65,7 @@ namespace lve
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
 
         Entity mainCamera = coordinator.CreateEntity();
-        coordinator.AddComponent(mainCamera, Transform{.position = {0, 70, 0}});
+        coordinator.AddComponent(mainCamera, Transform{.position = {0, 68, 0}});
         coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, -15, 0.0f)});
         coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, CameraComponent{});
@@ -79,7 +79,7 @@ namespace lve
         camera.projectionMatrix[1][1] *= -1;
 
         Entity testEntity = coordinator.CreateEntity();
-        coordinator.AddComponent(testEntity, Transform{.position = {0, 70, 0}});
+        coordinator.AddComponent(testEntity, Transform{.position = {0, 66, 0}, .scale = {1, 1, 1}});
         coordinator.AddComponent(testEntity, RenderableComponent{.model = LveModel::createModelFromFile(lveDevice, "models/flat_vase.obj")});
         //    auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
 
@@ -125,17 +125,18 @@ namespace lve
                 lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
 
                 chunkRenderSystem.renderChunks(frameInfo, Area::chunks);
-                //systems.renderSystem->Update(frameInfo, simpleRenderSystem);
+                // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
                 highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID);
                 auto &testTrans = coordinator.GetComponent<Transform>(testEntity);
                 auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
 
                 simpleRenderSystem.renderGameObjects(frameInfo, testTrans.mat4(), testTrans.normalMatrix(), testModel.model);
+
                 lveRenderer.geometryPass->end(commandBuffer);
 
                 lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
                 imguiManager->newFrame();
-                imguiManager->drawDebugWindow(frameTime);
+                imguiManager->drawDebugWindow(frameTime, camTransform.position);
                 imguiManager->drawCrosshair(WIDTH, HEIGHT);
                 // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
                 imguiManager->render(commandBuffer);

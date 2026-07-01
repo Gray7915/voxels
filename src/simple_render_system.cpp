@@ -65,7 +65,6 @@ namespace lve
 
     void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo, glm::mat4 modelMatrix, glm::mat3 normalMatrix, std::shared_ptr<lve::LveModel> model)
     {
-        std::cout << "render ran" << '\n';
         lvePipeline->bind(frameInfo.commandBuffer);
 
         vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout,

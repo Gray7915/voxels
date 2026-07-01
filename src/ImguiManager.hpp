@@ -19,7 +19,7 @@ namespace lve
         void newFrame();
         void render(VkCommandBuffer commandBuffer);
         void drawCrosshair(float windowWidth, float windowHeight);
-        void drawDebugWindow(float frameTime);
+        void drawDebugWindow(float frameTime, glm::vec3 pos);
         void drawQuitMenu(float windowWidth, float windowHeight);
         void activateMouse();
 
@@ -29,7 +29,7 @@ namespace lve
         float fpsAccumulator = 0.0f;
         int fpsFrameCount = 0;
         float displayedFps = 0.0f;
-        
+
         LveDevice &lveDevice;
         VkDescriptorPool descriptorPool;
     };

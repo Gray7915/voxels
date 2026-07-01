@@ -85,7 +85,7 @@ namespace lve
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
     }
 
-    void ImguiManager::drawDebugWindow(float frameTime)
+    void ImguiManager::drawDebugWindow(float frameTime, glm::vec3 pos)
     {
         fpsAccumulator += frameTime;
         fpsFrameCount++;
@@ -100,6 +100,7 @@ namespace lve
         // ImGui::Text("Hello Vulkan");
         ImGui::Text("FPS: %.1f", displayedFps);
         ImGui::Text("Frame time: %.3f ms", frameTime * 1000.0f);
+        ImGui::Text("Player Position: x %.2f, y %.2f, z %.2f", pos.x, pos.y, pos.z);
         ImGui::End();
     }
 

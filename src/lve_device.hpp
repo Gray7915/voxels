@@ -5,6 +5,8 @@
 // std lib headers
 #include <string>
 #include <vector>
+#include <functional>
+#include <deque>
 
 namespace lve
 {
@@ -49,7 +51,7 @@ namespace lve
     VkSurfaceKHR surface() { return surface_; }
     VkQueue graphicsQueue() { return graphicsQueue_; }
     VkQueue presentQueue() { return presentQueue_; }
-    VkInstance getInstance(){return instance;}
+    VkInstance getInstance() { return instance; }
 
     SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice); }
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -58,17 +60,11 @@ namespace lve
     VkFormat findDepthFormat() const;
 
     // Buffer Helper Functions
-    void createBuffer(
-        VkDeviceSize size,
-        VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags properties,
-        VkBuffer &buffer,
-        VkDeviceMemory &bufferMemory);
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
     VkCommandBuffer beginSingleTimeCommands();
     void endSingleTimeCommands(VkCommandBuffer commandBuffer);
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    void copyBufferToImage(
-        VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
 
     void createImageWithInfo(
         const VkImageCreateInfo &imageInfo,
@@ -78,6 +74,9 @@ namespace lve
 
     VkPhysicalDeviceProperties properties;
     VkImageView createImageView(VkImage image, VkFormat format);
+
+    void queueDeletion(std::function<void()> &&deleter, uint32_t frameIndex);
+    void flushDeletionQueue(uint32_t currentFrame);
 
   private:
     void createInstance();
@@ -109,6 +108,14 @@ namespace lve
 
     const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
     const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+    struct DeletionEntry
+    {
+      std::function<void()> deleter;
+      uint32_t frameQueued;
+    };
+    std::deque<DeletionEntry> deletionQueue_;
+    //static constexpr int MAX_FRAMES_IN_FLIGHT = SwapChain::MAX_FRAMES_IN_FLIGHT;
   };
 
 } // namespace lve

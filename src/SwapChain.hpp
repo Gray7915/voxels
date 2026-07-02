@@ -29,7 +29,7 @@ namespace lve
         size_t imageCount() const { return swapChainImages.size(); }
         VkFormat getSwapChainImageFormat() const { return swapChainImageFormat; }
         VkExtent2D getSwapChainExtent() const { return swapChainExtent; }
-
+        uint32_t getCurrentFrame() const { return static_cast<uint32_t>(currentFrame); }
         uint32_t width() { return swapChainExtent.width; }
         uint32_t height() { return swapChainExtent.height; }
         float extentAspectRatio()

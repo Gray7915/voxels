@@ -639,4 +639,19 @@ namespace lve
         VK_IMAGE_TILING_OPTIMAL,
         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
   }
+
+  void LveDevice::queueDeletion(std::function<void()> &&deleter, uint32_t frameIndex)
+  {
+    deletionQueue_.push_back({std::move(deleter), frameIndex});
+  }
+
+  void LveDevice::flushDeletionQueue(uint32_t currentFrame)
+  {
+    while (!deletionQueue_.empty() &&
+           deletionQueue_.front().frameQueued != currentFrame)
+    {
+      deletionQueue_.front().deleter();
+      deletionQueue_.pop_front();
+    }
+  }
 } // namespace lve

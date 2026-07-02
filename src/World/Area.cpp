@@ -23,24 +23,27 @@ namespace lve
                 // std::cout << "chunk coordinate " << " " << chunkCoord.x << " " << chunkCoord.y << " " << chunkCoord.z << '\n';
                 glm::ivec3 worldPos = chunkCoord * glm::ivec3(16, 1, 16);
 
-                // chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
-                new Chunk(lveDevice, worldPos);
+                chunks.emplace(chunkCoord, std::make_unique<Chunk>(lveDevice, worldPos));
             }
         }
         // std::cout << "chunks made " << i << '\n';
     }
 
-    void Area::tick(LveDevice &lveDevice, glm::vec3 center)
+    void Area::tick(LveDevice &lveDevice, glm::vec3 center, uint32_t currentFrameIndex)
     {
         glm::ivec3 c = glm::ivec3(center) / glm::ivec3(16, 32, 16);
-
         for (auto it = chunks.begin(); it != chunks.end();)
         {
-            const glm::ivec3 &coord = it->first; // already chunk coords
+            const glm::ivec3 &coord = it->first;
             if (coord.x < c.x - MinMaxOffset || coord.x > c.x + MinMaxOffset ||
                 coord.z < c.z - MinMaxOffset || coord.z > c.z + MinMaxOffset)
             {
-                vkDeviceWaitIdle(lveDevice.device());
+                // Move the chunk out instead of destroying it now.
+                // Its destructor (which frees Vulkan buffers) runs later,
+                // once the GPU is confirmed done with this frame slot.
+                auto chunkPtr = std::shared_ptr<Chunk>(std::move(it->second));
+                lveDevice.queueDeletion([chunk = chunkPtr]() {}, currentFrameIndex);
+
                 it = chunks.erase(it);
             }
             else
@@ -53,16 +56,11 @@ namespace lve
         {
             for (int z = c.z - MinMaxOffset; z <= c.z + MinMaxOffset; z++)
             {
-                glm::ivec3 chunkCoord = glm::ivec3(x, 0, z); // / glm::ivec3(16, 32, 16);
-                // std::cout << "chunk coordinate " << " " << chunkCoord.x << " " << chunkCoord.y << " " << chunkCoord.z << '\n';
-
+                glm::ivec3 chunkCoord = glm::ivec3(x, 0, z);
                 if (chunks.find(chunkCoord) == chunks.end())
                 {
-                    // std::cout << "creating chunk\n";
                     glm::ivec3 worldPos = chunkCoord * glm::ivec3(16, 32, 16);
-                    // std::cout << "chunk world pos " << " " << worldPos.x << " " << worldPos.y << " " << worldPos.z << '\n';
-                    new Chunk(lveDevice, worldPos);
-                    // chunks.emplace(chunkCoord, std::make_unique<Chunk>(gameObjects, lveDevice, worldPos));
+                    chunks.emplace(chunkCoord, std::make_unique<Chunk>(lveDevice, worldPos));
                 }
             }
         }

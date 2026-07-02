@@ -44,18 +44,12 @@ namespace lve
                     }
                 }
             }
-
-        // createTrees();
-        //  blocks[8][16][8] = 1;
-
+            
         chunkModel = ChunkRenderer::mesh(this->blocks, lveDevice, offset);
         this->offset = offset;
         this->scale = {1.f, 1.f, 1.f};
         this->position = offset;
         this->rotation = glm::vec3(0.0f);
-        std::cout << "setting offset in chunk create " << this->offset.x << " " << this->offset.y << " " << this->offset.z << '\n';
-        // gameObjects.insert({glm::ivec3(offset) / glm::ivec3(16, 32, 16), std::move(obj)});
-        Area::chunks.emplace(glm::ivec3(offset) / glm::ivec3(16, 32, 16), std::unique_ptr<Chunk>(this));
     }
 
     void Chunk::createTrees()

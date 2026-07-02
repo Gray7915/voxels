@@ -99,6 +99,8 @@ namespace lve
         }
         isFrameStarted = true;
 
+        lveDevice.flushDeletionQueue(currentFrameIndex);
+
         auto commandBuffer = getCurrentCommandBuffer();
 
         VkCommandBufferBeginInfo beginInfo{};

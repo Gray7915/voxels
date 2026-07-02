@@ -3,7 +3,6 @@
 #include "lve_window.hpp"
 #include "lve_device.hpp"
 #include "lve_model.hpp"
-#include "lve_game_object.hpp"
 #include "lve_renderer.hpp"
 #include <unordered_map>
 #include "IVec3Hash.h"
@@ -46,12 +45,11 @@ namespace lve
         void run();
 
     private:
-        void loadGameObjects();
         void createPipelineLayout();
         void createPipeline();
         void renderGameObjects(VkCommandBuffer commandBuffer);
         // void registerECSComponents();
-        bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
+        //bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
 
         LveWindow lveWindow{WIDTH, HEIGHT, "Hello Vulkan"};
         LveDevice lveDevice{lveWindow};
@@ -59,7 +57,6 @@ namespace lve
         // std::vector<LveGameObject> gameObjects;
         // std::unordered_map<glm::vec3, LveGameObject> gameObjects;
         std::unique_ptr<LveDescriptorPool> globalPool{};
-        std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> gameObjects;
         Area area;
         //glm::ivec4 hoveredID;
 

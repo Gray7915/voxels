@@ -1,5 +1,4 @@
 #pragma once
-#include "../lve_game_object.hpp"
 #include "../lve_device.hpp"
 #include "Chunk.hpp"
 #include "../lve_util.hpp"

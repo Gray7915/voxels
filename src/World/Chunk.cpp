@@ -49,8 +49,7 @@ namespace lve
         //  blocks[8][16][8] = 1;
 
         chunkModel = ChunkRenderer::mesh(this->blocks, lveDevice, offset);
-        transform.translation = glm::ivec3(offset);
-        transform.scale = {1, 1, 1};
+ 
         // gameObjects.insert({glm::ivec3(offset) / glm::ivec3(16, 32, 16), std::move(obj)});
         Area::chunks.emplace(glm::ivec3(offset) / glm::ivec3(16, 32, 16), std::unique_ptr<Chunk>(this));
     }
@@ -81,9 +80,4 @@ namespace lve
                 }
             }
     }
-
-    void buildMesh(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice)
-    {
-    }
-
 }

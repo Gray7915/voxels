@@ -8,7 +8,7 @@ namespace lve
     std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> Area::chunks;
 
     Area::~Area() = default;
-    Area::Area(std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, LveDevice &lveDevice, glm::vec3 offset)
+    Area::Area(LveDevice &lveDevice, glm::vec3 offset)
     {
 
         int i = 0;

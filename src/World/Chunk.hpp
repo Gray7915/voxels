@@ -1,9 +1,11 @@
 #pragma once
 #include <unordered_map>
+#include <memory>
 #include <glm/ext/vector_int3.hpp>
 #include "../IVec3Hash.h"
-#include "../lve_game_object.hpp"
 #include "../Util/noise.hpp"
+#include "../lve_device.hpp"
+#include "../lve_model.hpp"
 
 namespace lve
 {
@@ -29,16 +31,5 @@ namespace lve
         void buildMesh(LveDevice &lveDevice);
         void createTrees();
         std::shared_ptr<LveModel> chunkModel{};
-        TransformComponent transform{};
-
-        struct TransformComponent
-        {
-            glm::vec3 translation{};
-            glm::vec3 scale{1.f, 1.f, 1.f};
-            glm::vec3 rotation;
-
-            glm::mat4 mat4();
-            glm::mat3 normalMatrix();
-        };
     };
 }

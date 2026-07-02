@@ -85,8 +85,8 @@ namespace lve
             //std::cout << "key " << obj->transform.translation.x << " " << obj->transform.translation.y << " " << obj->transform.translation.z << '\n';
             //  std::cout << "start loop with key " << key.x << " " << key.y << " " << key.z << '\n';
             SimplePushConstantData push{};
-            push.modelMatrix = obj->transform.mat4();
-            push.normalMatrix = obj->transform.normalMatrix();
+            push.modelMatrix = glm::mat4(1);
+            push.normalMatrix = glm::mat4(1);
             // std::cout << "add normal and model matrix to push " << '\n';
             vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
                                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,

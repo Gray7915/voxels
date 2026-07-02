@@ -91,7 +91,7 @@ namespace lve
     void ChunkRenderer::emitCustomModel(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[18][128][18], glm::vec3 worldOffset, int blockType)
     {
         LveModel::Builder builder{};
-        builder.loadModel("/home/patrick/Documents/Projects/voxels/models/flat_vase.obj");
+        builder.loadModel("../models/flat_vase.obj");
         uint32_t baseVertex = static_cast<uint32_t>(vertices.size());
         for (Vertex vert : builder.vertices)
         {
@@ -139,13 +139,13 @@ namespace lve
         }
 
         // std::cout << "finished making mesh" << '\n';
-        LveGameObject firstChunk = LveGameObject::createGameObject();
+        // LveGameObject firstChunk = LveGameObject::createGameObject();
         auto model = LveModel::createChunkModel(lveDevice, vertices, indices);
         // std::cout << "loaded model" << '\n';
         // std::cout << "chunk pos set " << offset.x << " " << offset.y << " " << offset.z << '\n';
 
-        firstChunk.transform.translation = offset;
-        firstChunk.transform.scale = {1.f, 1.f, 1.f};
+        //  firstChunk.transform.translation = offset;
+        // firstChunk.transform.scale = {1.f, 1.f, 1.f};
         // std::cout << "returned chunk" << '\n';
         return model;
     }

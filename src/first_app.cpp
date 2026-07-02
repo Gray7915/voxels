@@ -1,7 +1,6 @@
 #include "first_app.hpp"
 #include "simple_render_system.hpp"
 #include "highlight_render_system.hpp"
-#include "ui_render_system.hpp"
 #include "chunk_render_system.hpp"
 #include "lve_util.hpp"
 
@@ -44,7 +43,7 @@ namespace lve
 {
     Coordinator coordinator;
 
-    FirstApp::FirstApp() : area(gameObjects, lveDevice, glm::vec3(0, 0, 0))
+    FirstApp::FirstApp() : area(lveDevice, glm::vec3(0, 0, 0))
     {
     }
 
@@ -163,12 +162,4 @@ namespace lve
         }
         vkDeviceWaitIdle(lveDevice.device());
     };
-
-    void FirstApp::loadGameObjects()
-    {
-        // LveGameObject chunk = Chunk::createChunk();
-        // std::cout << "load game objects" << '\n';
-        area = Area(gameObjects, lveDevice, glm::vec3(0, 0, 0));
-        // chunk::createChunk(&gameObjects, lveDevice);
-    }
 }

@@ -82,25 +82,15 @@ namespace lve
 
         for (auto &[key, obj] : chunks)
         {
-            //std::cout << "key " << obj->transform.translation.x << " " << obj->transform.translation.y << " " << obj->transform.translation.z << '\n';
-            //  std::cout << "start loop with key " << key.x << " " << key.y << " " << key.z << '\n';
             SimplePushConstantData push{};
-            push.modelMatrix = glm::mat4(1);
-            push.normalMatrix = glm::mat4(1);
-            // std::cout << "add normal and model matrix to push " << '\n';
+            push.modelMatrix = obj->mat4();
+            push.normalMatrix = obj->normalMatrix();
             vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
                                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                0, sizeof(SimplePushConstantData), &push);
 
-            // std::cout << "before model bind " << '\n';
             obj->chunkModel->bind(frameInfo.commandBuffer);
-            // std::cout << "after model bind " << '\n';
-
-            // std::cout << "before model draw " << '\n';
             obj->chunkModel->draw(frameInfo.commandBuffer);
-            // std::cout << "after model draw " << '\n';
-
-            // std::cout << "end loop with key " << key.x << " " << key.y << " " << key.z << '\n';
         }
     }
 }

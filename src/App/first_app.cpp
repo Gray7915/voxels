@@ -5,9 +5,7 @@
 #include "Rendering/Systems/simple_render_system.hpp"
 
 #include "World/Chunk.hpp"
-#include "Util/ray.hpp"
-#include "Util/IVec3Hash.h"
-#include "Util/lve_util.hpp"
+
 #include "World/ChunkRenderer.hpp"
 #include "Rendering/Core/lve_buffer.hpp"
 #include "ECS/Coordinator.hpp"

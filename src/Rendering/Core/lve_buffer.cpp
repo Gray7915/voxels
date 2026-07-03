@@ -19,7 +19,7 @@ namespace lve
      *
      * @param instanceSize The size of an instance
      * @param minOffsetAlignment The minimum required alignment, in bytes, for the offset member (eg
-     * minUniformBufferOffsetAlignment)
+     * minUniforRendering/Core/mBufferOffsetAlignment)
      *
      * @return VkResult of the buffer mapping call
      */

@@ -20,7 +20,7 @@ namespace lve
         static const int height = 128;
         inline static const glm::ivec3 CHUNK_SIZE{16, 128, 16};
 
-        bool dirty;
+        bool dirty = false;
 
         glm::vec3 offset;
         glm::vec3 rotation;

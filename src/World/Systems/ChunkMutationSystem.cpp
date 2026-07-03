@@ -3,6 +3,7 @@
 #include "World/Area.hpp"
 #include "Util/math.hpp"
 #include "ECS/Components/AABBComponent.hpp"
+#include <assert.h>
 
 namespace lve
 {
@@ -12,7 +13,10 @@ namespace lve
     {
         for (auto &e : coordinator.eventBus.blockBroken.read())
         {
-            auto &chunk = *Area::chunks.find(e.chunkPos)->second;
+            auto it = Area::chunks.find(e.chunkPos);
+            assert(it != Area::chunks.end());
+            assert(it->second);
+            auto &chunk = *it->second;
             chunk.blocks[e.blockPos.x][e.blockPos.y][e.blockPos.z] = 0;
             chunk.dirty = true;
         }

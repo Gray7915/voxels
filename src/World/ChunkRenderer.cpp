@@ -1,5 +1,5 @@
 #include "Chunk.hpp"
-#include "../lve_model.hpp"
+#include "../Rendering/Core/lve_model.hpp"
 #include "ChunkRenderer.hpp"
 #include <iostream>
 

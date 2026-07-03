@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../System.hpp"
-#include "../Coordinator.hpp"
-#include "../../lve_frame_info.hpp"
-#include "../../simple_render_system.hpp"
+#include "ECS/System.hpp"
+#include "ECS/Coordinator.hpp"
+#include "Util/lve_frame_info.hpp"
+#include "Rendering/Systems/simple_render_system.hpp"
 
 namespace lve
 {

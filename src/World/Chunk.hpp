@@ -2,10 +2,10 @@
 #include <unordered_map>
 #include <memory>
 #include <glm/ext/vector_int3.hpp>
-#include "../IVec3Hash.h"
+#include "../Util/IVec3Hash.h"
 #include "../Util/noise.hpp"
-#include "../lve_device.hpp"
-#include "../lve_model.hpp"
+#include "../Rendering/Core/lve_device.hpp"
+#include "../Rendering/Core/lve_model.hpp"
 
 namespace lve
 {

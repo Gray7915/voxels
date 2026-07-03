@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../System.hpp"
-#include "../Coordinator.hpp"
+#include "ECS/System.hpp"
+#include "ECS/Coordinator.hpp"
 
 namespace lve
 {

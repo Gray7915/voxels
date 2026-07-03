@@ -3,12 +3,12 @@
 
 #include "RayCastSystem.hpp"
 
-#include "../Components/Gravity.hpp"
-#include "../Components/RigidBody.hpp"
-#include "../Components/Thrust.hpp"
-#include "../Components/Transform.hpp"
-#include "../Components/MovementStats.hpp"
-#include "../Components/RayCastComponent.hpp"
+#include "ECS/Components/Gravity.hpp"
+#include "ECS/Components/RigidBody.hpp"
+#include "ECS/Components/Thrust.hpp"
+#include "ECS/Components/Transform.hpp"
+#include "ECS/Components/MovementStats.hpp"
+#include "ECS/Components/RayCastComponent.hpp"
 
 namespace lve
 {

@@ -1,5 +1,5 @@
 #include <memory>
-#include "../lve_model.hpp"
+#include "../Rendering/Core/lve_model.hpp"
 
 namespace lve
 {

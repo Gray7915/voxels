@@ -1,10 +1,10 @@
 // highlight_render_system.hpp
 #pragma once
-#include "lve_device.hpp"
-#include "lve_pipeline.hpp"
-#include "lve_frame_info.hpp"
-#include "lve_model.hpp"
-#include "lve_util.hpp"
+#include "Rendering/Core/lve_pipeline.hpp"
+#include "Rendering/Core/lve_device.hpp"
+#include "Rendering/Core/lve_model.hpp"
+#include "Util/IVec3Hash.h"
+#include "Util/lve_frame_info.hpp"
 #include <memory>
 
 namespace lve

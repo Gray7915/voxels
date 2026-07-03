@@ -1,7 +1,7 @@
 #pragma once
-#include "../lve_device.hpp"
+#include "../Rendering/Core/lve_device.hpp"
 #include "Chunk.hpp"
-#include "../lve_util.hpp"
+#include "../Util/lve_util.hpp"
 
 namespace lve
 {

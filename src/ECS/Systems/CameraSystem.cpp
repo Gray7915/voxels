@@ -1,6 +1,6 @@
 #include "CameraSystem.hpp"
-#include "../Components/Camera.hpp"
-#include "../Components/Transform.hpp"
+#include "ECS/Components/Camera.hpp"
+#include "ECS/Components/Transform.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp>

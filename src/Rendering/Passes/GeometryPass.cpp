@@ -1,24 +1,22 @@
-#include "UIRenderPass.hpp"
-#include "lve_device.hpp"
-#include "SwapChain.hpp"
+#include "GeometryPass.hpp"
 #include <array>
 #include <vulkan/vulkan.h>
 
 namespace lve
 {
-    UIRenderPass::UIRenderPass(LveDevice &device, SwapChain &swapChain) : device{device}, swapChain{swapChain}
+    GeometryPass::GeometryPass(LveDevice &device, SwapChain &swapChain) : device{device}, swapChain{swapChain}
     {
         createRenderPass();
         createDepthResources();
         createFrameBuffers();
     }
 
-    void UIRenderPass::createRenderPass()
+    void GeometryPass::createRenderPass()
     {
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format = device.findDepthFormat();
         depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -32,11 +30,11 @@ namespace lve
         VkAttachmentDescription colorAttachment = {};
         colorAttachment.format = swapChain.getSwapChainImageFormat();
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorAttachmentRef = {};
@@ -76,7 +74,7 @@ namespace lve
         }
     }
 
-    void UIRenderPass::createDepthResources()
+    void GeometryPass::createDepthResources()
     {
         VkFormat depthFormat = device.findDepthFormat();
         VkExtent2D swapChainExtent = swapChain.getSwapChainExtent();
@@ -175,7 +173,7 @@ namespace lve
       }
           */
 
-    void UIRenderPass::createFrameBuffers()
+    void GeometryPass::createFrameBuffers()
     {
         Framebuffers.resize(swapChain.imageCount());
         for (size_t i = 0; i < swapChain.imageCount(); i++)
@@ -203,7 +201,7 @@ namespace lve
         }
     }
 
-    void UIRenderPass::begin(VkCommandBuffer cmd, int frameIndex)
+    void GeometryPass::begin(VkCommandBuffer cmd, int frameIndex)
     {
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -224,7 +222,10 @@ namespace lve
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(
+            cmd,
+            &renderPassInfo,
+            VK_SUBPASS_CONTENTS_INLINE);
 
         // Optional but recommended: move viewport/scissor here
         VkViewport viewport{};
@@ -241,7 +242,7 @@ namespace lve
         vkCmdSetScissor(cmd, 0, 1, &scissor);
     }
 
-    void UIRenderPass::end(VkCommandBuffer cmd)
+    void GeometryPass::end(VkCommandBuffer cmd)
     {
         vkCmdEndRenderPass(cmd);
     }

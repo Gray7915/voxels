@@ -1,5 +1,5 @@
 #include "Area.hpp"
-#include "../lve_device.hpp"
+#include "../Rendering/Core/lve_device.hpp"
 #include <iostream>
 #include "Util/math.hpp"
 

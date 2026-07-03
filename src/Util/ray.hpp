@@ -1,12 +1,13 @@
 
+#pragma once
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <glm/glm.hpp>
 #include "glm/gtx/norm.hpp"
 #include <iostream>
 #include <functional>
-#include "../World/Area.hpp"
-#include "../Util/math.hpp"
+#include "World/Area.hpp"
+#include "math.hpp"
 #include "lve_util.hpp"
 #include <algorithm>
 

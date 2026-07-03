@@ -1,17 +1,17 @@
 #pragma once
 
-#include "lve_window.hpp"
-#include "lve_device.hpp"
-#include "lve_model.hpp"
-#include "lve_renderer.hpp"
-#include <unordered_map>
-#include "IVec3Hash.h"
+#include "Rendering/Core/lve_window.hpp"
+#include "Rendering/Core/lve_device.hpp"
+#include "Rendering/Core/lve_model.hpp"
+#include "Rendering/Core/lve_renderer.hpp"
 #include "World/Area.hpp"
-#include "lve_descriptors.hpp"
-#include "lve_Texture.hpp"
-#include "GeometryPass.hpp"
-#include "ImguiManager.hpp"
+#include "Rendering/Core/lve_descriptors.hpp"
+#include "Rendering/Core/lve_Texture.hpp"
+#include "Rendering/Passes/GeometryPass.hpp"
 
+#include <unordered_map>
+
+#include "Ui/ImguiManager.hpp"
 #include "ECS/Coordinator.hpp"
 #include "ECS/Systems/PhysicsSystem.hpp"
 #include "ECS/Systems/CameraSystem.hpp"
@@ -19,6 +19,11 @@
 #include "ECS/Systems/MovementSystem.hpp"
 #include "ECS/Systems/CollisionSystem.hpp"
 #include "ECS/Systems/InteractionSystem.hpp"
+
+#include "Util/lve_frame_info.hpp"
+#include "Util/ray.hpp"
+#include "Util/IVec3Hash.h"
+#include "Util/lve_util.hpp"
 
 #include "SetupECS.hpp"
 #include "RenderSetup.hpp"
@@ -49,7 +54,7 @@ namespace lve
         void createPipeline();
         void renderGameObjects(VkCommandBuffer commandBuffer);
         // void registerECSComponents();
-        //bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
+        // bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
 
         LveWindow lveWindow{WIDTH, HEIGHT, "Hello Vulkan"};
         LveDevice lveDevice{lveWindow};
@@ -58,7 +63,7 @@ namespace lve
         // std::unordered_map<glm::vec3, LveGameObject> gameObjects;
         std::unique_ptr<LveDescriptorPool> globalPool{};
         Area area;
-        //glm::ivec4 hoveredID;
+        // glm::ivec4 hoveredID;
 
         ECSSystems systems;
         RenderSetup renderSetup;

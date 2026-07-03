@@ -100,9 +100,6 @@ if (WIN32)
  
   target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/src/ECS/Components
-    ${PROJECT_SOURCE_DIR}/src/ECS/Systems
-    ${PROJECT_SOURCE_DIR}/src/World
     ${Vulkan_INCLUDE_DIRS}
     ${TINYOBJ_PATH}
     ${IMGUI_PATH}
@@ -120,8 +117,11 @@ elseif (UNIX)
     message(STATUS "CREATING BUILD FOR UNIX")
     target_include_directories(${PROJECT_NAME} PUBLIC
       ${PROJECT_SOURCE_DIR}/src
+      ${Vulkan_INCLUDE_DIRS}
       ${TINYOBJ_PATH}
       ${IMGUI_PATH}
+      ${GLFW_INCLUDE_DIRS}
+      ${GLM_PATH}
     )
     target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
 endif()

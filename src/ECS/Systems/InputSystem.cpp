@@ -1,5 +1,5 @@
 #include "InputSystem.hpp"
-#include "../Components/Input.hpp"
+#include "ECS/Components/Input.hpp"
 
 namespace lve
 {

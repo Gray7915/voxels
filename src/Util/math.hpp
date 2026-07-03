@@ -1,6 +1,6 @@
+#pragma once
 #include <glm/glm.hpp>
 #include <glm/common.hpp>
-#include "../World/Chunk.hpp"
 
 namespace lve
 {

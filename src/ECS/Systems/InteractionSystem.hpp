@@ -1,12 +1,12 @@
 #pragma once
-#include "../System.hpp"
-#include "../Coordinator.hpp"
-#include "../../lve_window.hpp"
-#include "../../lve_device.hpp"
+#include "ECS/System.hpp"
+#include "ECS/Coordinator.hpp"
+#include "Rendering/Core/lve_window.hpp"
+#include "Rendering/Core/lve_device.hpp"
 
-#include "../Components/Transform.hpp"
-#include "../Components/AABBComponent.hpp"
-#include "../Components/Camera.hpp"
+#include "ECS/Components/Transform.hpp"
+#include "ECS/Components/AABBComponent.hpp"
+#include "ECS/Components/Camera.hpp"
 
 namespace lve
 {

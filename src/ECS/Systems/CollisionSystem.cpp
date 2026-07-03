@@ -1,6 +1,6 @@
 #include "CollisionSystem.hpp"
-
 #include "World/Area.hpp"
+
 #include <iostream>
 namespace lve
 {

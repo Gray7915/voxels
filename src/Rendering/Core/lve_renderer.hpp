@@ -1,12 +1,11 @@
 #pragma once
-#include "GeometryPass.hpp"
 
 #include "lve_window.hpp"
 #include "lve_device.hpp"
-#include "lve_swap_chain.hpp"
 #include "lve_model.hpp"
 #include "SwapChain.hpp"
-#include "UIRenderPass.hpp"
+#include "Rendering/Passes/UIRenderPass.hpp"
+#include "Rendering/Passes/GeometryPass.hpp"
 
 // std
 #include <memory>

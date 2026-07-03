@@ -6,7 +6,7 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
-#include "lve_util.hpp"
+#include "Util/lve_util.hpp"
 
 #include <memory>
 #include <vector>

@@ -1,7 +1,7 @@
 #include "MovementSystem.hpp"
-#include "../Components/Transform.hpp"
-#include "../Components/Input.hpp"
-#include "../Components/RigidBody.hpp"
+#include "ECS/Components/Transform.hpp"
+#include "ECS/Components/Input.hpp"
+#include "ECS/Components/RigidBody.hpp"
 #include "ECS/Components/MovementStats.hpp"
 
 #include <glm/glm.hpp>

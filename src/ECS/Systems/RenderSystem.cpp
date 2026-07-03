@@ -1,6 +1,6 @@
 #include "RenderSystem.hpp"
-#include "../Components/Transform.hpp"
-#include "../Components/Renderable.hpp"
+#include "ECS/Components/Transform.hpp"
+#include "ECS/Components/Renderable.hpp"
 
 namespace lve
 {

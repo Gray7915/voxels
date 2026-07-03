@@ -1,10 +1,10 @@
 #pragma once
 
-#include "lve_pipeline.hpp"
-#include "lve_device.hpp"
-#include "lve_model.hpp"
-#include "IVec3Hash.h"
-#include "lve_frame_info.hpp"
+#include "Rendering/Core/lve_pipeline.hpp"
+#include "Rendering/Core/lve_device.hpp"
+#include "Rendering/Core/lve_model.hpp"
+#include "Util/IVec3Hash.h"
+#include "Util/lve_frame_info.hpp"
 #include "World/Chunk.hpp"
 
 // std

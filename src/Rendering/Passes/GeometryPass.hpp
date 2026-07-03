@@ -1,14 +1,14 @@
 #pragma once
-#include "lve_device.hpp"
-#include "SwapChain.hpp"
+#include "Rendering/Core/lve_device.hpp"
+#include "Rendering/Core/SwapChain.hpp"
 
 namespace lve
 {
-    class UIRenderPass
+    class GeometryPass
     {
     public:
-        UIRenderPass(LveDevice &device, SwapChain &swapChain);
-        VkRenderPass getRenderPass() { return renderPass; };
+        GeometryPass(LveDevice &device, SwapChain &swapChain);
+        VkRenderPass getRenderPass(){return renderPass;};
 
         void begin(VkCommandBuffer cmd, int frameIndex);
         void end(VkCommandBuffer cmd);
@@ -23,6 +23,7 @@ namespace lve
         std::vector<VkImageView> depthImageViews;
         std::vector<VkFramebuffer> Framebuffers;
 
+
         // std::vector<VkImage> colorImages;
         // std::vector<VkDeviceMemory> colorImageMemorys;
         // std::vector<VkImageView> colorImageViews;
@@ -30,7 +31,7 @@ namespace lve
         void createRenderPass();
         void createDepthResources();
 
-        // void createColorResources();
+        //void createColorResources();
 
         void createFrameBuffers();
         VkFormat findDepthFormat(LveDevice device);

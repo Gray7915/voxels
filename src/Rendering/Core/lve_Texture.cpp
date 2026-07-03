@@ -1,6 +1,5 @@
 #include "lve_Texture.hpp"
 #include "lve_buffer.hpp"
-#include "lve_swap_chain.hpp"
 
 #include <stb_image.h>
 #include <iostream>

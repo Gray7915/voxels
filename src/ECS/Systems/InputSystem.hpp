@@ -1,7 +1,7 @@
 #pragma once
-#include "../System.hpp"
-#include "lve_window.hpp"
-#include "../Coordinator.hpp"
+#include "ECS/System.hpp"
+#include "Rendering/Core/lve_window.hpp"
+#include "ECS/Coordinator.hpp"
 
 namespace lve
 {

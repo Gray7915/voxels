@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../System.hpp"
+#include "ECS/System.hpp"
 #include <set>
-#include "../Coordinator.hpp"
+#include "ECS/Coordinator.hpp"
 #include "ECS/Components/Camera.hpp"
 #include <glm/glm.hpp>
 

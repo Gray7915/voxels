@@ -1,8 +1,8 @@
 #pragma once
 
-#include "lve_device.hpp"
-#include "lve_window.hpp"
-#include "lve_renderer.hpp"
+#include "Rendering/Core/lve_device.hpp"
+#include "Rendering/Core/lve_window.hpp"
+#include "Rendering/Core/lve_renderer.hpp"
 #include <vulkan/vulkan.h>
 
 namespace lve

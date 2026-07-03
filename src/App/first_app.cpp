@@ -1,16 +1,15 @@
 #include "first_app.hpp"
-#include "simple_render_system.hpp"
-#include "highlight_render_system.hpp"
-#include "chunk_render_system.hpp"
-#include "lve_util.hpp"
+#include "Rendering/Systems/chunk_render_system.hpp"
+#include "Rendering/Systems/highlight_render_system.hpp"
+#include "Rendering/Systems/ui_render_system.hpp"
+#include "Rendering/Systems/simple_render_system.hpp"
 
-// #include "Input/keyboard_movement_controller.hpp"
-#include "IVec3Hash.h"
-#include "World/cube.hpp"
 #include "World/Chunk.hpp"
 #include "Util/ray.hpp"
+#include "Util/IVec3Hash.h"
+#include "Util/lve_util.hpp"
 #include "World/ChunkRenderer.hpp"
-#include "lve_buffer.hpp"
+#include "Rendering/Core/lve_buffer.hpp"
 #include "ECS/Coordinator.hpp"
 
 #define GLM_FORCE_RADIANS

@@ -1,11 +1,11 @@
 #include "InteractionSystem.hpp"
-#include "../Components/Transform.hpp"
-#include "../Components/Input.hpp"
-#include "../Components/AABBComponent.hpp"
-#include "../../Util/ray.hpp"
-#include "../../World/Area.hpp"
-#include "../../World/ChunkRenderer.hpp"
-#include "../../lve_util.hpp"
+#include "ECS/Components/Transform.hpp"
+#include "ECS/Components/Input.hpp"
+#include "ECS/Components/AABBComponent.hpp"
+#include "Util/ray.hpp"
+#include "World/Area.hpp"
+#include "World/ChunkRenderer.hpp"
+#include "Util/lve_util.hpp"
 
 #include <GLFW/glfw3.h>
 

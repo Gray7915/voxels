@@ -1,9 +1,9 @@
 #pragma once
-#include "../System.hpp"
-#include "../Coordinator.hpp"
-#include "../Components/Transform.hpp"
-#include "../Components/AABBComponent.hpp"
-#include "../Components/RigidBody.hpp"
+#include "ECS/System.hpp"
+#include "ECS/Coordinator.hpp"
+#include "ECS/Components/Transform.hpp"
+#include "ECS/Components/AABBComponent.hpp"
+#include "ECS/Components/RigidBody.hpp"
 
 namespace lve
 {

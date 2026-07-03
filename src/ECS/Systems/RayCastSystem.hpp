@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Components/Input.hpp"
-#include "../System.hpp"
-#include "../Coordinator.hpp"
+#include "ECS/Components/Input.hpp"
+#include "ECS/System.hpp"
+#include "ECS/Coordinator.hpp"
 
 namespace lve
 {

@@ -2,9 +2,11 @@
 #include <memory.h>
 #include <glm/glm.hpp>
 
-#include "lve_descriptors.hpp"
-#include "lve_Texture.hpp"
-#include "lve_buffer.hpp"
+#include "Rendering/Core/lve_descriptors.hpp"
+#include "Rendering/Core/lve_Texture.hpp"
+#include "Rendering/Core/lve_buffer.hpp"
+#include "Rendering/Core/lve_device.hpp"
+#include "Rendering/Core/SwapChain.hpp"
 
 namespace lve
 {

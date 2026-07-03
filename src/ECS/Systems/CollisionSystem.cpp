@@ -1,5 +1,6 @@
 #include "CollisionSystem.hpp"
 #include "World/Area.hpp"
+#include "Physics/aabb.hpp"
 
 #include <iostream>
 namespace lve
@@ -24,7 +25,7 @@ namespace lve
             glm::vec3 actualMove;
             if (aabb.collisionEnabled)
             {
-                actualMove = Move(transform, aabb, desiredMove);
+                actualMove = CollisionDetection::Move(transform, aabb, desiredMove);
             }
             else
             {
@@ -46,98 +47,5 @@ namespace lve
                 }
             }
         }
-    }
-
-    bool CollisionSystem::CheckTerrainOverlap(const Transform &transform, const AABBComponent &aabbComponent)
-    {
-        glm::vec3 minPos = transform.position - aabbComponent.halfExtents;
-        glm::vec3 maxPos = transform.position + aabbComponent.halfExtents;
-
-        glm::ivec3 minBlock = glm::floor(minPos);
-        glm::ivec3 maxBlock = glm::floor(maxPos);
-        // std::cout << "halfExtents: " << aabbComponent.halfExtents.x << "," << aabbComponent.halfExtents.y << "," << aabbComponent.halfExtents.z << "  minBlock: " << minBlock.x << "," << minBlock.y << "," << minBlock.z << "  maxBlock: " << maxBlock.x << "," << maxBlock.y << "," << maxBlock.z << '\n';
-        for (int x = minBlock.x; x <= maxBlock.x; ++x)
-            for (int y = minBlock.y; y <= maxBlock.y; ++y)
-                for (int z = minBlock.z; z <= maxBlock.z; ++z)
-                {
-                    if (lve::Area::isBlockSolid(glm::ivec3(x, y, z)))
-                    {
-                        // std::cout << "  block " << x << "," << y << "," << z << " solid= true" << '\n';
-                        return true;
-                    }
-                }
-        return false;
-    }
-
-    bool CollisionSystem::CheckBlockPlacement(const Transform &transform, const AABBComponent &aabbComponent, glm::ivec3 position)
-    {
-        glm::vec3 minPos = transform.position - aabbComponent.halfExtents;
-        glm::vec3 maxPos = transform.position + aabbComponent.halfExtents;
-
-        glm::ivec3 minBlock = glm::floor(minPos);
-        glm::ivec3 maxBlock = glm::floor(maxPos);
-
-        for (int x = minBlock.x; x <= maxBlock.x; ++x)
-            for (int y = minBlock.y; y <= maxBlock.y; ++y)
-                for (int z = minBlock.z; z <= maxBlock.z; ++z)
-                {
-                    if (glm::ivec3(glm::floor(glm::vec3(x, y, z))) == position)
-                    {
-                        return true;
-                    }
-                }
-        return false;
-    }
-
-    float CollisionSystem::MoveAxis(const Transform &transform, const AABBComponent &aabb, float movement, int axis)
-    {
-        constexpr float EPSILON = 0.05f;
-
-        glm::vec3 testPos = transform.position;
-        testPos[axis] += movement;
-
-        Transform testTransform = transform;
-        testTransform.position = testPos;
-
-        if (!CheckTerrainOverlap(testTransform, aabb))
-        {
-            return movement;
-        }
-
-        float sign = glm::sign(movement);
-        float lo = 0.f;
-        float hi = movement;
-
-        // loop 6 times for some precision on collision
-        // move forward or backward depending on if its a collision or not
-        for (int i = 0; i < 6; ++i)
-        {
-            float mid = (lo + hi) / 2.f;
-            testPos = transform.position;
-            testPos[axis] += mid;
-            testTransform.position = testPos;
-
-            if (CheckTerrainOverlap(testTransform, aabb))
-                hi = mid;
-            else
-                lo = mid;
-        }
-
-        float allowed = lo - sign * EPSILON;
-        return (glm::abs(allowed) <= EPSILON) ? 0.f : allowed;
-    }
-
-    glm::vec3 CollisionSystem::Move(const Transform &transform, const AABBComponent &aabb, glm::vec3 movement)
-    {
-        glm::vec3 result{0.f};
-        Transform current = transform;
-
-        for (int i = 0; i < 3; ++i)
-        {
-            float allowed = MoveAxis(current, aabb, movement[i], i);
-            current.position[i] += allowed;
-            result[i] = allowed;
-        }
-        return result;
     }
 }

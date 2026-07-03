@@ -95,6 +95,8 @@ namespace lve
             systems.collisionSystem->Update(frameTime);
             systems.interactionSystem->Update(frameTime, lveWindow, lveDevice);
 
+            chunkMutationSystem.Update();
+
             aspect = lveRenderer.getAspectRatio();
             systems.cameraSystem->Update(aspect);
 
@@ -107,6 +109,7 @@ namespace lve
             {
                 int frameIndex = lveRenderer.getFrameIndex();
                 Area::tick(lveDevice, camTransform.position, frameIndex);
+                chunkMeshSystem.Update(lveDevice, frameIndex);
 
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
 

@@ -44,11 +44,10 @@ namespace lve
                     }
                 }
             }
-            
+
         chunkModel = ChunkRenderer::mesh(this->blocks, lveDevice, offset);
         this->offset = offset;
         this->scale = {1.f, 1.f, 1.f};
-        this->position = offset;
         this->rotation = glm::vec3(0.0f);
     }
 
@@ -106,7 +105,7 @@ namespace lve
                 scale.z * (c1 * c2),
                 0.0f,
             },
-            {position.x, position.y, position.z, 1.0f}};
+            {offset.x, offset.y, offset.z, 1.0f}};
     }
 
     glm::mat3 Chunk::normalMatrix()

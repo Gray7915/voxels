@@ -4,7 +4,6 @@
 #include "Rendering/Core/lve_device.hpp"
 #include "Rendering/Core/lve_model.hpp"
 #include "Rendering/Core/lve_renderer.hpp"
-#include "World/Area.hpp"
 #include "Rendering/Core/lve_descriptors.hpp"
 #include "Rendering/Core/lve_Texture.hpp"
 #include "Rendering/Passes/GeometryPass.hpp"
@@ -19,6 +18,10 @@
 #include "ECS/Systems/MovementSystem.hpp"
 #include "ECS/Systems/CollisionSystem.hpp"
 #include "ECS/Systems/InteractionSystem.hpp"
+
+#include "World/Area.hpp"
+#include "World/Systems/ChunkMeshSystem.hpp"
+#include "World/Systems/ChunkMutationSystem.hpp"
 
 #include "Util/lve_frame_info.hpp"
 #include "Util/ray.hpp"
@@ -68,5 +71,8 @@ namespace lve
         ECSSystems systems;
         RenderSetup renderSetup;
         std::unique_ptr<ImguiManager> imguiManager;
+
+        ChunkMutationSystem chunkMutationSystem{};
+        ChunkMeshSystem chunkMeshSystem{};
     };
 }

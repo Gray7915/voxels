@@ -43,7 +43,6 @@ namespace lve
                 // once the GPU is confirmed done with this frame slot.
                 auto chunkPtr = std::shared_ptr<Chunk>(std::move(it->second));
                 lveDevice.queueDeletion([chunk = chunkPtr]() {}, currentFrameIndex);
-
                 it = chunks.erase(it);
             }
             else

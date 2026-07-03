@@ -100,6 +100,7 @@ namespace lve
             coordinator.SetSystemSignature<RenderSystem>(signature);
         }
 
+        coordinator.eventBus = EventBus{};
         return systems;
     }
 

@@ -1,11 +1,16 @@
 #include "InteractionSystem.hpp"
+
 #include "ECS/Components/Transform.hpp"
 #include "ECS/Components/Input.hpp"
 #include "ECS/Components/AABBComponent.hpp"
-#include "Util/ray.hpp"
+
 #include "World/Area.hpp"
 #include "World/ChunkRenderer.hpp"
+
+#include "Util/ray.hpp"
 #include "Util/lve_util.hpp"
+
+#include "Physics/aabb.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -45,19 +50,10 @@ namespace lve
             if (pIsPressed && !pWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
             {
                 pWasPressed = true;
-                std::cout << "Ray Hit " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';
-                // std::cout << "Ray Orgin " << viewerObject.transform.translation.x << " " << viewerObject.transform.translation.y << " " << viewerObject.transform.translation.z << '\n';
-                // std::cout << "Ray Direction " << forward.x << " " << forward.y << " " << forward.z << '\n';
                 glm::ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
                 glm::ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
-                Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 0;
-                // std::cout << "array place found" << '\n';
-                // gameObjects.find(chunkPos)->second.model.reset();
-                Area::chunks.find(chunkPosition)->second->chunkModel = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0});
 
-                // std::cout << "chunk changed" << '\n';
-
-                vkDeviceWaitIdle(lveDevice.device());
+                coordinator.eventBus.blockBroken.push({chunkPosition, blockCoord, entity});
             }
 
             static bool rightWasPressed = false;
@@ -68,41 +64,12 @@ namespace lve
             if (rightIsPressed && !rightWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
             {
                 rightWasPressed = true;
-                std::cout << "Ray Hit " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';
                 glm::ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
-
                 glm::ivec3 blockCoord = WorldToChunkArray(blockPos);
                 glm::ivec3 chunkPosition = WorldToChunkId(blockPos);
-                bool blockPlaceOkay = CheckBlockPlacement(transform, aabb, blockPos);
-                if (Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] != 1 && !blockPlaceOkay)
-                    Area::chunks.find(chunkPosition)->second->blocks[blockCoord.x][blockCoord.y][blockCoord.z] = 4;
-
-                Area::chunks.find(chunkPosition)->second->chunkModel = ChunkRenderer::mesh(Area::chunks.find(chunkPosition)->second->blocks, lveDevice, {0, 0, 0});
-
-                // std::cout << "chunk changed" << '\n';
-
-                vkDeviceWaitIdle(lveDevice.device());
+                
+                coordinator.eventBus.blockPlaceRequested.push({chunkPosition, 1, entity}); //hard code block to be placed for now
             }
         }
-    }
-
-    bool InteractionSystem::CheckBlockPlacement(const Transform &transform, const AABBComponent &aabbComponent, glm::ivec3 position)
-    {
-        glm::vec3 minPos = transform.position - aabbComponent.halfExtents;
-        glm::vec3 maxPos = transform.position + aabbComponent.halfExtents;
-
-        glm::ivec3 minBlock = glm::floor(minPos);
-        glm::ivec3 maxBlock = glm::floor(maxPos);
-
-        for (int x = minBlock.x; x <= maxBlock.x; ++x)
-            for (int y = minBlock.y; y <= maxBlock.y; ++y)
-                for (int z = minBlock.z; z <= maxBlock.z; ++z)
-                {
-                    if (glm::ivec3(glm::floor(glm::vec3(x, y, z))) == position)
-                    {
-                        return true;
-                    }
-                }
-        return false;
     }
 }

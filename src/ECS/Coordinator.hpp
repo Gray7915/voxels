@@ -7,11 +7,17 @@
 #include "EntityManager.hpp"
 #include "SystemManager.hpp"
 
+#include "Events/WorldEvents.hpp"
+#include "Events/EventQueue.hpp"
+#include "Events/EventBus.hpp"
+
 namespace lve
 {
     class Coordinator
     {
     public:
+        EventBus eventBus;
+
         void Init()
         {
             mComponentManager = std::make_unique<ComponentManager>();

@@ -34,8 +34,8 @@ namespace lve
         {
             return chunks;
         }
+        std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> chunks;
 
     private:
-        std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> chunks;
     };
 }

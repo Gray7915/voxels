@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <condition_variable>
 
 #include "World/VoxelData.hpp"
 #include "World/Chunk.hpp"
@@ -39,7 +40,7 @@ namespace lve
     private:
         std::deque<T> queue;
         std::mutex mtx;
-        std::conditional_variable cv;
+        std::condition_variable cv;
 
     public:
         void push(T item);

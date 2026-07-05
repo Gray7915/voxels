@@ -1,8 +1,8 @@
 #include <vector>
 #include <thread>
-#include <ThreadSafeQueue.hpp>
 #include <atomic>
 
+#include "Util/ThreadSafeQueue.hpp"
 #include "Util/noise.hpp"
 
 namespace lve

@@ -1,10 +1,9 @@
 #include <vector>
 #include <thread>
 #include <atomic>
-#include <ThreadSafeQueue.hpp>
 
 #include "Util/ThreadSafeQueue.hpp"
-#include "VoxelData.hpp"
+#include "World/VoxelData.hpp"
 
 namespace lve
 {

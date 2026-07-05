@@ -51,7 +51,7 @@ namespace lve
             return false;
         }
 
-        static bool CheckTerrainOverlap(const Transform &transform, const AABBComponent &aabbComponent)
+        static bool CheckTerrainOverlap(const Transform &transform, const AABBComponent &aabbComponent, Area &area)
         {
             glm::vec3 minPos = transform.position - aabbComponent.halfExtents;
             glm::vec3 maxPos = transform.position + aabbComponent.halfExtents;
@@ -62,7 +62,7 @@ namespace lve
                 for (int y = minBlock.y; y <= maxBlock.y; ++y)
                     for (int z = minBlock.z; z <= maxBlock.z; ++z)
                     {
-                        if (lve::Area::isBlockSolid(glm::ivec3(x, y, z)))
+                        if (area.isBlockSolid(glm::ivec3(x, y, z)))
                         {
                             return true;
                         }
@@ -70,7 +70,7 @@ namespace lve
             return false;
         }
 
-        static float MoveAxis(const Transform &transform, const AABBComponent &aabb, float movement, int axis)
+        static float MoveAxis(const Transform &transform, const AABBComponent &aabb, float movement, int axis, Area &area)
         {
             constexpr float EPSILON = 0.05f;
 
@@ -80,7 +80,7 @@ namespace lve
             Transform testTransform = transform;
             testTransform.position = testPos;
 
-            if (!CheckTerrainOverlap(testTransform, aabb))
+            if (!CheckTerrainOverlap(testTransform, aabb, area))
             {
                 return movement;
             }
@@ -98,7 +98,7 @@ namespace lve
                 testPos[axis] += mid;
                 testTransform.position = testPos;
 
-                if (CheckTerrainOverlap(testTransform, aabb))
+                if (CheckTerrainOverlap(testTransform, aabb, area))
                     hi = mid;
                 else
                     lo = mid;
@@ -108,14 +108,14 @@ namespace lve
             return (glm::abs(allowed) <= EPSILON) ? 0.f : allowed;
         }
 
-        static glm::vec3 Move(const Transform &transform, const AABBComponent &aabb, glm::vec3 movement)
+        static glm::vec3 Move(const Transform &transform, const AABBComponent &aabb, glm::vec3 movement, Area &area)
         {
             glm::vec3 result{0.f};
             Transform current = transform;
 
             for (int i = 0; i < 3; ++i)
             {
-                float allowed = MoveAxis(current, aabb, movement[i], i);
+                float allowed = MoveAxis(current, aabb, movement[i], i, area);
                 current.position[i] += allowed;
                 result[i] = allowed;
             }

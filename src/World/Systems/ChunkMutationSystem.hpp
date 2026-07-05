@@ -6,6 +6,6 @@ namespace lve
     class ChunkMutationSystem
     {
     public:
-        void Update();
+        void Update(Area &area);
     };
 }

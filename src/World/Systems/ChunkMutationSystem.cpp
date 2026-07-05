@@ -9,12 +9,12 @@ namespace lve
 {
     extern Coordinator coordinator;
 
-    void ChunkMutationSystem::Update()
+    void ChunkMutationSystem::Update(Area &area)
     {
         for (auto &e : coordinator.eventBus.blockBroken.read())
         {
-            auto it = Area::chunks.find(e.chunkPos);
-            assert(it != Area::chunks.end());
+            auto it = area.chunks.find(e.chunkPos);
+            assert(it != area.chunks.end());
             assert(it->second);
             auto &chunk = *it->second;
             chunk.blocks[e.blockPos.x][e.blockPos.y][e.blockPos.z] = 0;
@@ -25,7 +25,7 @@ namespace lve
         {
             glm::ivec3 blockCoord = WorldToChunkArray(req.blockPos);
             glm::ivec3 chunkPos = WorldToChunkId(req.blockPos);
-            auto &chunk = *Area::chunks.find(chunkPos)->second;
+            auto &chunk = *area.chunks.find(chunkPos)->second;
 
             // placement validity check (moved from InteractionSystem) goes here,
             // using coordinator.GetComponent<AABBComponent>(req.placedBy)

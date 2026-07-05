@@ -11,12 +11,15 @@ namespace lve
     {
     }
 
+    ChunkMeshSystem::~ChunkMeshSystem() = default;
+
     void ChunkMeshSystem::Update(LveDevice &device, uint32_t currentFrameIndex)
     {
         for (auto &[coord, chunk] : area.AllChunks())
         {
             if (chunk->chunkState == ChunkState::Generated)
             {
+                std::cout << "try queue for mesh " << '\n';
                 tryQueueForMeshing(coord, *chunk);
             }
         }
@@ -28,7 +31,8 @@ namespace lve
             Chunk *chunk = area.getChunk(result.chunkCoord);
             if (!chunk)
                 continue;
-
+            std::cout << "verts: " << result.verticies.size()
+                      << " indices: " << result.indices.size() << std::endl;
             chunk->uploadMesh(device, result.verticies, result.indices);
             chunk->chunkState = ChunkState::Uploaded;
         }

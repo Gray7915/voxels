@@ -16,7 +16,7 @@ namespace lve
         uint64_t seed;
         size_t n;
         float o;
-
+        Octave() : Octave(0, 4, 0.5f) {}
         Octave(uint64_t seed, size_t n, float o)
             : seed(seed), n(n), o(o) {}
 

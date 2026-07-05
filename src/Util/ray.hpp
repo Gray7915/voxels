@@ -40,7 +40,7 @@ namespace lve
             radius = 4 / glm::l2Norm(direction);
         }
 
-        RayHit detectBlockHit(float max_distance)
+        RayHit detectBlockHit(float max_distance, Area &area)
         {
             const glm::vec3 step = glm::sign(direction);
 
@@ -65,7 +65,7 @@ namespace lve
                     std::floor(pos.y / 32.0f),
                     std::floor(pos.z / 16.0f));
 
-                if (Area::isBlockSolid(pos))
+                if (area.isBlockSolid(pos))
                 {
                     if (steps == 0)
                         return RayHit{.hitPosition = origin, .hitDirection = glm::vec3(0, 0, 0)};

@@ -21,7 +21,7 @@
 
 #include "World/Area.hpp"
 #include "World/Systems/ChunkMeshSystem.hpp"
-#include "World/Systems/ChunkMutationSystem.hpp"
+#include "World/Systems/ChunkGenerationSystem.hpp"
 
 #include "Util/lve_frame_info.hpp"
 #include "Util/ray.hpp"
@@ -72,7 +72,7 @@ namespace lve
         RenderSetup renderSetup;
         std::unique_ptr<ImguiManager> imguiManager;
 
-        ChunkMutationSystem chunkMutationSystem{};
-        ChunkMeshSystem chunkMeshSystem{};
+        ChunkGenerationSystem chunkGenSystem{area};
+        ChunkMeshSystem chunkMeshSystem{area};
     };
 }

@@ -18,7 +18,7 @@ namespace lve
 {
     extern Coordinator coordinator;
 
-    void InteractionSystem::Update(float deltaTime, LveWindow &lveWindow, LveDevice &lveDevice)
+    void InteractionSystem::Update(float deltaTime, LveWindow &lveWindow, LveDevice &lveDevice, Area &area)
     {
         for (auto const &entity : mEntities)
         {
@@ -31,7 +31,7 @@ namespace lve
             glm::vec3 rayDir = glm::normalize(forward);
 
             Ray ray((transform.position + camera.relativePosition), rayDir);
-            RayHit rayHit = ray.detectBlockHit(4.0f);
+            RayHit rayHit = ray.detectBlockHit(4.0f, area);
 
             if (rayHit.hitPosition == glm::ivec3(-1.0f))
             {

@@ -7,7 +7,7 @@ namespace lve
 {
     extern Coordinator coordinator;
 
-    void CollisionSystem::Update(float dt)
+    void CollisionSystem::Update(float dt, Area &area)
     {
         for (auto const &entity : mEntities)
         {
@@ -25,7 +25,7 @@ namespace lve
             glm::vec3 actualMove;
             if (aabb.collisionEnabled)
             {
-                actualMove = CollisionDetection::Move(transform, aabb, desiredMove);
+                actualMove = CollisionDetection::Move(transform, aabb, desiredMove, area);
             }
             else
             {

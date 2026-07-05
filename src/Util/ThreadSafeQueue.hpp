@@ -1,6 +1,10 @@
 #pragma once
-#include <glm/glm.hpp>
 #include <condition_variable>
+#include <deque>
+#include <mutex>
+#include <utility>
+
+#include <glm/glm.hpp>
 
 #include "World/VoxelData.hpp"
 #include "World/Chunk.hpp"
@@ -43,8 +47,35 @@ namespace lve
         std::condition_variable cv;
 
     public:
-        void push(T item);
-        bool try_pop(T &out);
-        T wait_and_pop();
+        void push(T item)
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            queue.push_back(std::move(item));
+            cv.notify_one();
+        }
+
+        bool try_pop(T &out)
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+
+            if (queue.empty())
+                return false;
+
+            out = std::move(queue.front());
+            queue.pop_front();
+            return true;
+        }
+
+        T wait_and_pop()
+        {
+            std::unique_lock<std::mutex> lock(mtx);
+
+            cv.wait(lock, [this]
+                    { return !queue.empty(); });
+
+            T value = std::move(queue.front());
+            queue.pop_front();
+            return value;
+        }
     };
 }

@@ -25,6 +25,10 @@ namespace lve
 
         BlockID get(int x, int y, int z) const
         {
+            assert(x >= 0 && x < WIDTH);
+            assert(y >= 0 && y < HEIGHT);
+            assert(z >= 0 && z < DEPTH);
+
             return blocks[index(x, y, z)];
         }
 

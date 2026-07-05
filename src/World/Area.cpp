@@ -61,7 +61,7 @@ namespace lve
             return false;
 
         glm::ivec3 arrayPos = WorldToChunkArray(worldBlockPos);
-        return chunk->blocks[arrayPos.x][arrayPos.y][arrayPos.z] != 0;
+        return chunk->voxelData.get(arrayPos.x, arrayPos.y, arrayPos.z);
     }
 
     Chunk *Area::getChunk(glm::ivec3 coord)

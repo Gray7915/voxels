@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <memory>
+#include <iostream>
 #include <glm/ext/vector_int3.hpp>
 #include "../Util/IVec3Hash.h"
 #include "../Util/noise.hpp"
@@ -13,8 +14,6 @@ namespace lve
 {
     class Chunk
     {
-        lve::Octave noise;
-
     public:
         Chunk(LveDevice &lveDevice, glm::vec3 offset);
         ~Chunk();
@@ -62,7 +61,9 @@ namespace lve
 
         void uploadMesh(LveDevice &lveDevice, std::vector<lve::Vertex> verticies, std::vector<uint32_t> indices)
         {
+            std::cout << "got to upload mesh" << '\n';
             chunkModel = LveModel::createChunkModel(lveDevice, verticies, indices);
+            std::cout << "finished upload mesh" << '\n';
         }
         std::shared_ptr<LveModel> chunkModel{};
     };

@@ -2,19 +2,41 @@
 #include "World/Area.hpp"
 #include "World/ChunkRenderer.hpp"
 
+#include "Util/ThreadSafeQueue.hpp"
+
 namespace lve
 {
+
+    ChunkMeshSystem::ChunkMeshSystem(Area &worldArea) : area{worldArea}
+    {
+    }
+
     void ChunkMeshSystem::Update(LveDevice &device, uint32_t currentFrameIndex)
     {
-        for (auto &[pos, chunk] : Area::chunks)
+        for (auto &[coord, chunk] : area.AllChunks())
         {
-            if (chunk->dirty && chunk->chunkModel != nullptr)
+            if (chunk->chunkState == ChunkState::Generated)
             {
-                auto modelPtr = std::move(chunk->chunkModel);
-                device.queueDeletion([model = modelPtr]() {}, currentFrameIndex);
-                chunk->chunkModel = ChunkRenderer::mesh(chunk->blocks, device, {0, 0, 0});
-                chunk->dirty = false;
+                tryQueueForMeshing(coord, *chunk);
             }
         }
+
+        MeshResult result;
+        int budget = 4;
+        while (budget-- > 0 && meshPool.tryGetResult(result))
+        {
+            Chunk *chunk = area.getChunk(result.chunkCoord);
+            if (!chunk)
+                continue;
+
+            chunk->uploadMesh(device, result.verticies, result.indices);
+            chunk->chunkState = ChunkState::Uploaded;
+        }
+    }
+
+    void ChunkMeshSystem::tryQueueForMeshing(glm::ivec3 coord, Chunk chunk)
+    {
+        meshPool.jobQueue.push({chunk.offset});
+        chunk.chunkState = ChunkState::QueuedForMeshing;
     }
 }

@@ -4,8 +4,10 @@
 #include <glm/ext/vector_int3.hpp>
 #include "../Util/IVec3Hash.h"
 #include "../Util/noise.hpp"
+#include "../Util/ChunkState.hpp"
 #include "../Rendering/Core/lve_device.hpp"
 #include "../Rendering/Core/lve_model.hpp"
+#include "World/VoxelData.hpp"
 
 namespace lve
 {
@@ -20,7 +22,10 @@ namespace lve
         static const int height = 128;
         inline static const glm::ivec3 CHUNK_SIZE{16, 128, 16};
 
+        VoxelData voxelData;
+
         bool dirty = false;
+        ChunkState chunkState = ChunkState::Unloaded;
 
         glm::vec3 offset;
         glm::vec3 rotation;
@@ -49,6 +54,16 @@ namespace lve
         void createChunk(LveDevice &lveDevice, glm::vec3 offset);
         void buildMesh(LveDevice &lveDevice);
         void createTrees();
+
+        void setVoxelData(VoxelData data)
+        {
+            this->voxelData = data;
+        };
+
+        void uploadMesh(LveDevice &lveDevice, std::vector<lve::Vertex> verticies, std::vector<uint32_t> indices)
+        {
+            chunkModel = LveModel::createChunkModel(lveDevice, verticies, indices);
+        }
         std::shared_ptr<LveModel> chunkModel{};
     };
 }

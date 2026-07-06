@@ -6,6 +6,8 @@
 
 #include <glm/glm.hpp>
 
+#include "Rendering/Core/lve_device.hpp"
+
 #include "World/VoxelData.hpp"
 #include "World/Chunk.hpp"
 
@@ -29,6 +31,7 @@ namespace lve
         glm::ivec3 chunkCoord;
         glm::ivec3 worldOffset;
         VoxelData voxelData;
+        LveDevice *device = nullptr;
     };
 
     struct MeshResult
@@ -36,6 +39,7 @@ namespace lve
         glm::ivec3 chunkCoord;
         std::vector<Vertex> verticies;
         std::vector<uint32_t> indices;
+        std::unique_ptr<LveModel> model;
     };
 
     template <typename T>

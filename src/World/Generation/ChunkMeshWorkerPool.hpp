@@ -11,7 +11,8 @@ namespace lve
     class ChunkMeshWorkerPool
     {
     public:
-        explicit ChunkMeshWorkerPool(size_t threadCount = std::thread::hardware_concurrency());
+        explicit ChunkMeshWorkerPool(LveDevice &device, size_t threadCount = std::thread::hardware_concurrency());
+
         ~ChunkMeshWorkerPool();
 
         void submit(MeshJob job) { jobQueue.push(std::move(job)); }
@@ -38,5 +39,7 @@ namespace lve
         ThreadSafeQueue<MeshJob> jobQueue;
         ThreadSafeQueue<MeshResult> resultQueue;
         std::atomic<bool> running{true};
+        LveDevice &device;
+        VkCommandPool myPool;
     };
 }

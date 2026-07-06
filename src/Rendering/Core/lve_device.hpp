@@ -7,6 +7,7 @@
 #include <vector>
 #include <functional>
 #include <deque>
+#include <mutex>
 
 namespace lve
 {
@@ -61,10 +62,22 @@ namespace lve
 
     // Buffer Helper Functions
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
-    VkCommandBuffer beginSingleTimeCommands();
-    void endSingleTimeCommands(VkCommandBuffer commandBuffer);
-    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
+    VkCommandBuffer beginSingleTimeCommands(VkCommandPool pool);
+    VkCommandBuffer beginSingleTimeCommands() { return beginSingleTimeCommands(commandPool); } // main-thread default
+
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer, VkCommandPool pool);
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer) { endSingleTimeCommands(commandBuffer, commandPool); }
+
+    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool pool);
+    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) { copyBuffer(srcBuffer, dstBuffer, size, commandPool); }
+
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount, VkCommandPool pool);
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount)
+    {
+      copyBufferToImage(buffer, image, width, height, layerCount, commandPool);
+    }
+    VkCommandPool createTransientCommandPool();
+    void destroyCommandPool(VkCommandPool pool);
 
     void createImageWithInfo(
         const VkImageCreateInfo &imageInfo,
@@ -77,6 +90,7 @@ namespace lve
 
     void queueDeletion(std::function<void()> &&deleter, uint32_t frameIndex);
     void flushDeletionQueue(uint32_t currentFrame);
+    std::mutex &getQueueMutex() { return queueMutex_; }
 
   private:
     void createInstance();
@@ -99,6 +113,7 @@ namespace lve
     VkDebugUtilsMessengerEXT debugMessenger;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     LveWindow &window;
+
     VkCommandPool commandPool;
 
     VkDevice device_;
@@ -114,8 +129,11 @@ namespace lve
       std::function<void()> deleter;
       uint32_t frameQueued;
     };
+
     std::deque<DeletionEntry> deletionQueue_;
-    //static constexpr int MAX_FRAMES_IN_FLIGHT = SwapChain::MAX_FRAMES_IN_FLIGHT;
+    std::mutex deletionQueueMutex_;
+    std::mutex queueMutex_;
+    // static constexpr int MAX_FRAMES_IN_FLIGHT = SwapChain::MAX_FRAMES_IN_FLIGHT;
   };
 
 } // namespace lve

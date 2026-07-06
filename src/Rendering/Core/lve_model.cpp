@@ -31,10 +31,13 @@ namespace std
 namespace lve
 {
 
-    LveModel::LveModel(LveDevice &device, const LveModel::Builder &builder) : lveDevice{device}
+    LveModel::LveModel(LveDevice &device, const LveModel::Builder &builder)
+        : LveModel(device, builder, device.getCommandPool()) {}
+
+    LveModel::LveModel(LveDevice &device, const LveModel::Builder &builder, VkCommandPool pool) : lveDevice{device}
     {
-        createVertexBuffers(builder.vertices);
-        createIndexBuffer(builder.indices);
+        createVertexBuffers(builder.vertices, pool);
+        createIndexBuffer(builder.indices, pool);
     }
 
     LveModel::~LveModel()
@@ -49,7 +52,7 @@ namespace lve
         return std::make_unique<LveModel>(device, builder);
     }
 
-    std::unique_ptr<LveModel> LveModel::createChunkModel(LveDevice &device, std::vector<Vertex> vertices, std::vector<uint32_t> indices)
+    std::unique_ptr<LveModel> LveModel::createChunkModel(LveDevice &device, std::vector<Vertex> vertices, std::vector<uint32_t> indices, VkCommandPool pool)
     {
         Builder builder{};
         for (Vertex vertex : vertices)
@@ -60,10 +63,10 @@ namespace lve
         {
             builder.indices.push_back(indicie);
         }
-        return std::make_unique<LveModel>(device, builder);
+        return std::make_unique<LveModel>(device, builder, device.createTransientCommandPool());
     }
 
-    void LveModel::createVertexBuffers(const std::vector<Vertex> &vertices)
+    void LveModel::createVertexBuffers(const std::vector<Vertex> &vertices, VkCommandPool pool)
     {
         vertexCount = static_cast<uint32_t>(vertices.size());
         assert(vertexCount >= 3 && "vertex count must be at least 3");
@@ -87,10 +90,10 @@ namespace lve
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        lveDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
+        lveDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize, pool);
     }
 
-    void LveModel::createIndexBuffer(const std::vector<uint32_t> &indices)
+    void LveModel::createIndexBuffer(const std::vector<uint32_t> &indices, VkCommandPool pool)
     {
         indexCount = static_cast<uint32_t>(indices.size());
         hasIndexBuffer = indexCount > 0;
@@ -120,7 +123,7 @@ namespace lve
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        lveDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
+        lveDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize, pool);
     }
 
     void LveModel::draw(VkCommandBuffer commandBuffer)

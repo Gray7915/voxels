@@ -49,19 +49,15 @@ namespace lve
             this->voxelData = data;
         };
 
-        void uploadMesh(LveDevice &lveDevice, std::vector<lve::Vertex> verticies, std::vector<uint32_t> indices)
+        void applyMesh(std::unique_ptr<LveModel> model, int currentFrameIndex, LveDevice &device)
         {
-            std::cout << "vert count" << verticies.size() << '\n';
-            std::cout << "indice count" << indices.size() << '\n';
-
-            auto newModel = LveModel::createChunkModel(lveDevice, verticies, indices);
             if (chunkModel)
             {
                 auto oldModel = std::shared_ptr<LveModel>(std::move(chunkModel));
-                lveDevice.queueDeletion([model = oldModel]() {}, currentFrameIndex);
+                device.queueDeletion([model = oldModel]() {}, currentFrameIndex);
             }
 
-            chunkModel = std::move(newModel);
+            chunkModel = std::move(model);
         }
         std::shared_ptr<LveModel> chunkModel{};
     };

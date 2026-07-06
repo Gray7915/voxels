@@ -8,13 +8,14 @@ namespace lve
     class ChunkMeshSystem
     {
     public:
-        ChunkMeshSystem(Area &worldArea);
+        ChunkMeshSystem(Area &worldArea, LveDevice &device);
         ~ChunkMeshSystem();
-        void Update(LveDevice &device);
+        void Update(LveDevice &device, int frameIndex);
 
     private:
-        void tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk);
+        void tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk, LveDevice &lveDevice);
         Area &area;
-        ChunkMeshWorkerPool meshPool;
+        LveDevice &device;
+        ChunkMeshWorkerPool meshPool{device};
     };
 }

@@ -1,4 +1,5 @@
 #include "World/Generation/ChunkMeshWorkerPool.hpp"
+#include "Rendering/Core/lve_device.hpp"
 #include <iostream>
 
 namespace lve
@@ -23,7 +24,7 @@ namespace lve
 
     static const glm::ivec3 DIRECTIONS[] = {{0, 0, 1}, {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}};
 
-    ChunkMeshWorkerPool::ChunkMeshWorkerPool(size_t threadCount)
+    ChunkMeshWorkerPool::ChunkMeshWorkerPool(LveDevice &device, size_t threadCount) : device(device)
     {
         for (size_t i = 0; i < threadCount; i++)
             workers.emplace_back([this]
@@ -41,13 +42,14 @@ namespace lve
 
     void ChunkMeshWorkerPool::workerLoop()
     {
-        while (running)
+        myPool = device.createTransientCommandPool();
+        MeshJob job;
+        while (jobQueue.wait_and_pop(job))
         {
-            MeshJob job;
-            if (!jobQueue.wait_and_pop(job))
-                break;
             resultQueue.push(generateMesh(job));
         }
+
+        device.destroyCommandPool(myPool);
     }
 
     MeshResult ChunkMeshWorkerPool::generateMesh(MeshJob &job)
@@ -70,6 +72,7 @@ namespace lve
                 }
             }
         }
+        result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, myPool);
         return result;
     }
 

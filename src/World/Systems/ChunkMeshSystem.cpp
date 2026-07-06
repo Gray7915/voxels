@@ -7,13 +7,13 @@
 namespace lve
 {
 
-    ChunkMeshSystem::ChunkMeshSystem(Area &worldArea) : area{worldArea}
+    ChunkMeshSystem::ChunkMeshSystem(Area &worldArea, LveDevice &device) : area{worldArea}, device{device}
     {
     }
 
     ChunkMeshSystem::~ChunkMeshSystem() = default;
 
-    void ChunkMeshSystem::Update(LveDevice &device)
+    void ChunkMeshSystem::Update(LveDevice &device, int frameIndex)
     {
         // std::cout << "enterd mesh update" << '\n';
 
@@ -24,10 +24,9 @@ namespace lve
             if (chunk->chunkState == ChunkState::Generated || chunk->chunkState == ChunkState::Dirty)
             {
                 // std::cout << "try queue for mesh " << '\n';
-                tryQueueForMeshing(coord, *chunk);
+                tryQueueForMeshing(coord, *chunk, device);
             }
         }
-        
 
         MeshResult result;
         int budget = 4;
@@ -47,17 +46,18 @@ namespace lve
                 continue;
             }
             // std::cout << "verts: " << result.verticies.size()<< " indices: " << result.indices.size() << std::endl;
-            chunk->uploadMesh(device, result.verticies, result.indices);
+            chunk->applyMesh(std::move(result.model), frameIndex, device);
             chunk->chunkState = ChunkState::Uploaded;
         }
     }
 
-    void ChunkMeshSystem::tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk)
+    void ChunkMeshSystem::tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk, LveDevice &device)
     {
         MeshJob job;
         job.chunkCoord = coord;
         job.worldOffset = chunk.offset;
         job.voxelData = chunk.voxelData;
+        job.device = &device;
 
         chunk.chunkState = ChunkState::QueuedForMeshing;
         meshPool.submit(std::move(job));

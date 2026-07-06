@@ -79,6 +79,11 @@ namespace lve
     vkDestroyInstance(instance, nullptr);
   }
 
+  void LveDevice::destroyCommandPool(VkCommandPool pool)
+  {
+    vkDestroyCommandPool(device_, pool, nullptr);
+  }
+
   void LveDevice::createInstance()
   {
     if (enableValidationLayers && !checkValidationLayerSupport())
@@ -211,17 +216,27 @@ namespace lve
   void LveDevice::createCommandPool()
   {
     QueueFamilyIndices queueFamilyIndices = findPhysicalQueueFamilies();
-
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
-    poolInfo.flags =
-        VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     if (vkCreateCommandPool(device_, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
-    {
       throw std::runtime_error("failed to create command pool!");
-    }
+  }
+
+  VkCommandPool LveDevice::createTransientCommandPool()
+  {
+    QueueFamilyIndices queueFamilyIndices = findPhysicalQueueFamilies();
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+    VkCommandPool pool;
+    if (vkCreateCommandPool(device_, &poolInfo, nullptr, &pool) != VK_SUCCESS)
+      throw std::runtime_error("failed to create worker command pool!");
+    return pool;
   }
 
   void LveDevice::createSurface() { window.createWindowSurface(instance, &surface_); }
@@ -503,12 +518,12 @@ namespace lve
     vkBindBufferMemory(device_, buffer, bufferMemory, 0);
   }
 
-  VkCommandBuffer LveDevice::beginSingleTimeCommands()
+  VkCommandBuffer LveDevice::beginSingleTimeCommands(VkCommandPool pool)
   {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = pool;
     allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer commandBuffer;
@@ -517,12 +532,11 @@ namespace lve
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
     return commandBuffer;
   }
 
-  void LveDevice::endSingleTimeCommands(VkCommandBuffer commandBuffer)
+  void LveDevice::endSingleTimeCommands(VkCommandBuffer commandBuffer, VkCommandPool pool)
   {
     vkEndCommandBuffer(commandBuffer);
 
@@ -531,29 +545,28 @@ namespace lve
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(graphicsQueue_);
+    {
+      std::lock_guard<std::mutex> lock(queueMutex_); // still shared, still needed
+      vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
+      vkQueueWaitIdle(graphicsQueue_);
+    }
 
-    vkFreeCommandBuffers(device_, commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(device_, pool, 1, &commandBuffer); // pool is thread-exclusive, no lock needed
   }
 
-  void LveDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+  void LveDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool pool)
   {
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
-
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(pool);
     VkBufferCopy copyRegion{};
-    copyRegion.srcOffset = 0; // Optional
-    copyRegion.dstOffset = 0; // Optional
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
-    endSingleTimeCommands(commandBuffer);
+    endSingleTimeCommands(commandBuffer, pool);
   }
 
   void LveDevice::copyBufferToImage(
-      VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount)
+      VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount, VkCommandPool pool)
   {
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(pool);
 
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
@@ -575,7 +588,7 @@ namespace lve
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1,
         &region);
-    endSingleTimeCommands(commandBuffer);
+    endSingleTimeCommands(commandBuffer, pool);
   }
 
   void LveDevice::createImageWithInfo(
@@ -642,11 +655,13 @@ namespace lve
 
   void LveDevice::queueDeletion(std::function<void()> &&deleter, uint32_t frameIndex)
   {
+    std::lock_guard<std::mutex> lock(deletionQueueMutex_);
     deletionQueue_.push_back({std::move(deleter), frameIndex});
   }
 
   void LveDevice::flushDeletionQueue(uint32_t currentFrame)
   {
+    std::lock_guard<std::mutex> lock(deletionQueueMutex_);
     while (!deletionQueue_.empty() &&
            deletionQueue_.front().frameQueued != currentFrame)
     {

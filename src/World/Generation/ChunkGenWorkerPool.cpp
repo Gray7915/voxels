@@ -4,11 +4,29 @@ namespace lve
 {
     Octave noise;
 
+    ChunkGenWorkerPool::ChunkGenWorkerPool(size_t threadCount)
+    {
+        for (size_t i = 0; i < threadCount; i++)
+            workers.emplace_back([this]
+                                 { workerLoop(); });
+    }
+
+    ChunkGenWorkerPool::~ChunkGenWorkerPool()
+    {
+        running = false;
+        jobQueue.shutdown(); // wakes any thread blocked in wait_and_pop
+        for (auto &t : workers)
+            if (t.joinable())
+                t.join();
+    }
+
     void ChunkGenWorkerPool::workerLoop()
     {
         while (running)
         {
-            GenJob job = jobQueue.wait_and_pop();
+            GenJob job;
+            if (!jobQueue.wait_and_pop(job))
+                break;
             VoxelData data = generateTerrain(job.chunkCoord);
             resultQueue.push({job.chunkCoord, std::move(data)});
         }
@@ -18,13 +36,13 @@ namespace lve
     {
         VoxelData data{};
         data.allocate();
-
+        glm::ivec2 worldOrigin = glm::ivec2(chunkCoord.x, chunkCoord.z) * VoxelData::WIDTH;
+        
         for (int x = 0; x < VoxelData::WIDTH; x++)
         {
             for (int z = 0; z < VoxelData::DEPTH; z++)
             {
-                glm::vec2 worldPos = glm::vec2(x + chunkCoord.x,
-                                               z + chunkCoord.z);
+                glm::vec2 worldPos = glm::vec2(x + worldOrigin.x, z + worldOrigin.y);
 
                 float heightValue = noise.sample(worldPos * 0.009f);
                 heightValue = (heightValue + 1.0f) * 0.5f;

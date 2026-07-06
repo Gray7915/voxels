@@ -1,7 +1,7 @@
 #pragma once
 #include "Rendering/Core/lve_device.hpp"
 #include "World/Area.hpp"
-#include "World/Generation/ChunkMeshWorkerPool.cpp"
+#include "World/Generation/ChunkMeshWorkerPool.hpp"
 
 namespace lve
 {
@@ -10,10 +10,10 @@ namespace lve
     public:
         ChunkMeshSystem(Area &worldArea);
         ~ChunkMeshSystem();
-        void Update(LveDevice &device, uint32_t currentFrameIndex);
+        void Update(LveDevice &device);
 
     private:
-        void tryQueueForMeshing(glm::ivec3 coord, Chunk chunk);
+        void tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk);
         Area &area;
         ChunkMeshWorkerPool meshPool;
     };

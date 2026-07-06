@@ -1,4 +1,5 @@
 #include "World/Systems/ChunkGenerationSystem.hpp"
+#include "World/Area.hpp"
 
 namespace lve
 {
@@ -8,27 +9,36 @@ namespace lve
 
     ChunkGenerationSystem::~ChunkGenerationSystem() = default;
 
-    void ChunkGenerationSystem::update(Area &area)
+    void ChunkGenerationSystem::update()
     {
-        std::cout << "try gen chunk" << '\n';
-
-        GenResult result;
-        std::cout << "create result" << '\n';
-
-        int budget = 4;
-        while (budget-- > 0 && genPool.resultQueue.try_pop(result))
+        // 1. Sweep for newly-created chunks that need generation
+        for (auto &[coord, chunk] : area.AllChunks())
         {
-            std::cout << "in try gen chunk loop" << '\n';
+            if (chunk->chunkState == ChunkState::Unloaded)
+            {
+                chunk->chunkState = ChunkState::QueuedForGeneration;
+                requestGeneration(chunk->offset);
+            }
+        }
+
+        // 2. Drain finished generation results
+        GenResult result;
+        int budget = 4;
+        while (budget-- > 0 && genPool.tryGetResult(result))
+        {
             Chunk *chunk = area.getChunk(result.chunkCoord);
             if (!chunk)
-                continue; // chunk may have been unloaded while job was in flight
-            std::cout << "generated chunk" << '\n';
+                continue; // chunk was unloaded while its job was in flight — discard
+
             chunk->setVoxelData(std::move(result.data));
             chunk->chunkState = ChunkState::Generated;
+            std::cout << "generated chunk " << result.chunkCoord.x << ", "<< result.chunkCoord.y << ", " << result.chunkCoord.z << '\n';
         }
     }
+
     void ChunkGenerationSystem::requestGeneration(glm::ivec3 coord)
     {
-        genPool.jobQueue.push({coord});
+        // std::cout << "Queued " << coord.x << ", " << coord.y << ", " << coord.z << '\n';
+        genPool.submit({coord});
     }
 }

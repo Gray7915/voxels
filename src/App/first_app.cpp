@@ -40,7 +40,7 @@ namespace lve
 {
     Coordinator coordinator;
 
-    FirstApp::FirstApp() : area(lveDevice, glm::vec3(0, 0, 0))
+    FirstApp::FirstApp() : area(lveDevice, glm::vec3(0, 0, 0), chunkGenSystem)
     {
     }
 
@@ -63,7 +63,7 @@ namespace lve
 
         Entity mainCamera = coordinator.CreateEntity();
         coordinator.AddComponent(mainCamera, Transform{.position = {0, 68, 0}});
-        coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, -15, 0.0f)});
+        coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, -15.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, CameraComponent{});
         coordinator.AddComponent(mainCamera, InputComponent{});
@@ -90,21 +90,24 @@ namespace lve
             auto newTime = std::chrono::high_resolution_clock::now();
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
-            std::cout << "Set time in loop" << '\n';
+            //std::cout << "Set time in loop" << '\n';
 
             systems.inputSystem->Update(&lveWindow);
-            std::cout << "input system" << '\n';
+            //std::cout << "input system" << '\n';
             systems.movementSystem->Update(frameTime);
-            std::cout << "interaction system" << '\n';
+            //std::cout << "interaction system" << '\n';
             systems.physicsSystem->Update(frameTime);
-            std::cout << "physics system" << '\n';
-            //systems.collisionSystem->Update(frameTime, area);
-            std::cout << "collision system" << '\n';
-           // systems.interactionSystem->Update(frameTime, lveWindow, lveDevice, area);
-            std::cout << "interaction system" << '\n';
-
-            std::cout << "try gen chunk first app" << '\n';
-            chunkGenSystem.update(area);
+            //std::cout << "physics system" << '\n';
+            systems.collisionSystem->Update(frameTime, area);
+            //std::cout << "collision system" << '\n';
+            systems.interactionSystem->Update(frameTime, lveWindow, lveDevice, area);
+            //std::cout << "interaction system" << '\n';
+            chunkMutationSystem.Update(area);
+            coordinator.eventBus.blockBroken.clear();
+            coordinator.eventBus.blockPlaceRequested.clear();
+            //std::cout << "try gen chunk first app" << '\n';
+            chunkGenSystem.update();
+            chunkMeshSystem.Update(lveDevice);
 
             aspect = lveRenderer.getAspectRatio();
             systems.cameraSystem->Update(aspect);
@@ -117,12 +120,11 @@ namespace lve
             if (auto commandBuffer = lveRenderer.beginFrame())
             {
                 int frameIndex = lveRenderer.getFrameIndex();
-                area.tick(lveDevice, camTransform.position, frameIndex);
-                chunkMeshSystem.Update(lveDevice, frameIndex);
+                area.tick(lveDevice, camTransform.position, frameIndex, chunkGenSystem);
 
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
 
-                // flip so pos y is up and neg y is downs
+                // flip so pos y is up and neg y is down
                 camera.projectionMatrix[1][1] *= -1;
 
                 GlobalUbo ubo{};

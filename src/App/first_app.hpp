@@ -22,6 +22,7 @@
 #include "World/Area.hpp"
 #include "World/Systems/ChunkMeshSystem.hpp"
 #include "World/Systems/ChunkGenerationSystem.hpp"
+#include "World/Systems/ChunkMutationSystem.hpp"
 
 #include "Util/lve_frame_info.hpp"
 #include "Util/ray.hpp"
@@ -74,5 +75,6 @@ namespace lve
 
         ChunkGenerationSystem chunkGenSystem{area};
         ChunkMeshSystem chunkMeshSystem{area};
+        ChunkMutationSystem chunkMutationSystem{};
     };
 }

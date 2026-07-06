@@ -52,7 +52,7 @@ namespace lve
                 pWasPressed = true;
                 glm::ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
                 glm::ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
-
+                std::cout << "block place request made " << '\n';
                 coordinator.eventBus.blockBroken.push({chunkPosition, blockCoord, entity});
             }
 

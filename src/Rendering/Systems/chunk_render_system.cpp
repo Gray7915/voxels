@@ -85,9 +85,16 @@ namespace lve
             SimplePushConstantData push{};
             push.modelMatrix = obj->mat4();
             push.normalMatrix = obj->normalMatrix();
+            if (!obj || obj->chunkState != ChunkState::Uploaded)
+                continue; // no mesh to draw yet — skip
+
+            if (!obj->chunkModel) // extra defensive check, see below
+                continue;
             vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
                                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                                0, sizeof(SimplePushConstantData), &push);
+            //std::cout << "Chunk: " << obj.get() << '\n';
+            //std::cout << "Model: " << obj->chunkModel.get() << '\n';
             obj->chunkModel->bind(frameInfo.commandBuffer);
             obj->chunkModel->draw(frameInfo.commandBuffer);
         }

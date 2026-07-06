@@ -14,5 +14,9 @@ namespace lve
         void push(T e) { events.push_back(std::move(e)); }
         const std::vector<T> &read() const { return events; }
         void clear() { events.clear(); }
+        const int queueLength()
+        {
+            return static_cast<int>(events.size());
+        }
     };
 }

@@ -28,7 +28,7 @@ namespace lve
     {
         glm::ivec3 chunkCoord;
         glm::ivec3 worldOffset;
-        std::unique_ptr<Chunk> chunk;
+        VoxelData voxelData;
     };
 
     struct MeshResult
@@ -41,41 +41,59 @@ namespace lve
     template <typename T>
     class ThreadSafeQueue
     {
-    private:
-        std::deque<T> queue;
-        std::mutex mtx;
-        std::condition_variable cv;
-
     public:
         void push(T item)
         {
-            std::lock_guard<std::mutex> lock(mtx);
-            queue.push_back(std::move(item));
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                queue.push_back(std::move(item));
+            }
             cv.notify_one();
         }
 
         bool try_pop(T &out)
         {
             std::lock_guard<std::mutex> lock(mtx);
-
             if (queue.empty())
                 return false;
-
             out = std::move(queue.front());
             queue.pop_front();
             return true;
         }
 
-        T wait_and_pop()
+        // Returns false if the queue was shut down and is empty — signals the
+        // calling worker thread to exit its loop instead of blocking forever.
+        bool wait_and_pop(T &out)
         {
             std::unique_lock<std::mutex> lock(mtx);
-
             cv.wait(lock, [this]
-                    { return !queue.empty(); });
-
-            T value = std::move(queue.front());
+                    { return !queue.empty() || shuttingDown; });
+            if (queue.empty()) // only true if shuttingDown and nothing left
+                return false;
+            out = std::move(queue.front());
             queue.pop_front();
-            return value;
+            return true;
         }
+
+        void shutdown()
+        {
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                shuttingDown = true;
+            }
+            cv.notify_all(); // wake every blocked worker so they can check shuttingDown and exit
+        }
+
+        void printSize()
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            std::cout << "Queue Size " << queue.size() << '\n';
+        }
+
+    private:
+        std::deque<T> queue;
+        std::mutex mtx;
+        std::condition_variable cv;
+        bool shuttingDown = false;
     };
 }

@@ -29,18 +29,24 @@ namespace lve
 
         for (auto &req : coordinator.eventBus.blockPlaceRequested.read())
         {
-            glm::ivec3 blockCoord = WorldToChunkArray(req.blockPos);
-            glm::ivec3 chunkPos = WorldToChunkId(req.blockPos);
+            glm::ivec3 blockCoord = req.blockPos;
+            glm::ivec3 chunkPos = req.chunkPos;
+            std::cout << "block place chunk cord in mutation system: " << chunkPos.x << " " << chunkPos.y << " " << chunkPos.z << '\n';
 
             Chunk *chunk = area.getChunk(chunkPos);
+            std::cout << "block place request before gen check" << '\n';
+
             if (!chunk || !chunk->voxelData.isGenerated())
                 continue;
+            std::cout << "block break request after check" << '\n';
 
             auto &aabb = coordinator.GetComponent<AABBComponent>(req.placedBy);
             auto &transform = coordinator.GetComponent<Transform>(req.placedBy);
 
-            if (CollisionDetection::CheckBlockPlacement(transform, aabb, req.blockPos))
+            std::cout << "block at place request index " << chunk->voxelData.get(blockCoord.x, blockCoord.y, blockCoord.z) << '\n';
+            if (!CollisionDetection::CheckBlockPlacement(transform, aabb, req.blockPos))
             {
+                std::cout << "no colliding" << '\n';
                 if (chunk->voxelData.get(blockCoord.x, blockCoord.y, blockCoord.z) == 0)
                 {
                     chunk->voxelData.set(blockCoord.x, blockCoord.y, blockCoord.z, req.blockType);

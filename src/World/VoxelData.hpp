@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include <iostream>
 
 namespace lve
 {
@@ -29,7 +30,9 @@ namespace lve
             assert(y >= 0 && y < HEIGHT);
             assert(z >= 0 && z < DEPTH);
 
-            return blocks[index(x, y, z)];
+            int i = blocks[index(x, y, z)];
+            //std::cout << "set " << x << "," << y << "," << z << " -> " << i << '\n';
+            return i;
         }
 
         void set(int x, int y, int z, BlockID id)

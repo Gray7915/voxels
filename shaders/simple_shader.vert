@@ -3,11 +3,13 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 color;
 layout(location = 2) in vec3 normal;
 layout(location = 3) in vec2 uv;
+layout(location = 4) in float ao;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec3 fragWorldPos;
 layout(location = 2) out vec3 fragNormal;
 layout(location = 3) out vec2 fragUV;
+layout(location = 4) out float fragAO;
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
   mat4 projectionViewMatrix;
@@ -37,8 +39,9 @@ void main()
     vec3 diffuseLight = lightColor * max(dot(normalWorldSpace, normalize(directionToLight)), 0);
 
     fragNormal = normalize(mat3(push.normalMatrix) * normal);
-    fragWorldPos = position.xyz;
+    fragWorldPos = positionWorld.xyz;
     fragColor = (diffuseLight + ambientLight) * color;
     fragUV = uv;
+    fragAO = ao;
 
 }

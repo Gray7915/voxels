@@ -56,8 +56,8 @@ namespace lve
     {
         MeshResult result{};
         result.chunkCoord = job.chunkCoord;
-        std::cout << "chunk coord in gen mesh " << job.chunkCoord.x << ", " << job.chunkCoord.y << ", " << job.chunkCoord.z << '\n';
-        std::cout << "world offset in gen mesh " << job.worldOffset.x << ", " << job.worldOffset.y << ", " << job.worldOffset.z << '\n';
+        // std::cout << "chunk coord in gen mesh " << job.chunkCoord.x << ", " << job.chunkCoord.y << ", " << job.chunkCoord.z << '\n';
+        // std::cout << "world offset in gen mesh " << job.worldOffset.x << ", " << job.worldOffset.y << ", " << job.worldOffset.z << '\n';
 
         for (int x = 0; x < VoxelData::WIDTH; x++)
         {
@@ -83,10 +83,7 @@ namespace lve
         for (int face = 0; face < 6; face++)
         {
             glm::ivec3 n = pos + getDirection(face);
-            bool visible = n.x < 0 || n.y < 0 || n.z < 0 ||
-                           n.x >= VoxelData::WIDTH || n.y >= VoxelData::HEIGHT || n.z >= VoxelData::DEPTH ||
-                           job.voxelData.get(n.x, n.y, n.z) == 0 ||
-                           job.voxelData.get(n.x, n.y, n.z) == 4;
+            bool visible = n.x < 0 || n.y < 0 || n.z < 0 || n.x >= VoxelData::WIDTH || n.y >= VoxelData::HEIGHT || n.z >= VoxelData::DEPTH || job.voxelData.get(n.x, n.y, n.z) == 0 || job.voxelData.get(n.x, n.y, n.z) == 4;
 
             if (!visible)
                 continue;
@@ -101,6 +98,11 @@ namespace lve
                 vertex.normal = CUBE_NORMALS[face];
                 vertex.uv = getAtlasUV(face, CUBE_UVS[vert], blockType);
                 vertex.color = {1, 1, 1};
+                int ao = calculateAO(pos, face, vert, job);
+
+                // std::cout << "AO: " << ao << " value " << aoValues[ao] << "\n";
+
+                vertex.ao = aoValues[ao];
                 result.verticies.push_back(vertex);
             }
 
@@ -112,6 +114,88 @@ namespace lve
     glm::ivec3 ChunkMeshWorkerPool::getDirection(int i)
     {
         return DIRECTIONS[i];
+    }
+
+    glm::ivec3 ChunkMeshWorkerPool::getFaceTangent1(int face)
+    {
+        switch (face)
+        {
+        case 0:
+            return {1, 0, 0};
+        case 1:
+            return {-1, 0, 0};
+        case 2:
+            return {0, 0, -1};
+        case 3:
+            return {0, 0, 1};
+        case 4:
+            return {1, 0, 0};
+        case 5:
+            return {1, 0, 0};
+        }
+
+        return {};
+    }
+
+    glm::ivec3 ChunkMeshWorkerPool::getFaceTangent2(int face)
+    {
+        switch (face)
+        {
+        case 0:
+            return {0, 1, 0};
+        case 1:
+            return {0, 1, 0};
+        case 2:
+            return {0, 1, 0};
+        case 3:
+            return {0, 1, 0};
+        case 4:
+            return {0, 0, 1};
+        case 5:
+            return {0, 0, -1};
+        }
+
+        return {};
+    }
+
+    int ChunkMeshWorkerPool::calculateAO(glm::ivec3 pos, int face, int vertexIndex, MeshJob &job)
+    {
+        int cubeVertex = CUBE_INDICES[face * 6 + UNIQUE_INDICES[vertexIndex]];
+
+        glm::ivec3 localVertex = glm::ivec3(CUBE_VERTICES[cubeVertex]);
+
+        glm::ivec3 tangent1 = getFaceTangent1(face);
+        glm::ivec3 tangent2 = getFaceTangent2(face);
+
+        int sign1 = getSign(tangent1, localVertex);
+        int sign2 = getSign(tangent2, localVertex);
+
+        glm::ivec3 side1 = tangent1 * sign1;
+        glm::ivec3 side2 = tangent2 * sign2;
+        glm::ivec3 corner = side1 + side2;
+
+        glm::ivec3 faceDir = getDirection(face); // NEW: step into the layer the face actually sits in
+
+        auto solid = [&](glm::ivec3 p)
+        {
+            if (p.x < 0 || p.x >= VoxelData::WIDTH ||
+                p.y < 0 || p.y >= VoxelData::HEIGHT ||
+                p.z < 0 || p.z >= VoxelData::DEPTH)
+            {
+                return 0;
+            }
+
+            return job.voxelData.get(p.x, p.y, p.z) > 0 ? 1 : 0;
+        };
+
+        int block1 = solid(pos + faceDir + side1);
+        int block2 = solid(pos + faceDir + side2);
+        int blockCorner = solid(pos + faceDir + corner);
+
+        if (block1 + block2 == 2)
+            return 0;
+
+        return 3 - (block1 + block2 + blockCorner);
     }
 
     glm::vec2 ChunkMeshWorkerPool::getAtlasUV(int face, glm::vec2 uv, int blockType)

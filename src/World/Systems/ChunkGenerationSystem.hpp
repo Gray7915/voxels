@@ -1,17 +1,17 @@
 #pragma once
 #include "Util/ThreadSafeQueue.hpp"
 #include "World/Generation/ChunkGenWorkerPool.hpp"
-#include "World/Area.hpp"
 
 namespace lve
 {
+    class Area;
     class ChunkGenerationSystem
     {
     public:
         ChunkGenerationSystem(Area &area);
         ~ChunkGenerationSystem();
 
-        void update(Area &area);
+        void update();
         void requestGeneration(glm::ivec3 coord);
 
     private:

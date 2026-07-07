@@ -108,6 +108,7 @@ namespace lve
         }
     }
 
+   /*
     std::unique_ptr<lve::LveModel, std::default_delete<lve::LveModel>> ChunkRenderer::mesh(int blocks[18][128][18], LveDevice &lveDevice, glm::vec3 offset)
     {
 
@@ -140,7 +141,7 @@ namespace lve
 
         // std::cout << "finished making mesh" << '\n';
         // LveGameObject firstChunk = LveGameObject::createGameObject();
-        auto model = LveModel::createChunkModel(lveDevice, vertices, indices);
+        // auto model = LveModel::createChunkModel(lveDevice, vertices, indices);
         // std::cout << "loaded model" << '\n';
         // std::cout << "chunk pos set " << offset.x << " " << offset.y << " " << offset.z << '\n';
 
@@ -149,6 +150,7 @@ namespace lve
         // std::cout << "returned chunk" << '\n';
         return model;
     }
+   */
 
     glm::vec2 ChunkRenderer::getAtlasUV(int face, glm::vec2 uv, int blockType)
     {

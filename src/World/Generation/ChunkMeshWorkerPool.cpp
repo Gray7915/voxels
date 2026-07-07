@@ -1,170 +1,240 @@
-#include <vector>
-#include <thread>
-#include <atomic>
-
-#include "Util/ThreadSafeQueue.hpp"
-#include "World/VoxelData.hpp"
+#include "World/Generation/ChunkMeshWorkerPool.hpp"
+#include "Rendering/Core/lve_device.hpp"
+#include <iostream>
 
 namespace lve
 {
     static const size_t UNIQUE_INDICES[] = {0, 1, 2, 5};
-
-    // indices into emitted vertices which make up the two faces for a cube face
     static const size_t FACE_INDICES[] = {0, 1, 2, 0, 2, 3};
 
     static const size_t CUBE_INDICES[] = {
-        4, 7, 6, 4, 6, 5, // (south (+z))
-        3, 0, 1, 3, 1, 2, // (north (-z))
-        7, 3, 2, 7, 2, 6, // (east  (+x))
-        0, 4, 5, 0, 5, 1, // (west  (-x))
-        2, 1, 5, 2, 5, 6, // (up    (+y))
-        0, 3, 7, 0, 7, 4  // (down  (-y))
+        4, 7, 6, 4, 6, 5, // south (+z)
+        3, 0, 1, 3, 1, 2, // north (-z)
+        7, 3, 2, 7, 2, 6, // east  (+x)
+        0, 4, 5, 0, 5, 1, // west  (-x)
+        2, 1, 5, 2, 5, 6, // up    (+y)
+        0, 3, 7, 0, 7, 4  // down  (-y)
     };
 
-    static const glm::vec3 CUBE_VERTICES[] = {
-        glm::vec3(0, 0, 0),
-        glm::vec3(0, 1, 0),
-        glm::vec3(1, 1, 0),
-        glm::vec3(1, 0, 0),
-        glm::vec3(0, 0, 1),
-        glm::vec3(0, 1, 1),
-        glm::vec3(1, 1, 1),
-        glm::vec3(1, 0, 1)};
+    static const glm::vec3 CUBE_VERTICES[] = {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}, {0, 0, 1}, {0, 1, 1}, {1, 1, 1}, {1, 0, 1}};
 
-    static const glm::vec3 CUBE_NORMALS[] = {
-        glm::vec3(0, 0, 1),
-        glm::vec3(0, 0, -1),
-        glm::vec3(1, 0, 0),
-        glm::vec3(-1, 0, 0),
-        glm::vec3(0, 1, 0),
-        glm::vec3(0, -1, 0),
-    };
+    static const glm::vec3 CUBE_NORMALS[] = {{0, 0, 1}, {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}};
 
-    static const glm::vec2 CUBE_UVS[] = {
-        glm::vec2(0, 0),
-        glm::vec2(1, 0),
-        glm::vec2(1, 1),
-        glm::vec2(0, 1),
-    };
+    static const glm::vec2 CUBE_UVS[] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 
-    class ChunkMeshWorkerPool
+    static const glm::ivec3 DIRECTIONS[] = {{0, 0, 1}, {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}};
+
+    ChunkMeshWorkerPool::ChunkMeshWorkerPool(LveDevice &device, size_t threadCount) : device(device)
     {
-        void workerPool()
+        for (size_t i = 0; i < threadCount; i++)
+            workers.emplace_back([this]
+                                 { workerLoop(); });
+    }
+
+    ChunkMeshWorkerPool::~ChunkMeshWorkerPool()
+    {
+        running = false;
+        jobQueue.shutdown();
+        for (auto &t : workers)
+            if (t.joinable())
+                t.join();
+    }
+
+    void ChunkMeshWorkerPool::workerLoop()
+    {
+        myPool = device.createTransientCommandPool();
+        MeshJob job;
+        while (jobQueue.wait_and_pop(job))
         {
-            while (running)
-            {
-                MeshJob job = jobQueue.wait_and_pop();
-                resultQueue.push(generateMesh(job));
-            }
+            resultQueue.push(generateMesh(job));
         }
 
-        MeshResult generateMesh(MeshJob &job)
+        device.destroyCommandPool(myPool);
+    }
+
+    MeshResult ChunkMeshWorkerPool::generateMesh(MeshJob &job)
+    {
+        MeshResult result{};
+        result.chunkCoord = job.chunkCoord;
+        // std::cout << "chunk coord in gen mesh " << job.chunkCoord.x << ", " << job.chunkCoord.y << ", " << job.chunkCoord.z << '\n';
+        // std::cout << "world offset in gen mesh " << job.worldOffset.x << ", " << job.worldOffset.y << ", " << job.worldOffset.z << '\n';
+
+        for (int x = 0; x < VoxelData::WIDTH; x++)
         {
-            MeshResult result{};
-            for (int x = 0; x < VoxelData::WIDTH; x++)
+            for (int z = 0; z < VoxelData::DEPTH; z++)
             {
-                for (int z = 0; z < VoxelData::DEPTH; z++)
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
                 {
-                    for (int y = 0; y < VoxelData::HEIGHT; y++)
-                    {
-                        emitBlock(job, result, glm::ivec3(x, y, z));
-                    }
-                }
-            }
-            return result;
-        }
+                    if (job.voxelData.get(x, y, z) == 0)
+                        continue; // skip air — was missing entirely before
 
-        void emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos)
-        {
-            const auto uv_unit = glm::vec2(1.0f) / glm::vec2(16.0f);
-
-            for (int face = 0; face < 6; face++)
-            {
-                glm::ivec3 n = pos + getDirection(face);
-                bool visible = n.x < 0 || n.y < 0 || n.z < 0 || n.x >= 16 || n.y >= 128 || n.z >= 16 || job.chunk->voxelData.get(n.x, n.y, n.z) == 0 || job.chunk->voxelData.get(n.x, n.y, n.z) == 4;
-
-                if (!visible)
-                    continue;
-
-                const size_t offset = result.verticies.size();
-                glm::vec2 uv_size = glm::vec2(1, 16 - 1 - 1) * uv_unit;
-                for (int vert = 0; vert < 4; vert++)
-                {
-                    Vertex vertex;
-                    size_t cubeVertex = CUBE_INDICES[face * 6 + UNIQUE_INDICES[vert]];
-
-                    vertex.position = glm::vec3(pos) + CUBE_VERTICES[cubeVertex];
-                    vertex.normal = CUBE_NORMALS[face];
-                    vertex.uv = getAtlasUV(face, CUBE_UVS[vert], job.chunk->voxelData.get(pos.x, pos.y, pos.z));
-                    vertex.color = {1, 1, 1};
-                    glm::ivec3 chunkOrigin = glm::ivec3(job.worldOffset) * glm::ivec3(16, 128, 16);
-
-                    result.verticies.push_back(vertex);
+                    emitBlock(job, result, glm::ivec3(x, y, z));
                 }
             }
         }
+        result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, myPool);
+        return result;
+    }
 
-        static glm::ivec3 getDirection(int i)
+    void ChunkMeshWorkerPool::emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos)
+    {
+        int blockType = job.voxelData.get(pos.x, pos.y, pos.z);
+
+        for (int face = 0; face < 6; face++)
         {
-            return ((glm::ivec3[]){
-                glm::ivec3(0, 0, 1),
-                glm::ivec3(0, 0, -1),
-                glm::ivec3(1, 0, 0),
-                glm::ivec3(-1, 0, 0),
-                glm::ivec3(0, 1, 0),
-                glm::ivec3(0, -1, 0)})[i];
+            glm::ivec3 n = pos + getDirection(face);
+            bool visible = n.x < 0 || n.y < 0 || n.z < 0 || n.x >= VoxelData::WIDTH || n.y >= VoxelData::HEIGHT || n.z >= VoxelData::DEPTH || job.voxelData.get(n.x, n.y, n.z) == 0 || job.voxelData.get(n.x, n.y, n.z) == 4;
+
+            if (!visible)
+                continue;
+
+            const uint32_t baseIndex = static_cast<uint32_t>(result.verticies.size());
+            for (int vert = 0; vert < 4; vert++)
+            {
+                size_t cubeVertex = CUBE_INDICES[face * 6 + UNIQUE_INDICES[vert]];
+
+                Vertex vertex{};
+                vertex.position = glm::vec3(pos) + CUBE_VERTICES[cubeVertex];
+                vertex.normal = CUBE_NORMALS[face];
+                vertex.uv = getAtlasUV(face, CUBE_UVS[vert], blockType);
+                vertex.color = {1, 1, 1};
+                int ao = calculateAO(pos, face, vert, job);
+
+                // std::cout << "AO: " << ao << " value " << aoValues[ao] << "\n";
+
+                vertex.ao = aoValues[ao];
+                result.verticies.push_back(vertex);
+            }
+
+            for (size_t i : FACE_INDICES)
+                result.indices.push_back(baseIndex + static_cast<uint32_t>(i));
+        }
+    }
+
+    glm::ivec3 ChunkMeshWorkerPool::getDirection(int i)
+    {
+        return DIRECTIONS[i];
+    }
+
+    glm::ivec3 ChunkMeshWorkerPool::getFaceTangent1(int face)
+    {
+        switch (face)
+        {
+        case 0:
+            return {1, 0, 0};
+        case 1:
+            return {-1, 0, 0};
+        case 2:
+            return {0, 0, -1};
+        case 3:
+            return {0, 0, 1};
+        case 4:
+            return {1, 0, 0};
+        case 5:
+            return {1, 0, 0};
         }
 
-        glm::vec2 getAtlasUV(int face, glm::vec2 uv, int blockType)
+        return {};
+    }
+
+    glm::ivec3 ChunkMeshWorkerPool::getFaceTangent2(int face)
+    {
+        switch (face)
         {
-            const float tileWidth = 16.0f / 32.0f;
-            const float tileHeight = 16.0f / 48.0f;
+        case 0:
+            return {0, 1, 0};
+        case 1:
+            return {0, 1, 0};
+        case 2:
+            return {0, 1, 0};
+        case 3:
+            return {0, 1, 0};
+        case 4:
+            return {0, 0, 1};
+        case 5:
+            return {0, 0, -1};
+        }
 
-            glm::vec2 v(uv.x, 1.0f - uv.y); // Vulkan-style flip applied once
+        return {};
+    }
 
-            int col = 0;
-            int row = 1;
+    int ChunkMeshWorkerPool::calculateAO(glm::ivec3 pos, int face, int vertexIndex, MeshJob &job)
+    {
+        int cubeVertex = CUBE_INDICES[face * 6 + UNIQUE_INDICES[vertexIndex]];
 
-            if (blockType == 3)
+        glm::ivec3 localVertex = glm::ivec3(CUBE_VERTICES[cubeVertex]);
+
+        glm::ivec3 tangent1 = getFaceTangent1(face);
+        glm::ivec3 tangent2 = getFaceTangent2(face);
+
+        int sign1 = getSign(tangent1, localVertex);
+        int sign2 = getSign(tangent2, localVertex);
+
+        glm::ivec3 side1 = tangent1 * sign1;
+        glm::ivec3 side2 = tangent2 * sign2;
+        glm::ivec3 corner = side1 + side2;
+
+        glm::ivec3 faceDir = getDirection(face); // NEW: step into the layer the face actually sits in
+
+        auto solid = [&](glm::ivec3 p)
+        {
+            if (p.x < 0 || p.x >= VoxelData::WIDTH ||
+                p.y < 0 || p.y >= VoxelData::HEIGHT ||
+                p.z < 0 || p.z >= VoxelData::DEPTH)
             {
-                col = 1;
+                return 0;
+            }
+
+            return job.voxelData.get(p.x, p.y, p.z) > 0 ? 1 : 0;
+        };
+
+        int block1 = solid(pos + faceDir + side1);
+        int block2 = solid(pos + faceDir + side2);
+        int blockCorner = solid(pos + faceDir + corner);
+
+        if (block1 + block2 == 2)
+            return 0;
+
+        return 3 - (block1 + block2 + blockCorner);
+    }
+
+    glm::vec2 ChunkMeshWorkerPool::getAtlasUV(int face, glm::vec2 uv, int blockType)
+    {
+        const float tileWidth = 16.0f / 32.0f;
+        const float tileHeight = 16.0f / 48.0f;
+
+        glm::vec2 v(uv.x, 1.0f - uv.y);
+
+        int col = 0;
+        int row = 1;
+
+        if (blockType == 3)
+        {
+            col = 1;
+            row = 0;
+        }
+        else if (blockType == 2)
+        {
+            col = 0;
+            row = 2;
+        }
+        else
+        {
+            switch (face)
+            {
+            case 4:
                 row = 0;
-            }
-            else if (blockType == 2)
-            {
-                col = 0;
+                break;
+            case 5:
                 row = 2;
+                break;
+            default:
+                row = 1;
+                break;
             }
-            else
-            {
-                switch (face)
-                {
-                case 4:
-                    row = 0;
-                    break;
-                case 5:
-                    row = 2;
-                    break;
-                default:
-                    row = 1;
-                    break;
-                }
-            }
-
-            glm::vec2 offset(col * tileWidth, row * tileHeight);
-
-            return offset + glm::vec2(v.x * tileWidth, v.y * tileHeight);
         }
 
-    public:
-        std::vector<std::thread> workers;
-        ThreadSafeQueue<MeshJob> jobQueue;
-        ThreadSafeQueue<MeshResult> resultQueue;
-        std::atomic<bool> running{true};
-
-        bool tryGetResult(MeshResult &out)
-        {
-            return resultQueue.try_pop(out);
-        }
-    };
+        glm::vec2 offset(col * tileWidth, row * tileHeight);
+        return offset + glm::vec2(v.x * tileWidth, v.y * tileHeight);
+    }
 }

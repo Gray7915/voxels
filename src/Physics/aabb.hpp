@@ -31,6 +31,7 @@ namespace lve
             }
         };
 
+        //TODO: placing a block at head height will place and trap player
         static bool CheckBlockPlacement(const Transform &transform, const AABBComponent &aabbComponent, glm::ivec3 position)
         {
             glm::vec3 minPos = transform.position - aabbComponent.halfExtents;

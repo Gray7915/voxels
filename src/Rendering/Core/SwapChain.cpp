@@ -180,54 +180,56 @@ namespace lve
 
     VkResult SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex)
     {
+        if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE)
         {
-            if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE)
-            {
-                vkWaitForFences(device.device(), 1, &imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
-            }
-            imagesInFlight[*imageIndex] = inFlightFences[currentFrame];
+            vkWaitForFences(device.device(), 1, &imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
+        }
+        imagesInFlight[*imageIndex] = inFlightFences[currentFrame];
 
-            VkSubmitInfo submitInfo = {};
-            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        VkSubmitInfo submitInfo = {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-            VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
-            VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-            submitInfo.waitSemaphoreCount = 1;
-            submitInfo.pWaitSemaphores = waitSemaphores;
-            submitInfo.pWaitDstStageMask = waitStages;
+        VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
 
-            submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = buffers;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = buffers;
 
-            VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[*imageIndex]};
-            submitInfo.signalSemaphoreCount = 1;
-            submitInfo.pSignalSemaphores = signalSemaphores;
+        VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[*imageIndex]};
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
 
-            vkResetFences(device.device(), 1, &inFlightFences[currentFrame]);
-            if (vkQueueSubmit(device.graphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) !=
-                VK_SUCCESS)
+        vkResetFences(device.device(), 1, &inFlightFences[currentFrame]);
+
+        {
+            std::lock_guard<std::mutex> lock(device.getQueueMutex());
+            if (vkQueueSubmit(device.graphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
             {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
+        } // lock (A) released here
 
-            VkPresentInfoKHR presentInfo = {};
-            presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        VkPresentInfoKHR presentInfo = {};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
 
-            presentInfo.waitSemaphoreCount = 1;
-            presentInfo.pWaitSemaphores = signalSemaphores;
+        VkSwapchainKHR swapChains[] = {swapChain};
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapChains;
+        presentInfo.pImageIndices = imageIndex;
 
-            VkSwapchainKHR swapChains[] = {swapChain};
-            presentInfo.swapchainCount = 1;
-            presentInfo.pSwapchains = swapChains;
-
-            presentInfo.pImageIndices = imageIndex;
-
-            auto result = vkQueuePresentKHR(device.presentQueue(), &presentInfo);
-
-            currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-            return result;
+        VkResult result;
+        {
+            std::lock_guard<std::mutex> lock(device.getQueueMutex()); // now safe — (A) already released
+            result = vkQueuePresentKHR(device.presentQueue(), &presentInfo);
         }
+
+        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+        return result;
     }
 
     VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)

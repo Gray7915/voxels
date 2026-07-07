@@ -1,20 +1,21 @@
 #pragma once
 #include "Rendering/Core/lve_device.hpp"
 #include "World/Area.hpp"
-#include "World/Generation/ChunkMeshWorkerPool.cpp"
+#include "World/Generation/ChunkMeshWorkerPool.hpp"
 
 namespace lve
 {
     class ChunkMeshSystem
     {
     public:
-        ChunkMeshSystem(Area &worldArea);
+        ChunkMeshSystem(Area &worldArea, LveDevice &device);
         ~ChunkMeshSystem();
-        void Update(LveDevice &device, uint32_t currentFrameIndex);
+        void Update(LveDevice &device, int frameIndex);
 
     private:
-        void tryQueueForMeshing(glm::ivec3 coord, Chunk chunk);
+        void tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk, LveDevice &lveDevice);
         Area &area;
-        ChunkMeshWorkerPool meshPool;
+        LveDevice &device;
+        ChunkMeshWorkerPool meshPool{device};
     };
 }

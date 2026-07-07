@@ -15,6 +15,7 @@ namespace lve
     struct BlockPlaceRequest
     {
         glm::ivec3 blockPos;
+        glm::ivec3 chunkPos;
         int blockType;
         Entity placedBy;
     };

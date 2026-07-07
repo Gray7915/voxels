@@ -23,12 +23,11 @@ namespace lve
 
         VoxelData voxelData;
 
-        bool dirty = false;
         ChunkState chunkState = ChunkState::Unloaded;
 
         glm::vec3 offset;
-        glm::vec3 rotation;
-        glm::vec3 scale;
+        glm::vec3 rotation{0.0f};
+        glm::vec3 scale{1.0f};
 
         glm::mat4 mat4();
         glm::mat3 normalMatrix();
@@ -41,29 +40,24 @@ namespace lve
 
         struct Transform
         {
-            glm::vec3 position;
-            glm::vec3 rotation;
-            glm::vec3 scale;
-
             glm::mat4 mat4();
             glm::mat3 normalMatrix();
         };
-
-        int blocks[18][128][18];
-        void createChunk(LveDevice &lveDevice, glm::vec3 offset);
-        void buildMesh(LveDevice &lveDevice);
-        void createTrees();
 
         void setVoxelData(VoxelData data)
         {
             this->voxelData = data;
         };
 
-        void uploadMesh(LveDevice &lveDevice, std::vector<lve::Vertex> verticies, std::vector<uint32_t> indices)
+        void applyMesh(std::unique_ptr<LveModel> model, int currentFrameIndex, LveDevice &device)
         {
-            std::cout << "got to upload mesh" << '\n';
-            chunkModel = LveModel::createChunkModel(lveDevice, verticies, indices);
-            std::cout << "finished upload mesh" << '\n';
+            if (chunkModel)
+            {
+                auto oldModel = std::shared_ptr<LveModel>(std::move(chunkModel));
+                device.queueDeletion([model = oldModel]() {}, currentFrameIndex);
+            }
+
+            chunkModel = std::move(model);
         }
         std::shared_ptr<LveModel> chunkModel{};
     };

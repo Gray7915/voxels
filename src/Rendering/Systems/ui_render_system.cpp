@@ -101,9 +101,6 @@ namespace lve
             0, 1, 2,
             2, 3, 0};
 
-        crosshairModel =
-            std::make_unique<LveModel>(
-                lveDevice,
-                builder);
+        crosshairModel = std::make_unique<LveModel>(lveDevice, builder, lveDevice.createTransientCommandPool());
     }
 }

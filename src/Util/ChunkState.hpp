@@ -11,6 +11,7 @@ namespace lve
         QueuedForMeshing,
         Meshing,
         Ready,
-        Uploaded
+        Uploaded,
+        Dirty
     };
 }

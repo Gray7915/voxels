@@ -18,13 +18,14 @@ namespace lve
     glm::vec3 color;
     glm::vec3 normal{};
     glm::vec2 uv{};
+    float ao;
 
     static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
     static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 
     bool operator==(const Vertex &other) const
     {
-      return position == other.position && color == other.color && normal == other.normal && uv == other.uv;
+      return position == other.position && color == other.color && normal == other.normal && uv == other.uv && ao == other.ao;
     }
   };
 

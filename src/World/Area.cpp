@@ -2,25 +2,25 @@
 #include "../Rendering/Core/lve_device.hpp"
 #include <iostream>
 #include "Util/math.hpp"
+#include "World/Systems/ChunkGenerationSystem.hpp"
 
 namespace lve
 {
     Area::~Area() = default;
 
-    Area::Area(LveDevice &lveDevice, glm::vec3 offset)
+    Area::Area(LveDevice &lveDevice, glm::vec3 offset, ChunkGenerationSystem &chunkGenSystem)
     {
         for (int x = offset.x - MinMaxOffset; x <= offset.x + MinMaxOffset; x++)
         {
             for (int z = offset.z - MinMaxOffset; z <= offset.z + MinMaxOffset; z++)
             {
                 glm::ivec3 chunkCoord = glm::ivec3(x, 0, z);
-                glm::ivec3 worldPos = chunkCoord * glm::ivec3(16, 1, 16);
-                chunks.emplace(chunkCoord, std::make_unique<Chunk>(lveDevice, worldPos));
+                // getOrCreateChunk(chunkCoord, lveDevice, chunkGenSystem);
             }
         }
     }
 
-    void Area::tick(LveDevice &lveDevice, glm::vec3 center, uint32_t currentFrameIndex)
+    void Area::tick(LveDevice &lveDevice, glm::vec3 center, uint32_t currentFrameIndex, ChunkGenerationSystem &chunkGenSystem)
     {
         glm::ivec3 c = glm::ivec3(center) / glm::ivec3(16, 32, 16);
 
@@ -48,7 +48,7 @@ namespace lve
             for (int z = c.z - MinMaxOffset; z <= c.z + MinMaxOffset; z++)
             {
                 glm::ivec3 chunkCoord = glm::ivec3(x, 0, z);
-                getOrCreateChunk(chunkCoord, lveDevice);
+                getOrCreateChunk(chunkCoord, lveDevice, chunkGenSystem);
             }
         }
     }
@@ -57,7 +57,7 @@ namespace lve
     {
         glm::ivec3 chunkId = glm::ivec3(WorldToChunkId(worldBlockPos));
         Chunk *chunk = getChunk(chunkId);
-        if (!chunk)
+        if (!chunk || !chunk->voxelData.isGenerated())
             return false;
 
         glm::ivec3 arrayPos = WorldToChunkArray(worldBlockPos);
@@ -80,14 +80,17 @@ namespace lve
         return it->second.get();
     }
 
-    Chunk &Area::getOrCreateChunk(glm::ivec3 coord, LveDevice &lveDevice)
+    Chunk &Area::getOrCreateChunk(glm::ivec3 coord, LveDevice &lveDevice, ChunkGenerationSystem &chunkGenSystem)
     {
         auto it = chunks.find(coord);
         if (it != chunks.end())
             return *it->second;
 
         glm::ivec3 worldPos = coord * glm::ivec3(16, 32, 16);
-        auto [inserted, ok] = chunks.emplace(coord, std::make_unique<Chunk>(lveDevice, worldPos));
+        auto [inserted, ok] = chunks.emplace(coord, std::make_unique<Chunk>(lveDevice, coord));
+        inserted->second->chunkState = ChunkState::QueuedForGeneration;
+        inserted->second->offset = worldPos;
+        chunkGenSystem.requestGeneration(coord);
         return *inserted->second;
     }
 }

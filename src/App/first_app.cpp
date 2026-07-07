@@ -35,6 +35,7 @@
 #include "ECS/Components/ColliderComponent.hpp"
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Renderable.hpp"
+#include "ECS/Components/InventoryComponent.hpp"
 
 namespace lve
 {
@@ -69,6 +70,7 @@ namespace lve
         coordinator.AddComponent(mainCamera, InputComponent{});
         coordinator.AddComponent(mainCamera, MovementStats{.moveSpeed = 6.5f, .jumpForce = 6.1});
         coordinator.AddComponent(mainCamera, AABBComponent{.halfExtents = glm::vec3(0.4, 0.8, 0.4)});
+        coordinator.AddComponent(mainCamera, InventoryComponent{.one = 0, .two = 0, .three = 0});
         std::cout << "create camera entity" << '\n';
 
         float aspect = lveRenderer.getAspectRatio();
@@ -102,6 +104,8 @@ namespace lve
             // std::cout << "collision system" << '\n';
             systems.interactionSystem->Update(frameTime, lveWindow, lveDevice, area);
             // std::cout << "interaction system" << '\n';
+            systems.inventorySystem->Update(area);
+
             chunkMutationSystem.Update(area);
             coordinator.eventBus.blockBroken.clear();
             coordinator.eventBus.blockPlaceRequested.clear();
@@ -149,6 +153,7 @@ namespace lve
                 imguiManager->newFrame();
                 imguiManager->drawDebugWindow(frameTime, camTransform.position);
                 imguiManager->drawCrosshair(WIDTH, HEIGHT);
+                imguiManager->drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
                 // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
                 imguiManager->render(commandBuffer);
                 lveRenderer.UiRenderPass->end(commandBuffer);

@@ -9,6 +9,7 @@
 #include "ECS/Systems/CollisionSystem.hpp"
 #include "ECS/Systems/InteractionSystem.hpp"
 #include "ECS/Systems/RenderSystem.hpp"
+#include "ECS/Systems/InventorySystem.hpp"
 
 namespace lve
 {
@@ -21,6 +22,7 @@ namespace lve
         std::shared_ptr<CollisionSystem> collisionSystem;
         std::shared_ptr<InteractionSystem> interactionSystem;
         std::shared_ptr<RenderSystem> renderSystem;
+        std::shared_ptr<InventorySystem> inventorySystem;
     };
 
     ECSSystems registerECSComponents(Coordinator &coordinator);

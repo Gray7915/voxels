@@ -10,6 +10,7 @@
 #include "ECS/Components/ColliderComponent.hpp"
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Renderable.hpp"
+#include "ECS/Components/InventoryComponent.hpp"
 
 namespace lve
 {
@@ -27,6 +28,7 @@ namespace lve
         coordinator.RegisterComponent<MovementStats>();
         coordinator.RegisterComponent<AABBComponent>();
         coordinator.RegisterComponent<RenderableComponent>();
+        coordinator.RegisterComponent<InventoryComponent>();
 
         // --- PhysicsSystem ---
         systems.physicsSystem = coordinator.RegisterSystem<PhysicsSystem>();
@@ -98,6 +100,13 @@ namespace lve
             signature.set(coordinator.GetComponentType<Transform>());
             signature.set(coordinator.GetComponentType<RenderableComponent>());
             coordinator.SetSystemSignature<RenderSystem>(signature);
+        }
+
+        systems.inventorySystem = coordinator.RegisterSystem<InventorySystem>();
+        {
+            Signature signature;
+            signature.set(coordinator.GetComponentType<InventoryComponent>());
+            coordinator.SetSystemSignature<InventorySystem>(signature);
         }
 
         coordinator.eventBus = EventBus{};

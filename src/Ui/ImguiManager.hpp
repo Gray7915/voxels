@@ -3,6 +3,7 @@
 #include "Rendering/Core/lve_device.hpp"
 #include "Rendering/Core/lve_window.hpp"
 #include "Rendering/Core/lve_renderer.hpp"
+#include "ECS/Components/InventoryComponent.hpp"
 #include <vulkan/vulkan.h>
 
 namespace lve
@@ -21,6 +22,7 @@ namespace lve
         void drawCrosshair(float windowWidth, float windowHeight);
         void drawDebugWindow(float frameTime, glm::vec3 pos);
         void drawQuitMenu(float windowWidth, float windowHeight);
+        void drawInv(InventoryComponent component);
         void activateMouse();
 
     private:

@@ -1,0 +1,15 @@
+Generation:
+  ☐ Add chunk info for generation
+  ☐ Add chunk info for meshing
+  ☐ Add tree generation
+   
+Entities:
+  ☐ Add inventory component
+  ☐ Create an Enitity factory
+
+Movement: 
+  ☐ Fix the awful double tab space flying
+  ☐ tweak the jumping
+  ☐ Add sneak?
+  ☐ Add sprint?
+

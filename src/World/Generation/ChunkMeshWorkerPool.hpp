@@ -50,7 +50,7 @@ namespace lve
             return vertex.z ? 1 : -1;
         }
 
-        static constexpr float aoValues[] = {0.1f, 0.25f, 0.5f, 1.0f};
+        static constexpr float aoValues[] = {0.1f, 0.25f, 0.5f, .75f};
         std::vector<std::thread> workers;
         ThreadSafeQueue<MeshJob> jobQueue;
         ThreadSafeQueue<MeshResult> resultQueue;

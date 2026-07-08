@@ -9,6 +9,7 @@
 #include "Rendering/Core/lve_device.hpp"
 
 #include "World/VoxelData.hpp"
+#include "World/NeighborVoxelInfo.hpp"
 #include "World/Chunk.hpp"
 
 #include "Util/lve_util.hpp"
@@ -31,6 +32,7 @@ namespace lve
         glm::ivec3 chunkCoord;
         glm::ivec3 worldOffset;
         VoxelData voxelData;
+        NeighborVoxelInfo neighborVoxelData;
         LveDevice *device = nullptr;
     };
 

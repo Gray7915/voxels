@@ -3,6 +3,9 @@
 #include "World/Area.hpp"
 #include "World/Generation/ChunkMeshWorkerPool.hpp"
 
+#include "World/NeighborVoxelInfo.hpp"
+#include "World/VoxelData.hpp"
+
 namespace lve
 {
     class ChunkMeshSystem
@@ -14,6 +17,7 @@ namespace lve
 
     private:
         void tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk, LveDevice &lveDevice);
+        void getNeighborChunkInfo(glm::ivec3 chunkDir, VoxelData chunkData, NeighborVoxelInfo &neighborChunkInfo);
         Area &area;
         LveDevice &device;
         ChunkMeshWorkerPool meshPool{device};

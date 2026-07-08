@@ -2,16 +2,17 @@
 #include <cstdint>
 #include <vector>
 #include <iostream>
+#include <assert.h>
 
 namespace lve
 {
     using BlockID = uint16_t;
-    class VoxelData
+    class NeighborVoxelInfo
     {
     public:
-        static constexpr int WIDTH = 16;
+        static constexpr int WIDTH = 17;
         static constexpr int HEIGHT = 128;
-        static constexpr int DEPTH = 16;
+        static constexpr int DEPTH = 4;
         static constexpr int VOLUME = WIDTH * HEIGHT * DEPTH;
 
         void allocate(BlockID fillValue = 0)

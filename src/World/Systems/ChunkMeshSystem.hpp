@@ -16,7 +16,7 @@ namespace lve
         void Update(LveDevice &device, int frameIndex);
 
     private:
-        void tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk, LveDevice &lveDevice);
+        void tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk, LveDevice &lveDevice, NeighborVoxelInfo neighborVoxelInfo);
         void getNeighborChunkInfo(glm::ivec3 chunkDir, VoxelData chunkData, NeighborVoxelInfo &neighborChunkInfo);
         Area &area;
         LveDevice &device;

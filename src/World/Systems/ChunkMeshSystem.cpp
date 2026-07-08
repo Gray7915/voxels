@@ -32,17 +32,21 @@ namespace lve
             if (chunk->chunkState == ChunkState::Generated || chunk->chunkState == ChunkState::Dirty)
             {
                 std::unordered_map<glm::ivec3, std::unique_ptr<lve::Chunk>, lve::IVec3Hash> neightbors = area.AllChunks();
+                NeighborVoxelInfo neighborVoxelInfo;
+                neighborVoxelInfo.allocate();
                 for (glm::ivec3 direction : DIRECTIONS)
                 {
                     auto chunkNeighbor = neightbors.find(coord + direction);
-
+                    VoxelData neighborChunkData;
+                    neighborChunkData.allocate();
                     if (chunkNeighbor != neightbors.end() && chunkNeighbor->second->voxelData.isGenerated())
                     {
                         auto &neighborChunk = chunkNeighbor->second;
-                        VoxelData neightborChunkData = neighborChunk->voxelData;
+                        neighborChunkData = neighborChunk->voxelData;
                     }
+                    getNeighborChunkInfo(direction, neighborChunkData, neighborVoxelInfo);
                 }
-                tryQueueForMeshing(coord, *chunk, device);
+                tryQueueForMeshing(coord, *chunk, device, neighborVoxelInfo);
             }
         }
 
@@ -66,7 +70,7 @@ namespace lve
         }
     }
 
-    void ChunkMeshSystem::tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk, LveDevice &device)
+    void ChunkMeshSystem::tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk, LveDevice &device, NeighborVoxelInfo neighborVoxelInfo)
     {
         MeshJob job;
         job.chunkCoord = coord;
@@ -79,11 +83,93 @@ namespace lve
     }
 
     void ChunkMeshSystem::getNeighborChunkInfo(glm::ivec3 chunkDir, VoxelData chunkData, NeighborVoxelInfo &neighborChunkInfo)
-    {   
-        if (chunkDir == glm::ivec3{1, 0, 0}){ // up
-            //x == 0, loop z and y -> up right corner has x = 0, z = 0 loop y
-        }else if(chunkDir == glm::ivec3{1, 0, 1}){ // up right
-            //x == 0, z == 0 loop y
+    {
+        if (chunkDir == glm::ivec3{1, 0, 0})
+        { // up
+            // x == 0, loop z and y
+            for (int z = 0; z < VoxelData::DEPTH; z++)
+            {
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
+                {
+                    neighborChunkInfo.set(z, y, 0, chunkData.get(0, y, z));
+                }
+            }
+        }
+        else if (chunkDir == glm::ivec3{1, 0, 1})
+        { // up right
+          // x == 0, z == 0 loop y
+            for (int y = 0; y < VoxelData::HEIGHT; y++)
+            {
+                neighborChunkInfo.set(16, y, 0, chunkData.get(0, y, 0));
+            }
+        }
+        else if (chunkDir == glm::ivec3{0, 0, 1})
+        { // right
+            // z == 0, loop x and y
+            for (int x = 0; x < VoxelData::DEPTH; x++)
+            {
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
+                {
+                    neighborChunkInfo.set(0, y, x, chunkData.get(x, y, 0));
+                }
+            }
+        }
+        else if (chunkDir == glm::ivec3{-1, 0, 1})
+        { // down right
+          // x == 0, z == 0 loop y
+            for (int y = 0; y < VoxelData::HEIGHT; y++)
+            {
+                neighborChunkInfo.set(16, y, 0, chunkData.get(15, y, 0));
+            }
+        }
+        else if (chunkDir == glm::ivec3{-1, 0, 0})
+        { // down
+            // x == 15, loop z and y
+            for (int x = 0; x < VoxelData::DEPTH; x++)
+            {
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
+                {
+                    neighborChunkInfo.set(0, y, x, chunkData.get(x, y, 15));
+                }
+            }
+        }
+        else if (chunkDir == glm::ivec3{-1, 0, -1})
+        { // down left
+          // x == 15, z == 15 loop y
+            for (int y = 0; y < VoxelData::HEIGHT; y++)
+            {
+                neighborChunkInfo.set(16, y, 0, chunkData.get(15, y, 15));
+            }
+        }
+        else if (chunkDir == glm::ivec3{0, 0, -1})
+        { // left
+            // x == 15, loop z and y
+            for (int x = 0; x < VoxelData::DEPTH; x++)
+            {
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
+                {
+                    neighborChunkInfo.set(0, y, x, chunkData.get(x, y, 15));
+                }
+            }
+        }
+        else if (chunkDir == glm::ivec3{1, 0, -1})
+        { // up left
+          // x == 15, z == 15 loop y
+            for (int y = 0; y < VoxelData::HEIGHT; y++)
+            {
+                neighborChunkInfo.set(16, y, 0, chunkData.get(15, y, 15));
+            }
         }
     }
+
+    /*
+
+    [leftUp][up][up][up][up][upR]           // Up to Up right is z = 0, x = 0 - 16
+    [left]                    [right]       // right to right down is z = 1, x = 0 - 16
+    [left]      center        [right]       // down to down left is z = 2, x = 0 - 16
+    [left]      chunk         [right]       // left to up left is z = 3, x = 0 - 16
+    [left]                    [right]       // Y is top to bottom of that chunk slice
+    [dwnL][dwn][dwn][dwn][dwn][rightD]
+
+    */
 }

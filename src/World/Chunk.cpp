@@ -1,7 +1,6 @@
 #include "Chunk.hpp"
 #include "ChunkRenderer.hpp"
 #include <iostream>
-#include "../Util/noise.hpp"
 #include <algorithm>
 #include "Area.hpp"
 

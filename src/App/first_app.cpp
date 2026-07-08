@@ -24,6 +24,7 @@
 #include <cassert>
 
 #include "SetupECS.hpp"
+#include "App/ItemRegistrySetup.hpp"
 
 #include "ECS/Components/Gravity.hpp"
 #include "ECS/Components/Camera.hpp"
@@ -36,6 +37,8 @@
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Renderable.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
+
+#include "Inventory/ItemRegistry.hpp"
 
 namespace lve
 {
@@ -52,6 +55,8 @@ namespace lve
     void FirstApp::run()
     {
         coordinator.Init();
+        ItemRegistrySetup::SetupItemRegistry(ItemRegistry::Get());
+
         auto systems = registerECSComponents(coordinator);
         auto renderSetup = setupRender(lveDevice);
         std::cout << "setup systems" << '\n';
@@ -70,7 +75,7 @@ namespace lve
         coordinator.AddComponent(mainCamera, InputComponent{});
         coordinator.AddComponent(mainCamera, MovementStats{.moveSpeed = 6.5f, .jumpForce = 6.1});
         coordinator.AddComponent(mainCamera, AABBComponent{.halfExtents = glm::vec3(0.4, 0.8, 0.4)});
-        coordinator.AddComponent(mainCamera, InventoryComponent{.one = 0, .two = 0, .three = 0});
+        coordinator.AddComponent(mainCamera, InventoryComponent{});
         std::cout << "create camera entity" << '\n';
 
         float aspect = lveRenderer.getAspectRatio();
@@ -107,7 +112,7 @@ namespace lve
             systems.inventorySystem->Update(area);
 
             chunkMutationSystem.Update(area);
-            coordinator.eventBus.blockBroken.clear();
+            coordinator.eventBus.blockBreakRequest.clear();
             coordinator.eventBus.blockPlaceRequested.clear();
             // std::cout << "try gen chunk first app" << '\n';
             chunkGenSystem.update();
@@ -169,7 +174,7 @@ namespace lve
             if (colIsPressed && !colWasPressed)
             {
                 camCollision.collisionEnabled = !camCollision.collisionEnabled;
-                std::cout << "collision enabled / disabled" << '\n';
+                //std::cout << "collision enabled / disabled" << '\n';
             }
 
             if (glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)

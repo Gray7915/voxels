@@ -1,4 +1,4 @@
-#include "InputSystem.hpp"
+#include "ECS/Systems/InputSystem.hpp"
 #include "ECS/Components/Input.hpp"
 
 namespace lve

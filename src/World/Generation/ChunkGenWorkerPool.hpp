@@ -5,7 +5,7 @@
 #include <atomic>
 
 #include "Util/ThreadSafeQueue.hpp"
-#include "Util/noise.hpp"
+#include "World/Generation/noise.hpp"
 #include "World/VoxelData.hpp"
 
 namespace lve

@@ -4,8 +4,7 @@
 #include <iostream>
 #include <glm/ext/vector_int3.hpp>
 #include "../Util/IVec3Hash.h"
-#include "../Util/noise.hpp"
-#include "../Util/ChunkState.hpp"
+#include "World/Generation/ChunkState.hpp"
 #include "../Rendering/Core/lve_device.hpp"
 #include "../Rendering/Core/lve_model.hpp"
 #include "World/VoxelData.hpp"

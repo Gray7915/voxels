@@ -132,15 +132,25 @@ namespace lve
         ImGui::End();
     }
 
-    void ImguiManager::drawInv(InventoryComponent component)
+    void ImguiManager::drawInv(InventoryComponent &component)
     {
         ImGui::SetNextWindowSize(ImVec2(50, 100), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSizeConstraints(ImVec2(50, 100), ImVec2(FLT_MAX, FLT_MAX));
         ImGui::SetNextWindowPos(ImVec2(100.f, 200.f));
         ImGui::Begin("Inventory");
-        ImGui::Text("Grass Dirt %d", component.one);
-        ImGui::Text("Dirt %d", component.two);
-        ImGui::Text("Stone %d", component.three);
+        ImGui::Text("Slots: %zu", component.inventoryStacks.size());
+        for (int i = 0; i < component.inventoryStacks.size(); i++)
+        {
+            auto &stack = component.inventoryStacks[i];
+
+            if (!stack.has_value())
+            {
+                ImGui::Text("Empty");
+                continue;
+            }
+
+            ImGui::Text("%s x%d", stack->getItem()->itemName.c_str(), stack->getStackCount());
+        }
         ImGui::End();
     }
 

@@ -13,7 +13,7 @@ namespace lve
         int itemId = 0;
         std::string itemName;
         int maxStackSize = 64;
-        int maxDurability = 0;//if 0 never breaks (i may actually not want durability)
+        int maxDurability = 0; //if 0 never breaks (i may actually not want durability)
 
         std::shared_ptr<LveModel> itemModel;
     };

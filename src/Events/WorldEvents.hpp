@@ -19,4 +19,10 @@ namespace lve
         int blockType;
         Entity placedBy;
     };
+
+    struct BlockHarvested
+    {
+        Entity brokenBy;
+        int itemType;
+    };
 }

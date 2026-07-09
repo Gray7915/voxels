@@ -83,7 +83,11 @@ namespace lve
         for (int face = 0; face < 6; face++)
         {
             glm::ivec3 n = pos + getDirection(face);
-            bool visible = n.x < 0 || n.y < 0 || n.z < 0 || n.x >= VoxelData::WIDTH || n.y >= VoxelData::HEIGHT || n.z >= VoxelData::DEPTH || job.voxelData.get(n.x, n.y, n.z) == 0 || job.voxelData.get(n.x, n.y, n.z) == 4;
+            bool thingie = !getNeighborData(job, n);
+            // std::cout << thingie << "hopefully this works?" << '\n';
+            bool visible = n.x < 0 || n.y < 0 || n.z < 0 ||
+                           n.x >= VoxelData::WIDTH || n.y >= VoxelData::HEIGHT || n.z >= VoxelData::DEPTH ||
+                           job.voxelData.get(n.x, n.y, n.z) == 0 || job.voxelData.get(n.x, n.y, n.z) == 4 || thingie;
 
             if (!visible)
                 continue;
@@ -176,16 +180,21 @@ namespace lve
 
         glm::ivec3 faceDir = getDirection(face); // NEW: step into the layer the face actually sits in
 
-        auto solid = [&](glm::ivec3 p)
+        auto solid = [&](glm::ivec3 p) -> int
         {
-            if (p.x < 0 || p.x >= VoxelData::WIDTH ||
-                p.y < 0 || p.y >= VoxelData::HEIGHT ||
-                p.z < 0 || p.z >= VoxelData::DEPTH)
-            {
+            // y is never a chunk border — just world top/bottom, which is air.
+            if (p.y < 0 || p.y >= VoxelData::HEIGHT)
                 return 0;
+
+            bool outOfX = p.x < 0 || p.x >= VoxelData::WIDTH;
+            bool outOfZ = p.z < 0 || p.z >= VoxelData::DEPTH;
+
+            if (outOfX || outOfZ)
+            {
+                return getNeighborData(job, p) ? 1 : 0;
             }
 
-            return job.voxelData.get(p.x, p.y, p.z) > 0 ? 1 : 0;
+            return job.voxelData.get(p.x, p.y, p.z) > 1 ? 1 : 0;
         };
 
         int block1 = solid(pos + faceDir + side1);
@@ -237,4 +246,48 @@ namespace lve
         glm::vec2 offset(col * tileWidth, row * tileHeight);
         return offset + glm::vec2(v.x * tileWidth, v.y * tileHeight);
     }
+
+    bool ChunkMeshWorkerPool::getNeighborData(MeshJob &job, glm::ivec3 chunkVoxel)
+    {
+        // x = 16 -> z = 0
+        if (chunkVoxel.x == 16 && chunkVoxel.z == 16)
+        {
+            return job.neighborVoxelData.get(16, chunkVoxel.y, 0) != 0;
+        }
+        else if (chunkVoxel.x == -1 && chunkVoxel.z == 16)
+        {
+            return job.neighborVoxelData.get(16, chunkVoxel.y, 1) != 0;
+        }
+        else if (chunkVoxel.x == -1 && chunkVoxel.z == -1)
+        {
+            return job.neighborVoxelData.get(16, chunkVoxel.y, 2) != 0;
+        }
+        else if (chunkVoxel.x == 16 && chunkVoxel.z == -1)
+        {
+            return job.neighborVoxelData.get(16, chunkVoxel.y, 3) != 0;
+        }
+        else if (chunkVoxel.x == 16)
+        {
+            // std::cout<< " neighbor voxel data " << job.neighborVoxelData.get(chunkVoxel.z, chunkVoxel.y, 0) << '\n';
+            return job.neighborVoxelData.get(chunkVoxel.z, chunkVoxel.y, 0) != 0;
+        }
+        // z = 16 -> z = 1
+        else if (chunkVoxel.z == 16)
+        {
+            return job.neighborVoxelData.get(chunkVoxel.x, chunkVoxel.y, 1) != 0;
+        }
+        // x = -1 -> z = 2
+        else if (chunkVoxel.x == -1)
+        {
+            return job.neighborVoxelData.get(chunkVoxel.z, chunkVoxel.y, 2) != 0;
+        }
+        // z = -1 -> z = 3
+        else if (chunkVoxel.z == -1)
+        {
+            return job.neighborVoxelData.get(chunkVoxel.x, chunkVoxel.y, 3) != 0;
+        }
+
+        return false;
+    }
+
 }

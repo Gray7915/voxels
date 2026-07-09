@@ -37,6 +37,8 @@ namespace lve
 
         void set(int x, int y, int z, BlockID id)
         {
+            assert(!blocks.empty());
+            assert(index(x, y, z) < blocks.size());
             blocks[index(x, y, z)] = id;
         }
 

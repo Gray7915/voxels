@@ -87,10 +87,7 @@ namespace lve
             glm::ivec3 n = pos + getDirection(face);
             bool thingie = !getNeighborData(job, n);
             // std::cout << thingie << "hopefully this works?" << '\n';
-            bool outOfChunk =
-                n.x < 0 || n.x >= VoxelData::WIDTH ||
-                n.z < 0 || n.z >= VoxelData::DEPTH ||
-                n.y < 0 || n.y >= VoxelData::HEIGHT;
+            bool outOfChunk = n.x < 0 || n.x >= VoxelData::WIDTH || n.z < 0 || n.z >= VoxelData::DEPTH || n.y < 0 || n.y >= VoxelData::HEIGHT;
 
             bool neighborSolid = false;
 

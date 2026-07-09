@@ -12,3 +12,7 @@ Movement:
   ☐ tweak the jumping
   ☐ Add sneak?
   ☐ Add sprint?
+
+Lighting: 
+  ☐ Look into shadow maps 
+  ☐ Fix AO (probably just use the full voxel data rather than my neighbor data thingie)

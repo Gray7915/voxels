@@ -139,6 +139,7 @@ namespace lve
                 GlobalUbo ubo{};
                 ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
                 ubo.lightPosition = camTransform.position;
+                ubo.cameraPosition = glm::ivec4(camTransform.position, 1);
                 renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 renderSetup.uboBuffers[frameIndex]->flush();
 
@@ -174,7 +175,7 @@ namespace lve
             if (colIsPressed && !colWasPressed)
             {
                 camCollision.collisionEnabled = !camCollision.collisionEnabled;
-                //std::cout << "collision enabled / disabled" << '\n';
+                // std::cout << "collision enabled / disabled" << '\n';
             }
 
             if (glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)

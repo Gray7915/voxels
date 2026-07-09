@@ -32,7 +32,7 @@ namespace lve
 
             chunk->setVoxelData(std::move(result.data));
             chunk->chunkState = ChunkState::Generated;
-            std::cout << "generated chunk " << result.chunkCoord.x << ", "<< result.chunkCoord.y << ", " << result.chunkCoord.z << '\n';
+            //std::cout << "generated chunk " << result.chunkCoord.x << ", "<< result.chunkCoord.y << ", " << result.chunkCoord.z << '\n';
         }
     }
 

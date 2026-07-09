@@ -92,6 +92,11 @@ namespace lve
     void flushDeletionQueue(uint32_t currentFrame);
     std::mutex &getQueueMutex() { return queueMutex_; }
 
+    float getTimestampPeriod() const
+    {
+      return properties.limits.timestampPeriod;
+    }
+
   private:
     void createInstance();
     void setupDebugMessenger();

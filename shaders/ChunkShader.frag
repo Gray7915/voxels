@@ -55,7 +55,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 void main() {
     vec3 albedo = texture(atlasSampler, fragUv).rgb * fragColor;
 
-    vec3 N = normalize(fragNormal);
+    vec3 N = fragNormal;
     vec3 V = normalize(ubo.cameraPosition.xyz - fragWorldPos);
 
     vec3 toLight = ubo.lightPosition - fragWorldPos;

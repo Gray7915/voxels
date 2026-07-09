@@ -76,5 +76,7 @@ namespace lve
         ChunkGenerationSystem chunkGenSystem{area};
         ChunkMeshSystem chunkMeshSystem{area, lveDevice};
         ChunkMutationSystem chunkMutationSystem{};
+
+        VkQueryPool queryPool;
     };
 }

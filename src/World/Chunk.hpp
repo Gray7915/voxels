@@ -22,6 +22,9 @@ namespace lve
 
         VoxelData voxelData;
 
+        int indicies = 0;
+        int verticies = 0;
+
         ChunkState chunkState = ChunkState::Unloaded;
 
         glm::vec3 offset;

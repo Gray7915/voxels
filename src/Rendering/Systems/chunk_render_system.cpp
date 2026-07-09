@@ -59,13 +59,20 @@ namespace lve
         pipelineConfig.pipelineLayout = pipelineLayout;
         lvePipeline = std::make_unique<LvePipeline>(
             lveDevice,
-            "shaders/ChunkShader.vert.spv",
-            "shaders/ChunkShader.frag.spv",
+            //"shaders/ChunkShader.vert.spv",
+            //"shaders/ChunkShader.frag.spv",
+
+            "shaders/simple_shader.vert.spv",
+            "shaders/simple_shader.frag.spv",
             pipelineConfig);
     }
 
     void ChunkRenderSystem::renderChunks(FrameInfo &frameInfo, std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> &chunks)
     {
+        uint64_t vertices = 0;
+        uint64_t indices = 0;
+        uint64_t draws = 0;
+
         lvePipeline->bind(frameInfo.commandBuffer);
 
         vkCmdBindDescriptorSets(
@@ -94,6 +101,10 @@ namespace lve
             // std::cout << "Model: " << obj->chunkModel.get() << '\n';
             obj->chunkModel->bind(frameInfo.commandBuffer);
             obj->chunkModel->draw(frameInfo.commandBuffer);
+            vertices += obj->verticies;
+            indices += obj->indicies;
+            draws++;
         }
+        // std::cout<< "Chunks: " << chunks.size()<< " Vertices: " << vertices<< " Indices: " << indices<< " Draws: " << draws<< '\n';
     }
 }

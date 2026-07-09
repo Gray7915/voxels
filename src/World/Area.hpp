@@ -12,7 +12,7 @@ namespace lve
     class Area
     {
     public:
-        static const int MinMaxOffset = 6;
+        static const int MinMaxOffset = 4;
 
         Area();
         Area(LveDevice &lveDevice, glm::vec3 offset, ChunkGenerationSystem &chunkGenSystem);

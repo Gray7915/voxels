@@ -50,12 +50,22 @@ namespace lve
 
     FirstApp::~FirstApp()
     {
+        vkDestroyQueryPool(lveDevice.device(), queryPool, nullptr);
     }
 
     void FirstApp::run()
     {
         coordinator.Init();
         ItemRegistrySetup::SetupItemRegistry(ItemRegistry::Get());
+
+        VkQueryPoolCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+        createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+        createInfo.queryCount = 16;
+        if (vkCreateQueryPool(lveDevice.device(), &createInfo, nullptr, &queryPool) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create timestamp query pool");
+        }
 
         auto systems = registerECSComponents(coordinator);
         auto renderSetup = setupRender(lveDevice);
@@ -143,6 +153,14 @@ namespace lve
                 renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 renderSetup.uboBuffers[frameIndex]->flush();
 
+                vkCmdResetQueryPool(commandBuffer, queryPool, 0, 8);
+
+                vkCmdWriteTimestamp(
+                    commandBuffer,
+                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                    queryPool,
+                    0);
+
                 lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
 
                 chunkRenderSystem.renderChunks(frameInfo, area.chunks);
@@ -155,6 +173,18 @@ namespace lve
 
                 lveRenderer.geometryPass->end(commandBuffer);
 
+                vkCmdWriteTimestamp(
+                    commandBuffer,
+                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                    queryPool,
+                    1);
+
+                vkCmdWriteTimestamp(
+                    commandBuffer,
+                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                    queryPool,
+                    2);
+
                 lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
                 imguiManager->newFrame();
                 imguiManager->drawDebugWindow(frameTime, camTransform.position);
@@ -164,7 +194,35 @@ namespace lve
                 imguiManager->render(commandBuffer);
                 lveRenderer.UiRenderPass->end(commandBuffer);
 
+                vkCmdWriteTimestamp(
+                    commandBuffer,
+                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                    queryPool,
+                    3);
                 lveRenderer.endFrame();
+
+                uint64_t timestamps[4];
+
+                vkGetQueryPoolResults(
+                    lveDevice.device(),
+                    queryPool,
+                    0,
+                    4,
+                    sizeof(timestamps),
+                    timestamps,
+                    sizeof(uint64_t),
+                    VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+
+                double geometryMs =
+                    (timestamps[1] - timestamps[0]) *
+                    lveDevice.getTimestampPeriod() / 1'000'000.0;
+
+                double uiMs =
+                    (timestamps[3] - timestamps[2]) *
+                    lveDevice.getTimestampPeriod() / 1'000'000.0;
+
+                // std::cout << "Chunks: " << area.chunks.size() << " Geometry: " << geometryMs << "\n";
+                // std::cout << "UI Pass time " << uiMs << '\n';
             }
 
             static bool colWasPressed = false;

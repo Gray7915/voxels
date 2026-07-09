@@ -61,12 +61,14 @@ namespace lve
             // std::cout << "chunk address " << chunk << '\n';
             if (!chunk)
             {
-                std::cout << "Dropped mesh/gen result for chunk " << result.chunkCoord.x << ", " << result.chunkCoord.y << ", " << result.chunkCoord.z << "\n";
+                // std::cout << "Dropped mesh/gen result for chunk " << result.chunkCoord.x << ", " << result.chunkCoord.y << ", " << result.chunkCoord.z << "\n";
                 continue;
             }
             // std::cout << "verts: " << result.verticies.size()<< " indices: " << result.indices.size() << std::endl;
             chunk->applyMesh(std::move(result.model), frameIndex, device);
             chunk->chunkState = ChunkState::Uploaded;
+            chunk->indicies = result.indices.size();
+            chunk->verticies = result.verticies.size();
         }
     }
 

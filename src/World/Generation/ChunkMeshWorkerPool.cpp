@@ -56,6 +56,7 @@ namespace lve
     {
         MeshResult result{};
         result.chunkCoord = job.chunkCoord;
+        uint32_t emittedFaces = 0;
         // std::cout << "chunk coord in gen mesh " << job.chunkCoord.x << ", " << job.chunkCoord.y << ", " << job.chunkCoord.z << '\n';
         // std::cout << "world offset in gen mesh " << job.worldOffset.x << ", " << job.worldOffset.y << ", " << job.worldOffset.z << '\n';
 
@@ -68,15 +69,16 @@ namespace lve
                     if (job.voxelData.get(x, y, z) == 0)
                         continue; // skip air — was missing entirely before
 
-                    emitBlock(job, result, glm::ivec3(x, y, z));
+                    emitBlock(job, result, glm::ivec3(x, y, z), emittedFaces);
                 }
             }
         }
+        //  std::cout<< "Chunk "<< job.chunkCoord.x << ","<< job.chunkCoord.y << ","<< job.chunkCoord.z<< " Faces: "<< emittedFaces<< " Vertices: "<< result.verticies.size()<< "\n";
         result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, myPool);
         return result;
     }
 
-    void ChunkMeshWorkerPool::emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos)
+    void ChunkMeshWorkerPool::emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces)
     {
         int blockType = job.voxelData.get(pos.x, pos.y, pos.z);
 
@@ -85,13 +87,27 @@ namespace lve
             glm::ivec3 n = pos + getDirection(face);
             bool thingie = !getNeighborData(job, n);
             // std::cout << thingie << "hopefully this works?" << '\n';
-            bool visible = n.x < 0 || n.y < 0 || n.z < 0 ||
-                           n.x >= VoxelData::WIDTH || n.y >= VoxelData::HEIGHT || n.z >= VoxelData::DEPTH ||
-                           job.voxelData.get(n.x, n.y, n.z) == 0 || job.voxelData.get(n.x, n.y, n.z) == 4 || thingie;
+            bool outOfChunk =
+                n.x < 0 || n.x >= VoxelData::WIDTH ||
+                n.z < 0 || n.z >= VoxelData::DEPTH ||
+                n.y < 0 || n.y >= VoxelData::HEIGHT;
+
+            bool neighborSolid = false;
+
+            if (outOfChunk)
+            {
+                neighborSolid = getNeighborData(job, n);
+            }
+            else
+            {
+                neighborSolid = job.voxelData.get(n.x, n.y, n.z) != 0;
+            }
+
+            bool visible = !neighborSolid;
 
             if (!visible)
                 continue;
-
+            emittedFaces++;
             const uint32_t baseIndex = static_cast<uint32_t>(result.verticies.size());
             for (int vert = 0; vert < 4; vert++)
             {

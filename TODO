@@ -8,7 +8,7 @@ Entities:
   ☐ Create an Enitity factory
 
 Movement: 
-  ☐ Fix the awful double tab space flying
+  ✔ Fix the awful double tab space flying @done(26-07-11 10:51)
   ☐ tweak the jumping
   ☐ Add sneak?
   ☐ Add sprint?

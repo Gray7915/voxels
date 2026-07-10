@@ -85,31 +85,28 @@ namespace lve
                     rigidBody.velocity.y = -moveStats.moveSpeed;
             }
 
-            if (input.jump)
+            if (input.jump && !releaseSpace)
             {
                 auto now = std::chrono::steady_clock::now();
-                float elapsed = std::chrono::duration<float>(now - input.currentTime).count();
-                if (elapsed < 0.1f && releaseSpace)
+
+                float elapsed = std::chrono::duration<float>(now - lastJumpPress).count();
+
+                if (elapsed <= 0.25f)
                 {
                     moveStats.flying = !moveStats.flying;
-                    std::cout << "is flying? " << moveStats.flying << '\n';
-                }
-                else if (elapsed > 0.1f)
-                {
-                    releaseSpace = false;
+                    // std::cout << "is flying? " << moveStats.flying << '\n';
                 }
 
-                input.currentTime = now;
+                lastJumpPress = now;
+
                 if (rigidBody.isGrounded)
                 {
                     rigidBody.velocity.y = moveStats.jumpForce;
-                    std::cout << "is jumping? " << rigidBody.velocity.y << '\n';
+                    // std::cout << "is jumping? " << rigidBody.velocity.y << '\n';
                 }
             }
-            else if (!releaseSpace && !input.jump)
-            {
-                releaseSpace = true;
-            }
+
+            releaseSpace = input.jump;
         }
     }
 }

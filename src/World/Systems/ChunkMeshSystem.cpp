@@ -167,12 +167,25 @@ namespace lve
 
     /*
 
+    // How we get the border
+
     [leftUp][up][up][up][up][upR]           // Up to Up right is z = 0, x = 0 - 16
     [left]                    [right]       // right to right down is z = 1, x = 0 - 16
     [left]      center        [right]       // down to down left is z = 2, x = 0 - 16
     [left]      chunk         [right]       // left to up left is z = 3, x = 0 - 16
     [left]                    [right]       // Y is top to bottom of that chunk slice
-    [dwnL][dwn][dwn][dwn][dwn][rightD]
+    [dwnl][dwn][dwn][dwn][dwn][rightD]
 
+
+    // How we store the border
+    z = 0                       z = 1                           z = 2                           z = 3 <- border z coordinate
+
+    These are world pos not chunk pos
+    [up x = 0, z = 4]           [right x = 4, z = 3]            [down x = 3, z = -1]            [left x = -1, z = 0]        x = 0
+    [up x = 1, z = 4]           [right x = 4, z = 2]            [down x = 2, z = -1]            [left x = -1, z = 1]        x = 1
+    [up x = 2, z = 4]           [right x = 4, z = 1]            [down x = 1, z = -1]            [left x = -1, z = 2]        x = 2
+    [up x = 3, z = 4]           [right x = 4, z = 0]            [down x = 0, z = -1 ]           [left x = -1, z = 3]        x = 3
+    [upRight x = 4, z = 4]      [rightDown x = 4, z = -1]       [downLeft x = -1, z = -1]       [leftUp x = -1, z = 4]      x = 4
+                                                                                                                            ^ x border coordinate                
     */
 }

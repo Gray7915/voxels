@@ -25,15 +25,29 @@ namespace lve
 
     void ChunkMeshSystem::Update(LveDevice &device, int frameIndex)
     {
+        auto &neighbors = area.AllChunks();
 
-        for (auto &[coord, chunk] : area.AllChunks())
+        for (auto &[coord, chunk] : neighbors)
         {
-
             if (chunk->chunkState == ChunkState::Generated || chunk->chunkState == ChunkState::Dirty)
             {
+                // Wait for any neighbor that exists but isn't generated yet
+                bool neighborsReady = true;
+                for (glm::ivec3 direction : DIRECTIONS)
+                {
+                    auto chunkNeighbor = neighbors.find(coord + direction);
+                    if (chunkNeighbor != neighbors.end() &&
+                        !chunkNeighbor->second->voxelData.isGenerated())
+                    {
+                        neighborsReady = false;
+                        break;
+                    }
+                }
+                if (!neighborsReady)
+                    continue;
+
                 NeighborVoxelInfo neighborVoxelInfo;
                 neighborVoxelInfo.allocate();
-                auto &neighbors = area.AllChunks();
                 for (glm::ivec3 direction : DIRECTIONS)
                 {
                     auto chunkNeighbor = neighbors.find(coord + direction);
@@ -41,8 +55,7 @@ namespace lve
                     neighborChunkData.allocate();
                     if (chunkNeighbor != neighbors.end() && chunkNeighbor->second->voxelData.isGenerated())
                     {
-                        auto &neighborChunk = chunkNeighbor->second;
-                        neighborChunkData = neighborChunk->voxelData;
+                        neighborChunkData = chunkNeighbor->second->voxelData;
                     }
                     getNeighborChunkInfo(direction, neighborChunkData, neighborVoxelInfo);
                 }
@@ -52,23 +65,27 @@ namespace lve
 
         MeshResult result;
         int budget = 4;
-        // meshPool.printJobQueueSize();
-        // meshPool.printResultQueue();
         while (budget-- > 0 && meshPool.tryGetResult(result))
         {
-            // std::cout << "chunk coord in mesh while loop " << result.chunkCoord.x << ", " << result.chunkCoord.y << ", " << result.chunkCoord.z << '\n';
             Chunk *chunk = area.getChunk(result.chunkCoord);
-            // std::cout << "chunk address " << chunk << '\n';
             if (!chunk)
-            {
-                // std::cout << "Dropped mesh/gen result for chunk " << result.chunkCoord.x << ", " << result.chunkCoord.y << ", " << result.chunkCoord.z << "\n";
                 continue;
-            }
-            // std::cout << "verts: " << result.verticies.size()<< " indices: " << result.indices.size() << std::endl;
+
             chunk->applyMesh(std::move(result.model), frameIndex, device);
             chunk->chunkState = ChunkState::Uploaded;
             chunk->indicies = result.indices.size();
             chunk->verticies = result.verticies.size();
+
+            // Only on first generation for border AO
+            if (result.isFirstMesh)
+            {
+                for (glm::ivec3 direction : DIRECTIONS)
+                {
+                    Chunk *neighbor = area.getChunk(result.chunkCoord + direction);
+                    if (neighbor && neighbor->chunkState == ChunkState::Uploaded)
+                        neighbor->chunkState = ChunkState::Dirty;
+                }
+            }
         }
     }
 
@@ -80,6 +97,7 @@ namespace lve
         job.voxelData = chunk.voxelData;
         job.neighborVoxelData = neighborVoxelInfo;
         job.device = &device;
+        job.isFirstMesh = (chunk.chunkState == ChunkState::Generated);
 
         chunk.chunkState = ChunkState::QueuedForMeshing;
         meshPool.submit(std::move(job));
@@ -186,6 +204,6 @@ namespace lve
     [up x = 2, z = 4]           [right x = 4, z = 1]            [down x = 1, z = -1]            [left x = -1, z = 2]        x = 2
     [up x = 3, z = 4]           [right x = 4, z = 0]            [down x = 0, z = -1 ]           [left x = -1, z = 3]        x = 3
     [upRight x = 4, z = 4]      [rightDown x = 4, z = -1]       [downLeft x = -1, z = -1]       [leftUp x = -1, z = 4]      x = 4
-                                                                                                                            ^ x border coordinate                
+                                                                                                                            ^ x border coordinate
     */
 }

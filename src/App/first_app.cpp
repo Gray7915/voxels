@@ -148,7 +148,7 @@ namespace lve
 
                 GlobalUbo ubo{};
                 ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
-                ubo.lightPosition = camTransform.position;
+                //ubo.lightPosition = camTransform.position;
                 ubo.cameraPosition = glm::ivec4(camTransform.position, 1);
                 renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 renderSetup.uboBuffers[frameIndex]->flush();

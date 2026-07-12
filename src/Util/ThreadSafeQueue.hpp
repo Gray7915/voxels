@@ -34,6 +34,7 @@ namespace lve
         VoxelData voxelData;
         NeighborVoxelInfo neighborVoxelData;
         LveDevice *device = nullptr;
+        bool isFirstMesh = false;
     };
 
     struct MeshResult
@@ -42,6 +43,7 @@ namespace lve
         std::vector<Vertex> verticies;
         std::vector<uint32_t> indices;
         std::unique_ptr<LveModel> model;
+        bool isFirstMesh = false;
     };
 
     template <typename T>

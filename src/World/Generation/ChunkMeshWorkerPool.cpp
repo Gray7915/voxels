@@ -195,7 +195,6 @@ namespace lve
 
         auto solid = [&](glm::ivec3 p) -> int
         {
-            // y is never a chunk border — just world top/bottom, which is air.
             if (p.y < 0 || p.y >= VoxelData::HEIGHT)
                 return 0;
 
@@ -204,10 +203,33 @@ namespace lve
 
             if (outOfX || outOfZ)
             {
-                return getNeighborData(job, p) ? 1 : 0;
+                glm::ivec3 clamped = p;
+
+                // If BOTH axes are out, only clamp the secondary one —
+                // the primary overflow axis (from faceDir) takes priority
+                if (outOfX && outOfZ)
+                {
+                    // Clamp whichever went out due to the tangent offset,
+                    // keep the one from faceDir at its sentinel value
+                    clamped.x = glm::clamp(p.x, 0, VoxelData::WIDTH - 1);
+                    clamped.z = glm::clamp(p.z, -1, VoxelData::DEPTH);
+                    // re-evaluate with just z out of bounds
+                    if (clamped.z < 0 || clamped.z >= VoxelData::DEPTH)
+                    {
+                        clamped.x = glm::clamp(p.x, -1, VoxelData::WIDTH);
+                        clamped.z = glm::clamp(p.z, 0, VoxelData::DEPTH - 1);
+                    }
+                }
+                else
+                {
+                    clamped.x = glm::clamp(p.x, -1, VoxelData::WIDTH);
+                    clamped.z = glm::clamp(p.z, -1, VoxelData::DEPTH);
+                }
+
+                return getNeighborData(job, clamped) ? 1 : 0;
             }
 
-            return job.voxelData.get(p.x, p.y, p.z) > 1 ? 1 : 0;
+            return job.voxelData.get(p.x, p.y, p.z) != 0 ? 1 : 0;
         };
 
         int block1 = solid(pos + faceDir + side1);
@@ -260,47 +282,52 @@ namespace lve
         return offset + glm::vec2(v.x * tileWidth, v.y * tileHeight);
     }
 
-    bool ChunkMeshWorkerPool::getNeighborData(MeshJob &job, glm::ivec3 chunkVoxel)
+    bool ChunkMeshWorkerPool::getNeighborData(MeshJob &job, glm::ivec3 v)
     {
-        // x = 16 -> z = 0
-        if (chunkVoxel.x == 16 && chunkVoxel.z == 16)
-        {
-            return job.neighborVoxelData.get(16, chunkVoxel.y, 0) != 0;
-        }
-        else if (chunkVoxel.x == -1 && chunkVoxel.z == 16)
-        {
-            return job.neighborVoxelData.get(16, chunkVoxel.y, 1) != 0;
-        }
-        else if (chunkVoxel.x == -1 && chunkVoxel.z == -1)
-        {
-            return job.neighborVoxelData.get(16, chunkVoxel.y, 2) != 0;
-        }
-        else if (chunkVoxel.x == 16 && chunkVoxel.z == -1)
-        {
-            return job.neighborVoxelData.get(16, chunkVoxel.y, 3) != 0;
-        }
-        else if (chunkVoxel.x == 16)
-        {
-            // std::cout<< " neighbor voxel data " << job.neighborVoxelData.get(chunkVoxel.z, chunkVoxel.y, 0) << '\n';
-            return job.neighborVoxelData.get(chunkVoxel.z, chunkVoxel.y, 0) != 0;
-        }
-        // z = 16 -> z = 1
-        else if (chunkVoxel.z == 16)
-        {
-            return job.neighborVoxelData.get(chunkVoxel.x, chunkVoxel.y, 1) != 0;
-        }
-        // x = -1 -> z = 2
-        else if (chunkVoxel.x == -1)
-        {
-            return job.neighborVoxelData.get(chunkVoxel.z, chunkVoxel.y, 2) != 0;
-        }
-        // z = -1 -> z = 3
-        else if (chunkVoxel.z == -1)
-        {
-            return job.neighborVoxelData.get(chunkVoxel.x, chunkVoxel.y, 3) != 0;
-        }
+        // corners — check before edges
+        if (v.x == 16 && v.z == 16) // up-right corner
+            return job.neighborVoxelData.get(16, v.y, 0) != 0;
+        if (v.x == 16 && v.z == -1) // up-left corner
+            return job.neighborVoxelData.get(16, v.y, 3) != 0;
+        if (v.x == -1 && v.z == 16) // down-right corner
+            return job.neighborVoxelData.get(16, v.y, 1) != 0;
+        if (v.x == -1 && v.z == -1) // down-left corner
+            return job.neighborVoxelData.get(16, v.y, 2) != 0;
+
+        // edges
+        if (v.x == 16)
+            return job.neighborVoxelData.get(v.z, v.y, 0) != 0; // up:    index = z
+        if (v.z == 16)
+            return job.neighborVoxelData.get(v.x, v.y, 1) != 0; // right: index = x
+        if (v.x == -1)
+            return job.neighborVoxelData.get(v.z, v.y, 2) != 0; // down:  index = z
+        if (v.z == -1)
+            return job.neighborVoxelData.get(v.x, v.y, 3) != 0; // left:  index = x
 
         return false;
     }
+    /*
+
+   // How we get the border
+
+   [leftUp][up][up][up][up][upR]           // Up to Up right is z = 0, x = 0 - 16
+   [left]                    [right]       // right to right down is z = 1, x = 0 - 16
+   [left]      center        [right]       // down to down left is z = 2, x = 0 - 16
+   [left]      chunk         [right]       // left to up left is z = 3, x = 0 - 16
+   [left]                    [right]       // Y is top to bottom of that chunk slice
+   [dwnl][dwn][dwn][dwn][dwn][rightD]
+
+
+   // How we store the border
+   z = 0                       z = 1                           z = 2                           z = 3 <- border z coordinate
+
+   These are world pos not chunk pos
+   [up x = 0, z = 4]           [right x = 4, z = 3]            [down x = 3, z = -1]            [left x = -1, z = 0]        x = 0
+   [up x = 1, z = 4]           [right x = 4, z = 2]            [down x = 2, z = -1]            [left x = -1, z = 1]        x = 1
+   [up x = 2, z = 4]           [right x = 4, z = 1]            [down x = 1, z = -1]            [left x = -1, z = 2]        x = 2
+   [up x = 3, z = 4]           [right x = 4, z = 0]            [down x = 0, z = -1 ]           [left x = -1, z = 3]        x = 3
+   [upRight x = 4, z = 4]      [rightDown x = 4, z = -1]       [downLeft x = -1, z = -1]       [leftUp x = -1, z = 4]      x = 4
+                                                                                                                           ^ x border coordinate
+   */
 
 }

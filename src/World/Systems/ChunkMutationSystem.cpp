@@ -19,7 +19,16 @@ namespace lve
                 continue;
 
             chunk->voxelData.set(e.blockPos.x, e.blockPos.y, e.blockPos.z, 0);
+            // Wherever you mark a chunk dirty due to a block break, also mark cardinal neighbors:
+            static const glm::ivec3 CARDINAL[] = {
+                {1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}};
             chunk->chunkState = ChunkState::Dirty;
+            for (glm::ivec3 dir : CARDINAL)
+            {
+                Chunk *neighbor = area.getChunk(e.chunkPos + dir);
+                if (neighbor && neighbor->chunkState == ChunkState::Uploaded)
+                    neighbor->chunkState = ChunkState::Dirty;
+            }
         }
 
         for (auto &req : coordinator.eventBus.blockPlaceRequested.read())

@@ -51,7 +51,7 @@ namespace lve
         }
 
         bool getNeighborData(MeshJob &job, glm::ivec3 chunkVoxel);
-        static constexpr float aoValues[] = {0.25f, 0.5f, 0.75f, 1.f};
+        static constexpr float aoValues[] = {0.1f, 0.34f, 0.65f, 1.f};
         std::vector<std::thread> workers;
         ThreadSafeQueue<MeshJob> jobQueue;
         ThreadSafeQueue<MeshResult> resultQueue;

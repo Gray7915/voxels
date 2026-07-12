@@ -52,7 +52,7 @@ namespace lve
                 pWasPressed = true;
                 glm::ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
                 glm::ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
-                std::cout << "block place request made " << '\n';
+                // std::cout << "block place request made " << '\n';
                 coordinator.eventBus.blockBreakRequest.push({chunkPosition, blockCoord, entity});
             }
 
@@ -64,13 +64,13 @@ namespace lve
             if (rightIsPressed && !rightWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
             {
                 rightWasPressed = true;
-                std::cout << "ray hit block: " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';
+                // std::cout << "ray hit block: " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';
                 glm::ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
-                std::cout << "block place request corrd: " << blockPos.x << " " << blockPos.y << " " << blockPos.z << '\n';
+                // std::cout << "block place request corrd: " << blockPos.x << " " << blockPos.y << " " << blockPos.z << '\n';
 
                 glm::ivec3 blockCoord = WorldToChunkArray(blockPos);
                 glm::ivec3 chunkPosition = WorldToChunkId(blockPos);
-                std::cout << "block place chunk cord in interaction system: " << chunkPosition.x << " " << chunkPosition.y << " " << chunkPosition.z << '\n';
+                // std::cout << "block place chunk cord in interaction system: " << chunkPosition.x << " " << chunkPosition.y << " " << chunkPosition.z << '\n';
 
                 coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, 2, entity}); // hard code block to be placed for now
             }

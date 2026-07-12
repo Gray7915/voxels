@@ -115,7 +115,7 @@ namespace lve
                 vertex.normal = CUBE_NORMALS[face];
                 vertex.uv = getAtlasUV(face, CUBE_UVS[vert], blockType);
                 vertex.color = {1, 1, 1};
-                int ao = calculateAO(pos, face, vert, job);
+                int ao = calculateAO(pos, face, cubeVertex, job);
 
                 // std::cout << "AO: " << ao << " value " << aoValues[ao] << "\n";
 
@@ -140,18 +140,18 @@ namespace lve
         case 0:
             return {1, 0, 0};
         case 1:
-            return {-1, 0, 0};
+            return {1, 0, 0};
         case 2:
-            return {0, 0, -1};
+            return {0, 0, 1};
         case 3:
             return {0, 0, 1};
         case 4:
             return {1, 0, 0};
         case 5:
             return {1, 0, 0};
+        default:
+            return {};
         }
-
-        return {};
     }
 
     glm::ivec3 ChunkMeshWorkerPool::getFaceTangent2(int face)
@@ -159,26 +159,20 @@ namespace lve
         switch (face)
         {
         case 0:
-            return {0, 1, 0};
         case 1:
-            return {0, 1, 0};
         case 2:
-            return {0, 1, 0};
         case 3:
             return {0, 1, 0};
         case 4:
-            return {0, 0, 1};
         case 5:
-            return {0, 0, -1};
+            return {0, 0, 1};
+        default:
+            return {};
         }
-
-        return {};
     }
 
-    int ChunkMeshWorkerPool::calculateAO(glm::ivec3 pos, int face, int vertexIndex, MeshJob &job)
+    int ChunkMeshWorkerPool::calculateAO(glm::ivec3 pos, int face, int cubeVertex, MeshJob &job)
     {
-        int cubeVertex = CUBE_INDICES[face * 6 + UNIQUE_INDICES[vertexIndex]];
-
         glm::ivec3 localVertex = glm::ivec3(CUBE_VERTICES[cubeVertex]);
 
         glm::ivec3 tangent1 = getFaceTangent1(face);
@@ -191,7 +185,7 @@ namespace lve
         glm::ivec3 side2 = tangent2 * sign2;
         glm::ivec3 corner = side1 + side2;
 
-        glm::ivec3 faceDir = getDirection(face); 
+        glm::ivec3 faceDir = getDirection(face);
 
         auto solid = [&](glm::ivec3 p) -> int
         {
@@ -210,7 +204,7 @@ namespace lve
 
                     clamped.x = glm::clamp(p.x, 0, VoxelData::WIDTH - 1);
                     clamped.z = glm::clamp(p.z, -1, VoxelData::DEPTH);
-                    // re-evaluate with just z out of bounds
+
                     if (clamped.z < 0 || clamped.z >= VoxelData::DEPTH)
                     {
                         clamped.x = glm::clamp(p.x, -1, VoxelData::WIDTH);
@@ -281,25 +275,25 @@ namespace lve
 
     bool ChunkMeshWorkerPool::getNeighborData(MeshJob &job, glm::ivec3 v)
     {
-        // corners — check before edges
-        if (v.x == 16 && v.z == 16) // up-right corner
+        // corners
+        if (v.x == 16 && v.z == 16)
             return job.neighborVoxelData.get(16, v.y, 0) != 0;
-        if (v.x == 16 && v.z == -1) // up-left corner
+        if (v.x == 16 && v.z == -1)
             return job.neighborVoxelData.get(16, v.y, 3) != 0;
-        if (v.x == -1 && v.z == 16) // down-right corner
+        if (v.x == -1 && v.z == 16)
             return job.neighborVoxelData.get(16, v.y, 1) != 0;
-        if (v.x == -1 && v.z == -1) // down-left corner
+        if (v.x == -1 && v.z == -1)
             return job.neighborVoxelData.get(16, v.y, 2) != 0;
 
         // edges
         if (v.x == 16)
-            return job.neighborVoxelData.get(v.z, v.y, 0) != 0; // up:    index = z
+            return job.neighborVoxelData.get(v.z, v.y, 0) != 0;
         if (v.z == 16)
-            return job.neighborVoxelData.get(v.x, v.y, 1) != 0; // right: index = x
+            return job.neighborVoxelData.get(v.x, v.y, 1) != 0;
         if (v.x == -1)
-            return job.neighborVoxelData.get(v.z, v.y, 2) != 0; // down:  index = z
+            return job.neighborVoxelData.get(v.z, v.y, 2) != 0;
         if (v.z == -1)
-            return job.neighborVoxelData.get(v.x, v.y, 3) != 0; // left:  index = x
+            return job.neighborVoxelData.get(v.x, v.y, 3) != 0;
 
         return false;
     }

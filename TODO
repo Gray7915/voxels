@@ -2,7 +2,7 @@ Generation:
   ✔ Add chunk info for generation @done(26-07-12 13:02)
   ✔ Add chunk info for meshing @done(26-07-12 13:02)
   ☐ Add tree generation
-   
+  ☐ Change direction of neighbor data so that its z - to z + and x - to x + rather than the circle
 Entities:
   ✔ Add inventory component @done(26-07-08 11:48)
   ☐ Create an Enitity factory

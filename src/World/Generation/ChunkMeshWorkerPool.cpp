@@ -191,7 +191,7 @@ namespace lve
         glm::ivec3 side2 = tangent2 * sign2;
         glm::ivec3 corner = side1 + side2;
 
-        glm::ivec3 faceDir = getDirection(face); 
+        glm::ivec3 faceDir = getDirection(face);
 
         auto solid = [&](glm::ivec3 p) -> int
         {
@@ -281,7 +281,7 @@ namespace lve
 
     bool ChunkMeshWorkerPool::getNeighborData(MeshJob &job, glm::ivec3 v)
     {
-        // corners — check before edges
+        // corners
         if (v.x == 16 && v.z == 16) // up-right corner
             return job.neighborVoxelData.get(16, v.y, 0) != 0;
         if (v.x == 16 && v.z == -1) // up-left corner

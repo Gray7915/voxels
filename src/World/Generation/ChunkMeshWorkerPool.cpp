@@ -275,8 +275,8 @@ namespace lve
 
     bool ChunkMeshWorkerPool::getNeighborData(MeshJob &job, glm::ivec3 v)
     {
-        // corners
-        if (v.x == 16 && v.z == 16)
+        // corners — check before edges
+        if (v.x == 16 && v.z == 16) // up-right corner
             return job.neighborVoxelData.get(16, v.y, 0) != 0;
         if (v.x == 16 && v.z == -1)
             return job.neighborVoxelData.get(16, v.y, 3) != 0;

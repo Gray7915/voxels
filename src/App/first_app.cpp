@@ -43,7 +43,7 @@
 namespace lve
 {
     Coordinator coordinator;
-
+    //test
     FirstApp::FirstApp() : area(lveDevice, glm::vec3(0, 0, 0), chunkGenSystem)
     {
     }

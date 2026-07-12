@@ -1,6 +1,6 @@
 Generation:
-  ☐ Add chunk info for generation
-  ☐ Add chunk info for meshing
+  ✔ Add chunk info for generation @done(26-07-12 13:02)
+  ✔ Add chunk info for meshing @done(26-07-12 13:02)
   ☐ Add tree generation
    
 Entities:
@@ -16,3 +16,7 @@ Movement:
 Lighting: 
   ☐ Look into shadow maps 
   ☐ Fix AO (probably just use the full voxel data rather than my neighbor data thingie)
+
+Interaction:
+  ☐ Do AABB for objects that arn't solid blocks (like the vase)
+  ☐ Make blocks drop themselves to be picked up by player

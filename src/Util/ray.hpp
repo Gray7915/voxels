@@ -60,10 +60,7 @@ namespace lve
                 uint32_t voxel = 0;
                 // std::cout<< "Checking voxel "<< pos.x << " "<< pos.y << " "<< pos.z<< " value=" << voxel<< '\n';
 
-                glm::ivec3 chunkPos(
-                    std::floor(pos.x / 16.0f),
-                    std::floor(pos.y / 32.0f),
-                    std::floor(pos.z / 16.0f));
+                glm::ivec3 chunkPos(std::floor(pos.x / 16.0f), std::floor(pos.y / 32.0f), std::floor(pos.z / 16.0f));
 
                 if (area.isBlockSolid(pos))
                 {
@@ -86,7 +83,6 @@ namespace lve
                     {
                         pos.z += step.z;
                         direction = glm::ivec3(0, 0, -step.z);
-                        ;
                         tmax.z += delta.z;
                     }
                 }

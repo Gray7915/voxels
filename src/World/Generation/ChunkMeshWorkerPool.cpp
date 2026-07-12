@@ -191,7 +191,7 @@ namespace lve
         glm::ivec3 side2 = tangent2 * sign2;
         glm::ivec3 corner = side1 + side2;
 
-        glm::ivec3 faceDir = getDirection(face); // NEW: step into the layer the face actually sits in
+        glm::ivec3 faceDir = getDirection(face); 
 
         auto solid = [&](glm::ivec3 p) -> int
         {
@@ -205,12 +205,9 @@ namespace lve
             {
                 glm::ivec3 clamped = p;
 
-                // If BOTH axes are out, only clamp the secondary one —
-                // the primary overflow axis (from faceDir) takes priority
                 if (outOfX && outOfZ)
                 {
-                    // Clamp whichever went out due to the tangent offset,
-                    // keep the one from faceDir at its sentinel value
+
                     clamped.x = glm::clamp(p.x, 0, VoxelData::WIDTH - 1);
                     clamped.z = glm::clamp(p.z, -1, VoxelData::DEPTH);
                     // re-evaluate with just z out of bounds

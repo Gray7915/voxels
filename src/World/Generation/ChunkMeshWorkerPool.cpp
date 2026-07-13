@@ -133,42 +133,33 @@ namespace lve
         return DIRECTIONS[i];
     }
 
+    int ChunkMeshWorkerPool::getSign(glm::ivec3 tangent, glm::ivec3 vertex)
+    {
+        if (tangent.x != 0)
+            return vertex.x ? 1 : -1;
+
+        if (tangent.y != 0)
+            return vertex.y ? 1 : -1;
+
+        return vertex.z ? 1 : -1;
+    }
+
     glm::ivec3 ChunkMeshWorkerPool::getFaceTangent1(int face)
     {
-        switch (face)
-        {
-        case 0:
+        if (face <= 1 || face >= 4)
             return {1, 0, 0};
-        case 1:
-            return {1, 0, 0};
-        case 2:
+        if (face >= 2 && face <= 3)
             return {0, 0, 1};
-        case 3:
-            return {0, 0, 1};
-        case 4:
-            return {1, 0, 0};
-        case 5:
-            return {1, 0, 0};
-        default:
-            return {};
-        }
+        return {};
     }
 
     glm::ivec3 ChunkMeshWorkerPool::getFaceTangent2(int face)
     {
-        switch (face)
-        {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
+        if (face <= 3)
             return {0, 1, 0};
-        case 4:
-        case 5:
+        if (face <= 5)
             return {0, 0, 1};
-        default:
-            return {};
-        }
+        return {};
     }
 
     int ChunkMeshWorkerPool::calculateAO(glm::ivec3 pos, int face, int cubeVertex, MeshJob &job)
@@ -185,52 +176,52 @@ namespace lve
         glm::ivec3 side2 = tangent2 * sign2;
         glm::ivec3 corner = side1 + side2;
 
-        glm::ivec3 faceDir = getDirection(face);
+        glm::ivec3 faceDir = DIRECTIONS[face];
 
-        auto solid = [&](glm::ivec3 p) -> int
-        {
-            if (p.y < 0 || p.y >= VoxelData::HEIGHT)
-                return 0;
-
-            bool outOfX = p.x < 0 || p.x >= VoxelData::WIDTH;
-            bool outOfZ = p.z < 0 || p.z >= VoxelData::DEPTH;
-
-            if (outOfX || outOfZ)
-            {
-                glm::ivec3 clamped = p;
-
-                if (outOfX && outOfZ)
-                {
-
-                    clamped.x = glm::clamp(p.x, 0, VoxelData::WIDTH - 1);
-                    clamped.z = glm::clamp(p.z, -1, VoxelData::DEPTH);
-
-                    if (clamped.z < 0 || clamped.z >= VoxelData::DEPTH)
-                    {
-                        clamped.x = glm::clamp(p.x, -1, VoxelData::WIDTH);
-                        clamped.z = glm::clamp(p.z, 0, VoxelData::DEPTH - 1);
-                    }
-                }
-                else
-                {
-                    clamped.x = glm::clamp(p.x, -1, VoxelData::WIDTH);
-                    clamped.z = glm::clamp(p.z, -1, VoxelData::DEPTH);
-                }
-
-                return getNeighborData(job, clamped) ? 1 : 0;
-            }
-
-            return job.voxelData.get(p.x, p.y, p.z) != 0 ? 1 : 0;
-        };
-
-        int block1 = solid(pos + faceDir + side1);
-        int block2 = solid(pos + faceDir + side2);
-        int blockCorner = solid(pos + faceDir + corner);
+        int block1 = getSolid(pos + faceDir + side1, job);
+        int block2 = getSolid(pos + faceDir + side2, job);
+        int blockCorner = getSolid(pos + faceDir + corner, job);
 
         if (block1 + block2 == 2)
             return 0;
 
         return 3 - (block1 + block2 + blockCorner);
+    }
+
+    int ChunkMeshWorkerPool::getSolid(glm::ivec3 voxel, const MeshJob &job)
+    {
+        if (voxel.y < 0 || voxel.y >= VoxelData::HEIGHT)
+            return 0;
+
+        bool outOfX = voxel.x < 0 || voxel.x >= VoxelData::WIDTH;
+        bool outOfZ = voxel.z < 0 || voxel.z >= VoxelData::DEPTH;
+
+        if (outOfX || outOfZ)
+        {
+            glm::ivec3 clamped = voxel;
+
+            if (outOfX && outOfZ)
+            {
+
+                clamped.x = glm::clamp(voxel.x, 0, VoxelData::WIDTH - 1);
+                clamped.z = glm::clamp(voxel.z, -1, VoxelData::DEPTH);
+
+                if (clamped.z < 0 || clamped.z >= VoxelData::DEPTH)
+                {
+                    clamped.x = glm::clamp(voxel.x, -1, VoxelData::WIDTH);
+                    clamped.z = glm::clamp(voxel.z, 0, VoxelData::DEPTH - 1);
+                }
+            }
+            else
+            {
+                clamped.x = glm::clamp(voxel.x, -1, VoxelData::WIDTH);
+                clamped.z = glm::clamp(voxel.z, -1, VoxelData::DEPTH);
+            }
+
+            return getNeighborData(job, clamped) ? 1 : 0;
+        }
+
+        return job.voxelData.get(voxel.x, voxel.y, voxel.z) != 0 ? 1 : 0;
     }
 
     glm::vec2 ChunkMeshWorkerPool::getAtlasUV(int face, glm::vec2 uv, int blockType)
@@ -273,7 +264,7 @@ namespace lve
         return offset + glm::vec2(v.x * tileWidth, v.y * tileHeight);
     }
 
-    bool ChunkMeshWorkerPool::getNeighborData(MeshJob &job, glm::ivec3 v)
+    bool ChunkMeshWorkerPool::getNeighborData(const MeshJob &job, glm::ivec3 v)
     {
         // corners — check before edges
         if (v.x == 16 && v.z == 16)

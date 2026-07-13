@@ -1,4 +1,7 @@
 #pragma once
+
+#include <utility>
+
 #include "Inventory/Item.hpp"
 
 namespace lve
@@ -12,18 +15,31 @@ namespace lve
             return instance;
         }
 
-        void Register(Item item) { items.try_emplace(item.itemId, item); }
-
-        const Item *GetItem(int id)
+        void Register(Item item)
         {
-            auto it = items.find(id);
-            if (it == items.end())
+            itemsByNumeric.try_emplace(item.itemId, std::move(item));
+            itemsByString.try_emplace(item.itemName, item.itemId);
+        }
+
+        const Item *GetItemByID(int id)
+        {
+            auto item = itemsByNumeric.find(id);
+            if (item == itemsByNumeric.end())
                 return nullptr;
 
-            return &it->second;
+            return &item->second;
+        }
+
+        const Item *GetItemByName(std::string name)
+        {
+            auto itemID = itemsByString.find(name);
+            if (itemID == itemsByString.end())
+                return nullptr;
+            return GetItemByID(itemID->second);
         }
 
     private:
-        std::unordered_map<int, Item> items;
+        std::unordered_map<int, Item> itemsByNumeric;
+        std::unordered_map<std::string, int> itemsByString;
     };
 }

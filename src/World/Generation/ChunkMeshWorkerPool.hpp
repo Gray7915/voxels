@@ -39,18 +39,10 @@ namespace lve
         glm::ivec3 getFaceTangent1(int face);
         glm::ivec3 getFaceTangent2(int face);
 
-        int getSign(glm::ivec3 tangent, glm::ivec3 vertex)
-        {
-            if (tangent.x != 0)
-                return vertex.x ? 1 : -1;
+        int getSign(glm::ivec3 tangent, glm::ivec3 vertex);
+        int getSolid(glm::ivec3 voxel, const MeshJob &job);
 
-            if (tangent.y != 0)
-                return vertex.y ? 1 : -1;
-
-            return vertex.z ? 1 : -1;
-        }
-
-        bool getNeighborData(MeshJob &job, glm::ivec3 chunkVoxel);
+        bool getNeighborData(const MeshJob &job, glm::ivec3 chunkVoxel);
         static constexpr float aoValues[] = {0.1f, 0.34f, 0.65f, 1.f};
         std::vector<std::thread> workers;
         ThreadSafeQueue<MeshJob> jobQueue;

@@ -82,7 +82,7 @@ set(IMGUI_SOURCES
 )
 add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES})
  
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
  
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
  

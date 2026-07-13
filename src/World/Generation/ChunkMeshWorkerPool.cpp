@@ -156,17 +156,16 @@ namespace lve
 
     glm::ivec3 ChunkMeshWorkerPool::getFaceTangent2(int face)
     {
-        switch (face)
+        if (face == 0 || face == 1 || face == 2 || face == 3)
         {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
             return {0, 1, 0};
-        case 4:
-        case 5:
+        }
+        else if (face == 4 || face == 5)
+        {
             return {0, 0, 1};
-        default:
+        }
+        else
+        {
             return {};
         }
     }
@@ -276,7 +275,7 @@ namespace lve
     bool ChunkMeshWorkerPool::getNeighborData(MeshJob &job, glm::ivec3 v)
     {
         // corners — check before edges
-        if (v.x == 16 && v.z == 16) // up-right corner
+        if (v.x == 16 && v.z == 16)
             return job.neighborVoxelData.get(16, v.y, 0) != 0;
         if (v.x == 16 && v.z == -1)
             return job.neighborVoxelData.get(16, v.y, 3) != 0;
@@ -299,26 +298,25 @@ namespace lve
     }
     /*
 
-   // How we get the border
+    // How we get the border
 
-   [leftUp][up][up][up][up][upR]           // Up to Up right is z = 0, x = 0 - 16
-   [left]                    [right]       // right to right down is z = 1, x = 0 - 16
-   [left]      center        [right]       // down to down left is z = 2, x = 0 - 16
-   [left]      chunk         [right]       // left to up left is z = 3, x = 0 - 16
-   [left]                    [right]       // Y is top to bottom of that chunk slice
-   [dwnl][dwn][dwn][dwn][dwn][rightD]
+    [leftUp][up][up][up][up][upR]           // Up to Up right is z = 0, x = 0 - 16
+    [left]                    [right]       // right to right down is z = 1, x = 0 - 16
+    [left]      center        [right]       // down to down left is z = 2, x = 0 - 16
+    [left]      chunk         [right]       // left to up left is z = 3, x = 0 - 16
+    [left]                    [right]       // Y is top to bottom of that chunk slice
+    [dwnl][dwn][dwn][dwn][dwn][rightD]
 
 
-   // How we store the border
-   z = 0                       z = 1                           z = 2                           z = 3 <- border z coordinate
+    // How we store the border
+    z = 0                       z = 1                           z = 2                           z = 3 <- border z coordinate
 
-   These are world pos not chunk pos
-   [up x = 0, z = 4]           [right x = 4, z = 3]            [down x = 3, z = -1]            [left x = -1, z = 0]        x = 0
-   [up x = 1, z = 4]           [right x = 4, z = 2]            [down x = 2, z = -1]            [left x = -1, z = 1]        x = 1
-   [up x = 2, z = 4]           [right x = 4, z = 1]            [down x = 1, z = -1]            [left x = -1, z = 2]        x = 2
-   [up x = 3, z = 4]           [right x = 4, z = 0]            [down x = 0, z = -1 ]           [left x = -1, z = 3]        x = 3
-   [upRight x = 4, z = 4]      [rightDown x = 4, z = -1]       [downLeft x = -1, z = -1]       [leftUp x = -1, z = 4]      x = 4
+    These are world pos not chunk pos
+    [up x = 0, z = 4]           [right x = 4, z = 3]            [down x = 3, z = -1]            [left x = -1, z = 0]        x = 0
+    [up x = 1, z = 4]           [right x = 4, z = 2]            [down x = 2, z = -1]            [left x = -1, z = 1]        x = 1
+    [up x = 2, z = 4]           [right x = 4, z = 1]            [down x = 1, z = -1]            [left x = -1, z = 2]        x = 2
+    [up x = 3, z = 4]           [right x = 4, z = 0]            [down x = 0, z = -1 ]           [left x = -1, z = 3]        x = 3
+    [upRight x = 4, z = 4]      [rightDown x = 4, z = -1]       [downLeft x = -1, z = -1]       [leftUp x = -1, z = 4]      x = 4
                                                                                                                            ^ x border coordinate
-   */
-
+    */
 }

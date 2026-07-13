@@ -43,7 +43,7 @@
 namespace lve
 {
     Coordinator coordinator;
-    //test
+    // test
     FirstApp::FirstApp() : area(lveDevice, glm::vec3(0, 0, 0), chunkGenSystem)
     {
     }
@@ -148,7 +148,7 @@ namespace lve
 
                 GlobalUbo ubo{};
                 ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
-                //ubo.lightPosition = camTransform.position;
+                // ubo.lightPosition = camTransform.position;
                 ubo.cameraPosition = glm::ivec4(camTransform.position, 1);
                 renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 renderSetup.uboBuffers[frameIndex]->flush();
@@ -173,22 +173,13 @@ namespace lve
 
                 lveRenderer.geometryPass->end(commandBuffer);
 
-                vkCmdWriteTimestamp(
-                    commandBuffer,
-                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                    queryPool,
-                    1);
-
-                vkCmdWriteTimestamp(
-                    commandBuffer,
-                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                    queryPool,
-                    2);
+                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 1);
+                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 2);
 
                 lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
                 imguiManager->newFrame();
                 imguiManager->drawDebugWindow(frameTime, camTransform.position);
-                imguiManager->drawCrosshair(WIDTH, HEIGHT);
+                imguiManager->drawCrosshair(lveWindow.getExtent().width, lveWindow.getExtent().height);
                 imguiManager->drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
                 // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
                 imguiManager->render(commandBuffer);

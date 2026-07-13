@@ -3,6 +3,8 @@
 #include <vector>
 #include <iostream>
 
+#include "World/voxel.hpp"
+
 namespace lve
 {
     using BlockID = uint16_t;
@@ -14,7 +16,7 @@ namespace lve
         static constexpr int DEPTH = 16;
         static constexpr int VOLUME = WIDTH * HEIGHT * DEPTH;
 
-        void allocate(BlockID fillValue = 0)
+        void allocate(voxel fillValue = voxel{.blockID = 0, .state = 0})
         {
             blocks.assign(VOLUME, fillValue);
         }
@@ -30,13 +32,13 @@ namespace lve
             assert(y >= 0 && y < HEIGHT);
             assert(z >= 0 && z < DEPTH);
 
-            int i = blocks[index(x, y, z)];
+            int i = blocks[index(x, y, z)].blockID;
             return i;
         }
 
         void set(int x, int y, int z, BlockID id)
         {
-            blocks[index(x, y, z)] = id;
+            blocks[index(x, y, z)].blockID = id;
         }
 
     private:
@@ -44,6 +46,7 @@ namespace lve
         {
             return x + WIDTH * (z + DEPTH * y);
         }
-        std::vector<BlockID> blocks;
+
+        std::vector<voxel> blocks;
     };
 }

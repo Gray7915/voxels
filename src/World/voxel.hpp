@@ -17,14 +17,23 @@ struct blockState
     uint8_t usagebits : 8; // growth stage ect ?
 };
 
-static_assert(sizeof(blockState) == 2);
 static_assert(alignof(blockState) == 1);
 static_assert(sizeof(blockState) == sizeof(uint16_t));
 
-inline constexpr blockState int2blockstate(uint16_t i) {
+inline constexpr blockState IntToBlockState(uint16_t i)
+{
     return std::bit_cast<blockState>(i);
 }
 
-inline constexpr uint16_t blockstate2int(blockState b) {
+inline constexpr uint16_t BlockStateTwoInt(blockState b)
+{
     return std::bit_cast<uint16_t>(b);
 }
+
+struct voxel
+{
+    uint16_t blockID;
+    blockState state;
+};
+
+static_assert(sizeof(voxel) == 4);

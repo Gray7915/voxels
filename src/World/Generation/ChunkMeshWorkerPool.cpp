@@ -156,16 +156,17 @@ namespace lve
 
     glm::ivec3 ChunkMeshWorkerPool::getFaceTangent2(int face)
     {
-        if (face == 0 || face == 1 || face == 2 || face == 3)
+        switch (face)
         {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
             return {0, 1, 0};
-        }
-        else if (face == 4 || face == 5)
-        {
+        case 4:
+        case 5:
             return {0, 0, 1};
-        }
-        else
-        {
+        default:
             return {};
         }
     }

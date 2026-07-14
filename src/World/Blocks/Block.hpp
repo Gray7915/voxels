@@ -7,7 +7,7 @@ namespace lve
     {
     public:
         Block(uint16_t id, std::string name) : id{id}, name{name} {}
-        Block(uint16_t id, std::string name)
+        Block(uint16_t id, std::string name);
 
         uint16_t id;
 

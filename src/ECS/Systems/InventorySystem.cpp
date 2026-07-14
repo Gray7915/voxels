@@ -48,7 +48,7 @@ namespace lve
                     {
                         if (!stack.has_value())
                         {
-                            stack = ItemStack(ItemRegistry::Get().GetItem(itemId), 1);
+                            stack = ItemStack(ItemRegistry::Get().GetItemByID(itemId), 1);
 
                             added = true;
                             break;

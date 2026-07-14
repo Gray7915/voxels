@@ -185,24 +185,12 @@ namespace lve
                 imguiManager->render(commandBuffer);
                 lveRenderer.UiRenderPass->end(commandBuffer);
 
-                vkCmdWriteTimestamp(
-                    commandBuffer,
-                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                    queryPool,
-                    3);
+                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 3);
                 lveRenderer.endFrame();
 
                 uint64_t timestamps[4];
 
-                vkGetQueryPoolResults(
-                    lveDevice.device(),
-                    queryPool,
-                    0,
-                    4,
-                    sizeof(timestamps),
-                    timestamps,
-                    sizeof(uint64_t),
-                    VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+                vkGetQueryPoolResults(lveDevice.device(), queryPool, 0, 4, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
 
                 double geometryMs =
                     (timestamps[1] - timestamps[0]) *

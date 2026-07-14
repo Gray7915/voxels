@@ -72,7 +72,7 @@ namespace lve
                 glm::ivec3 chunkPosition = WorldToChunkId(blockPos);
                 // std::cout << "block place chunk cord in interaction system: " << chunkPosition.x << " " << chunkPosition.y << " " << chunkPosition.z << '\n';
 
-                coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, 2, entity}); // hard code block to be placed for now
+                coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, 4, entity}); // hard code block to be placed for now
             }
         }
     }

@@ -67,9 +67,18 @@ namespace lve
                 for (int y = 0; y < VoxelData::HEIGHT; y++)
                 {
                     if (job.voxelData.get(x, y, z) == 0)
-                        continue; // skip air — was missing entirely before
+                    {
+                        continue;
+                    }
 
-                    emitBlock(job, result, glm::ivec3(x, y, z), emittedFaces);
+                    if (job.voxelData.get(x, y, z) != 4)
+                    {
+                        emitBlock(job, result, glm::ivec3(x, y, z), emittedFaces);
+                    }
+                    else
+                    {
+                        emitMesh(job, result, glm::ivec3(x, y, z), emittedFaces);
+                    }
                 }
             }
         }
@@ -97,7 +106,7 @@ namespace lve
             }
             else
             {
-                neighborSolid = job.voxelData.get(n.x, n.y, n.z) != 0;
+                neighborSolid = job.voxelData.get(n.x, n.y, n.z) != 0 && job.voxelData.get(n.x, n.y, n.z) != 4;
             }
 
             bool visible = !neighborSolid;
@@ -125,6 +134,26 @@ namespace lve
 
             for (size_t i : FACE_INDICES)
                 result.indices.push_back(baseIndex + static_cast<uint32_t>(i));
+        }
+    }
+
+    void ChunkMeshWorkerPool::emitMesh(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces)
+    {
+        LveModel::Builder builder{};
+        builder.loadModel("../models/flat_vase.obj");
+        uint32_t baseVertex = static_cast<uint32_t>(result.verticies.size());
+        for (Vertex vert : builder.vertices)
+        {
+            vert.position = vert.position + glm::vec3(pos) + glm::vec3(0.5, 0, 0.5);
+            vert.uv = glm::vec2(0, 0);
+            vert.color = glm::vec3(0.5, 0.5, 0.5);
+
+            result.verticies.push_back(vert);
+        }
+
+        for (auto index : builder.indices)
+        {
+            result.indices.push_back(baseVertex + index);
         }
     }
 

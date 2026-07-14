@@ -32,6 +32,7 @@ namespace lve
         void workerLoop();
         MeshResult generateMesh(MeshJob &job);
         void emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces);
+        void emitMesh(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces);
         int calculateAO(glm::ivec3 pos, int face, int vertexIndex, MeshJob &job);
         static glm::ivec3 getDirection(int i);
         static glm::vec2 getAtlasUV(int face, glm::vec2 uv, int blockType);

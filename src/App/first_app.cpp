@@ -214,11 +214,13 @@ namespace lve
                 camCollision.collisionEnabled = !camCollision.collisionEnabled;
                 // std::cout << "collision enabled / disabled" << '\n';
             }
+            /*
 
-            if (glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            {
-                lveWindow.setMouseActive();
-            }
+                        if (glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
+                        {
+                            lveWindow.setMouseActive();
+                        }
+            */
         }
         vkDeviceWaitIdle(lveDevice.device());
     };

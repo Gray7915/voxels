@@ -74,6 +74,17 @@ namespace lve
 
                 coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, 4, entity}); // hard code block to be placed for now
             }
+
+            static bool escapeWasPressed = false;
+            bool escapeIsPressed = glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS;
+            if (escapeWasPressed && !escapeIsPressed)
+                escapeWasPressed = false;
+
+            if (escapeIsPressed && !escapeWasPressed)
+            {
+                escapeWasPressed = true;
+                lveWindow.setMouseActive();
+            }
         }
     }
 }

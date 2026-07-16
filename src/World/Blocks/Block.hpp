@@ -27,6 +27,8 @@ namespace lve
 
         // mesh / model -> optional only for non blocks (things like chest count as non-block)
 
+        glm::vec3 highlightBoxSize = {1, 1, 1};
+
         int hardness;
 
         RenderType renderType = RenderType::Block;

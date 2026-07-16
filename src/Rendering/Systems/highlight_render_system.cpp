@@ -81,7 +81,7 @@ namespace lve
         if (!hasHit)
             return;
         cubeModel = createOutlineModel(lveDevice, boxSize);
-        // std::cout << "Ray hit in render " << blockPos.x << " " << blockPos.y << " " << blockPos.z << '\n';
+        //std::cout << "highlight box size " << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
         lvePipeline->bind(frameInfo.commandBuffer);
         vkCmdBindDescriptorSets(
             frameInfo.commandBuffer,

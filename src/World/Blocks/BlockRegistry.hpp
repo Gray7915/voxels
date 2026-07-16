@@ -1,6 +1,11 @@
 #pragma once
 
 #include <utility>
+#include <iostream>
+#include <optional>
+#include <functional>
+#include <unordered_map>
+#include <string>
 
 #include "World/Blocks/Block.hpp"
 
@@ -17,29 +22,36 @@ namespace lve
 
         void Register(Block block)
         {
-            blocksByNumeric.try_emplace(block.id, std::move(block));
+            blocksByNumeric.try_emplace(block.id, block);
+            std::cout << " block id added " << block.id << '\n';
             blocksByString.try_emplace(block.name, block.id);
         }
 
-        const Block *GetBlockByID(int id)
+        const std::optional<std::reference_wrapper<const Block>> GetBlockByID(uint16_t id)
         {
             auto item = blocksByNumeric.find(id);
-            if (item == blocksByNumeric.end())
-                return nullptr;
 
-            return &item->second;
+            if (item == blocksByNumeric.end())
+            {
+                std::cout << "block id not found " << id << '\n';
+                return std::nullopt;
+            }
+
+            std::cout << "gotten item id " << item->second.id << '\n';
+
+            return item->second;
         }
 
-        const Block *GetBlockByName(std::string name)
+        const std::optional<std::reference_wrapper<const Block>> GetBlockByName(std::string name)
         {
             auto BlockID = blocksByString.find(name);
             if (BlockID == blocksByString.end())
-                return nullptr;
+                return std::nullopt;
             return GetBlockByID(BlockID->second);
         }
 
     private:
-        std::unordered_map<int, Block> blocksByNumeric;
-        std::unordered_map<std::string, int> blocksByString;
+        std::unordered_map<uint16_t, Block> blocksByNumeric;
+        std::unordered_map<std::string, uint16_t> blocksByString;
     };
 }

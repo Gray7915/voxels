@@ -168,7 +168,13 @@ namespace lve
 
                 chunkRenderSystem.renderChunks(frameInfo, area.chunks);
                 // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
-                highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, glm::vec3(0.25, 1, 0.25));
+                auto block = BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w);
+                glm::vec3 boxSize{1, 1, 1};
+                if (block)
+                    boxSize = block->get().highlightBoxSize;
+                // std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
+
+                highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, boxSize);
                 auto &testTrans = coordinator.GetComponent<Transform>(testEntity);
                 auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
 

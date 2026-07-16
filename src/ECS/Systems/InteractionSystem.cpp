@@ -39,7 +39,7 @@ namespace lve
             }
             else
             {
-                hoveredID = glm::ivec4(rayHit.hitPosition, 1);
+                hoveredID = glm::ivec4(rayHit.hitPosition, rayHit.blockID);
             }
 
             static bool pWasPressed = false;

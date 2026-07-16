@@ -20,7 +20,7 @@ namespace lve
         HighlightRenderSystem &operator=(const HighlightRenderSystem &) = delete;
 
         // call every frame; hasHit=false skips drawing entirely
-        void render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos);
+        void render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos, glm::vec3 boxSize);
 
     private:
         void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
@@ -33,100 +33,78 @@ namespace lve
 
         // Creates a unit wireframe cube (0,0,0) to (1,1,1), as line-list vertices.
 
-        std::unique_ptr<LveModel> createWireframeCubeModel(LveDevice &device)
+        std::unique_ptr<LveModel> createOutlineModel(LveDevice &device, const glm::vec3 &size, float thickness = 0.02f)
         {
+
+            const float expand = 0.002f;
+
+            const float minX = -size.x * 0.5f - expand;
+            const float maxX = size.x * 0.5f + expand;
+
+            const float minY = -expand;
+            const float maxY = size.y + expand;
+
+            const float minZ = -size.z * 0.5f - expand;
+            const float maxZ = size.z * 0.5f + expand;
+
             LveModel::Builder builder{};
 
-            constexpr float inset = 1.f / 32.f;
-            constexpr float scale = 1.01f; // slightly larger than the block to avoid z-fighting
-            const glm::vec3 center{0.5f, 0.5f, 0.5f};
+            const glm::vec3 color{0.f, 0.f, 0.f};
 
-            // 8 corners of unit cube
-            std::array<glm::vec3, 8> corners = {
-                glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::vec3{1, 1, 0}, glm::vec3{0, 1, 0},
-                glm::vec3{0, 0, 1}, glm::vec3{1, 0, 1}, glm::vec3{1, 1, 1}, glm::vec3{0, 1, 1}};
-
-            // 12 edges as pairs of corner indices
-            std::array<std::pair<int, int>, 12> edges = {{
-                {0, 1}, {1, 2}, {2, 3}, {3, 0}, // bottom face
-                {4, 5},
-                {5, 6},
-                {6, 7},
-                {7, 4}, // top face
-                {0, 4},
-                {1, 5},
-                {2, 6},
-                {3, 7} // verticals
-            }};
-
-            builder.vertices.clear();
-            builder.indices.clear();
-
-            glm::vec3 color{1.f, 1.f, 1.f};
-
-            auto addTri = [&](const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c)
+            auto addBox = [&](const glm::vec3 &min, const glm::vec3 &max)
             {
-                Vertex va{};
-                va.position = center + (a - center) * scale;
-                va.color = color;
-                builder.vertices.push_back(va);
-                Vertex vb{};
-                vb.position = center + (b - center) * scale;
-                vb.color = color;
-                builder.vertices.push_back(vb);
-                Vertex vc{};
-                vc.position = center + (c - center) * scale;
-                vc.color = color;
-                builder.vertices.push_back(vc);
+                uint32_t base = static_cast<uint32_t>(builder.vertices.size());
+
+                glm::vec3 p[8] = {
+                    {min.x, min.y, min.z},
+                    {max.x, min.y, min.z},
+                    {max.x, max.y, min.z},
+                    {min.x, max.y, min.z},
+                    {min.x, min.y, max.z},
+                    {max.x, min.y, max.z},
+                    {max.x, max.y, max.z},
+                    {min.x, max.y, max.z},
+                };
+
+                for (const auto &pos : p)
+                {
+                    builder.vertices.push_back({pos, color});
+                }
+
+                static constexpr uint32_t indices[] = {
+                    0, 1, 2, 2, 3, 0,
+                    4, 6, 5, 6, 4, 7,
+                    0, 4, 5, 5, 1, 0,
+                    3, 2, 6, 6, 7, 3,
+                    1, 5, 6, 6, 2, 1,
+                    0, 3, 7, 7, 4, 0};
+
+                for (uint32_t i : indices)
+                    builder.indices.push_back(base + i);
             };
 
-            for (auto &[ia, ib] : edges)
-            {
-                glm::vec3 pa = corners[ia];
-                glm::vec3 pb = corners[ib];
-                glm::vec3 edgeDir = pb - pa;
+            const float t = thickness;
 
-                int edgeAxis = 0;
-                float maxAbs = std::abs(edgeDir.x);
-                if (std::abs(edgeDir.y) > maxAbs)
-                {
-                    edgeAxis = 1;
-                    maxAbs = std::abs(edgeDir.y);
-                }
-                if (std::abs(edgeDir.z) > maxAbs)
-                {
-                    edgeAxis = 2;
-                    maxAbs = std::abs(edgeDir.z);
-                }
+            // X edges
+            addBox({minX, minY, minZ}, {maxX, minY + t, minZ + t});
+            addBox({minX, maxY - t, minZ}, {maxX, maxY, minZ + t});
+            addBox({minX, minY, maxZ - t}, {maxX, minY + t, maxZ});
+            addBox({minX, maxY - t, maxZ - t}, {maxX, maxY, maxZ});
 
-                int o1 = (edgeAxis + 1) % 3;
-                int o2 = (edgeAxis + 2) % 3;
+            // Y edges
+            addBox({minX, minY, minZ}, {minX + t, maxY, minZ + t});
+            addBox({maxX - t, minY, minZ}, {maxX, maxY, minZ + t});
+            addBox({minX, minY, maxZ - t}, {minX + t, maxY, maxZ});
+            addBox({maxX - t, minY, maxZ - t}, {maxX, maxY, maxZ});
 
-                float valO1 = pa[o1];
-                float valO2 = pa[o2];
-
-                glm::vec3 nA{0.f};
-                nA[o2] = (valO2 == 0.f) ? 1.f : -1.f;
-
-                glm::vec3 nB{0.f};
-                nB[o1] = (valO1 == 0.f) ? 1.f : -1.f;
-
-                glm::vec3 hingeA = pa;
-                glm::vec3 hingeB = pb;
-                glm::vec3 flapA0 = pa + inset * nA;
-                glm::vec3 flapA1 = pb + inset * nA;
-                glm::vec3 flapB0 = pa + inset * nB;
-                glm::vec3 flapB1 = pb + inset * nB;
-
-                addTri(hingeA, hingeB, flapA1);
-                addTri(hingeA, flapA1, flapA0);
-
-                addTri(hingeA, hingeB, flapB1);
-                addTri(hingeA, flapB1, flapB0);
-            }
+            // Z edges
+            // Runs along Z at each corner
+            addBox({minX, minY, minZ}, {minX + t, minY + t, maxZ});
+            addBox({maxX - t, minY, minZ}, {maxX, minY + t, maxZ});
+            addBox({minX, maxY - t, minZ}, {minX + t, maxY, maxZ});
+            addBox({maxX - t, maxY - t, minZ}, {maxX, maxY, maxZ});
 
             return std::make_unique<LveModel>(device, builder);
         }
     };
-
 }

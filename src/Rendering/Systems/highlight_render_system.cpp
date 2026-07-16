@@ -21,7 +21,7 @@ namespace lve
     {
         createPipelineLayout(globalSetLayout);
         createPipeline(renderPass);
-        cubeModel = createWireframeCubeModel(lveDevice); // from step 1
+        // cubeModel = createOutlineModel(lveDevice); // from step 1
     }
 
     HighlightRenderSystem::~HighlightRenderSystem()
@@ -61,7 +61,7 @@ namespace lve
         pipelineConfig.pipelineLayout = pipelineLayout;
 
         // KEY DIFFERENCES from the default config:
-       // pipelineConfig.inputAssemblyInfo.topology = VK_TOPOLOG;
+        // pipelineConfig.inputAssemblyInfo.topology = VK_TOPOLOG;
         pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
         pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE; // don't occlude things behind it... (see note below)
         pipelineConfig.depthStencilInfo.depthTestEnable = VK_TRUE;
@@ -76,12 +76,12 @@ namespace lve
             pipelineConfig);
     }
 
-    void HighlightRenderSystem::render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos)
+    void HighlightRenderSystem::render(FrameInfo &frameInfo, bool hasHit, glm::ivec3 blockPos, glm::vec3 boxSize)
     {
         if (!hasHit)
             return;
-        //std::cout << "Ray hit in render " <<direction.x << " " << direction.y << " " << direction.z << '\n';
-
+        cubeModel = createOutlineModel(lveDevice, boxSize);
+        // std::cout << "Ray hit in render " << blockPos.x << " " << blockPos.y << " " << blockPos.z << '\n';
         lvePipeline->bind(frameInfo.commandBuffer);
         vkCmdBindDescriptorSets(
             frameInfo.commandBuffer,
@@ -92,7 +92,10 @@ namespace lve
 
         HighlightPushConstantData push{};
         float inflate = 0.0001f;
-        glm::vec3 origin = glm::vec3(blockPos) - glm::vec3(inflate);
+        glm::vec3 origin{
+            blockPos.x + 0.5f,
+            blockPos.y,
+            blockPos.z + 0.5f};
         glm::vec3 size = glm::vec3(1.f + 2.f * inflate);
         push.modelMatrix = glm::translate(glm::mat4(1.f), origin) * glm::scale(glm::mat4(1.f), size);
 

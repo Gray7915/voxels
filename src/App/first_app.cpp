@@ -25,6 +25,7 @@
 
 #include "SetupECS.hpp"
 #include "App/ItemRegistrySetup.hpp"
+#include "App/BlockRegistrySetup.hpp"
 
 #include "ECS/Components/Gravity.hpp"
 #include "ECS/Components/Camera.hpp"
@@ -39,6 +40,7 @@
 #include "ECS/Components/InventoryComponent.hpp"
 
 #include "Inventory/ItemRegistry.hpp"
+#include "World/Blocks/BlockRegistry.hpp"
 
 namespace lve
 {
@@ -57,6 +59,7 @@ namespace lve
     {
         coordinator.Init();
         ItemRegistrySetup::SetupItemRegistry(ItemRegistry::Get());
+        BlockRegistrySetup::SetupBlockRegistry(BlockRegistry::Get());
 
         VkQueryPoolCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
@@ -165,7 +168,7 @@ namespace lve
 
                 chunkRenderSystem.renderChunks(frameInfo, area.chunks);
                 // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
-                highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID);
+                highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, glm::vec3(0.25, 1, 0.25));
                 auto &testTrans = coordinator.GetComponent<Transform>(testEntity);
                 auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
 

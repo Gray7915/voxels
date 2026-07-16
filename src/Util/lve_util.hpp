@@ -33,5 +33,6 @@ namespace lve
   {
     glm::ivec3 hitPosition;
     glm::ivec3 hitDirection;
+    uint16_t blockID = 0;
   };
 }

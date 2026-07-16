@@ -65,10 +65,10 @@ namespace lve
                 if (area.isBlockSolid(pos))
                 {
                     if (steps == 0)
-                        return RayHit{.hitPosition = origin, .hitDirection = glm::vec3(0, 0, 0)};
+                        return RayHit{.hitPosition = origin, .hitDirection = glm::vec3(0, 0, 0), .blockID = area.getBlockID(origin)};
                     // std::cout << "Chunk " << chunkPos.x << " " << chunkPos.y << " " << chunkPos.z << '\n';
 
-                    return RayHit{.hitPosition = pos, .hitDirection = direction};
+                    return RayHit{.hitPosition = pos, .hitDirection = direction, .blockID = area.getBlockID(pos)};
                 }
 
                 if (tmax.x < tmax.y)

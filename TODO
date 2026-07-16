@@ -3,9 +3,15 @@ Generation:
   ✔ Add chunk info for meshing @done(26-07-12 13:02)
   ☐ Add tree generation
   ☐ Change direction of neighbor data so that its z - to z + and x - to x + rather than the circle
+
+Chunks/Area:
+  ☐ Think about moving certain getblock things into the area rather than getting the chunk
+
+
 Entities:
   ✔ Add inventory component @done(26-07-08 11:48)
   ☐ Create an Enitity factory
+  ☐ Make the item registry also use std optional like block registry
 
 Movement: 
   ✔ Fix the awful double tab space flying @done(26-07-11 10:51)
@@ -15,8 +21,9 @@ Movement:
 
 Lighting: 
   ☐ Look into shadow maps 
-  ☐ Fix AO (probably just use the full voxel data rather than my neighbor data thingie)
+  ✔ Fix AO (probably just use the full voxel data rather than my neighbor data thingie) @done(26-07-16 16:11)
 
 Interaction:
   ☐ Do AABB for objects that arn't solid blocks (like the vase)
   ☐ Make blocks drop themselves to be picked up by player
+  ✔ Refactor ray casting so it returns a struct of hit location, hit block id, ect @done(26-07-16 16:07)

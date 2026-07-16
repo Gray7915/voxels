@@ -64,6 +64,17 @@ namespace lve
         return chunk->voxelData.get(arrayPos.x, arrayPos.y, arrayPos.z);
     }
 
+    uint16_t Area::getBlockID(glm::vec3 worldBlockPos)
+    {
+        glm::ivec3 chunkId = glm::ivec3(WorldToChunkId(worldBlockPos));
+        Chunk *chunk = getChunk(chunkId);
+        if (!chunk || !chunk->voxelData.isGenerated())
+            return false;
+
+        glm::ivec3 arrayPos = WorldToChunkArray(worldBlockPos);
+        return chunk->voxelData.get(arrayPos.x, arrayPos.y, arrayPos.z);
+    }
+
     Chunk *Area::getChunk(glm::ivec3 coord)
     {
         auto it = chunks.find(coord);

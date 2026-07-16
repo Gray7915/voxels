@@ -26,6 +26,7 @@ namespace lve
 
         void tick(LveDevice &lveDevice, glm::vec3 center, uint32_t currentFrameIndex, ChunkGenerationSystem &chunkGenSystem);
         bool isBlockSolid(glm::vec3 worldBlockPos);
+        uint16_t getBlockID(glm::vec3 worldBlockPos);
 
         Chunk *getChunk(glm::ivec3 coord);
         const Chunk *getChunk(glm::ivec3 coord) const;

@@ -62,7 +62,7 @@ namespace lve
 
                 glm::ivec3 chunkPos(std::floor(pos.x / 16.0f), std::floor(pos.y / 32.0f), std::floor(pos.z / 16.0f));
 
-                if (area.isBlockSolid(pos))
+                if (area.isBlockSolid(pos, origin, this->direction))
                 {
                     if (steps == 0)
                         return RayHit{.hitPosition = origin, .hitDirection = glm::vec3(0, 0, 0), .blockID = area.getBlockID(origin)};

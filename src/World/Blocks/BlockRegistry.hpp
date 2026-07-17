@@ -33,11 +33,11 @@ namespace lve
 
             if (item == blocksByNumeric.end())
             {
-                std::cout << "block id not found " << id << '\n';
+                // std::cout << "block id not found " << id << '\n';
                 return std::nullopt;
             }
 
-            std::cout << "gotten item id " << item->second.id << '\n';
+            // std::cout << "gotten item id " << item->second.id << '\n';
 
             return item->second;
         }

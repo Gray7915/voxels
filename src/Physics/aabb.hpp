@@ -4,6 +4,7 @@
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Transform.hpp"
 #include "World/Area.hpp"
+#include "Util/lve_util.hpp"
 
 namespace lve
 {
@@ -31,7 +32,7 @@ namespace lve
             }
         };
 
-        //TODO: placing a block at head height will place and trap player
+        // TODO: placing a block at head height will place and trap player
         static bool CheckBlockPlacement(const Transform &transform, const AABBComponent &aabbComponent, glm::ivec3 position)
         {
             glm::vec3 minPos = transform.position - aabbComponent.halfExtents;
@@ -121,6 +122,35 @@ namespace lve
                 result[i] = allowed;
             }
             return result;
+        }
+
+        static bool rayBoxIntersection(glm::vec3 rayPos, glm::vec3 rayDir, glm::vec3 boxPos, glm::vec3 boxSize)
+        {
+
+            // boxPos.x = boxPos.x + 0.5f;
+            // boxPos.z = boxPos.z + 0.5f;
+
+            boxPos.x += 0.5f;
+            boxPos.z += 0.5f;
+            std::cout << "boxPos " << boxPos.x << " " << boxPos.y << " " << boxPos.z << '\n';
+
+            glm::vec3 boxMin = boxPos - (boxSize / glm::vec3(2, 1, 2));
+            glm::vec3 boxMax = boxPos + (boxSize / glm::vec3(2, 1, 2));
+            std::cout << "min: " << boxMin.x << " " << boxMin.y << " " << boxMin.z << '\n';
+            std::cout << "max: " << boxMax.x << " " << boxMax.y << " " << boxMax.z << '\n';
+
+            glm::vec3 tVals(-1, -1, -1);
+
+            glm::vec3 t1 = (boxMin - rayPos) / rayDir;
+            glm::vec3 t2 = (boxMax - rayPos) / rayDir;
+
+            glm::vec3 tMin = glm::min(t1, t2);
+            glm::vec3 tMax = glm::max(t1, t2);
+
+            float tNear = glm::max(glm::max(tMin.x, tMin.y), tMin.z);
+            float tFar = glm::min(glm::min(tMax.x, tMax.y), tMax.z);
+
+            return tFar >= 0.0f && tNear <= tFar;
         }
     };
 }

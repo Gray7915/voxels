@@ -1,8 +1,14 @@
 #include "Area.hpp"
-#include "../Rendering/Core/lve_device.hpp"
+#include "Rendering/Core/lve_device.hpp"
 #include <iostream>
+
 #include "Util/math.hpp"
+#include "Physics/aabb.hpp"
+
 #include "World/Systems/ChunkGenerationSystem.hpp"
+#include "World/Blocks/BlockRegistry.hpp"
+#include "World/Blocks/Block.hpp"
+#include "World/voxel.hpp"
 
 namespace lve
 {
@@ -61,7 +67,38 @@ namespace lve
             return false;
 
         glm::ivec3 arrayPos = WorldToChunkArray(worldBlockPos);
+        Voxel voxelData = chunk->voxelData.getVoxel(arrayPos.x, arrayPos.y, arrayPos.z);
+        auto optionalVoxel = BlockRegistry::Get().GetBlockByID(voxelData.blockID);
+        Block voxel;
+
+        if (optionalVoxel)
+            voxel = optionalVoxel->get();
         return chunk->voxelData.get(arrayPos.x, arrayPos.y, arrayPos.z);
+    }
+
+    bool Area::isBlockSolid(glm::vec3 worldBlockPos, glm::vec3 rayPos, glm::vec3 rayDirection)
+    {
+        glm::ivec3 chunkId = glm::ivec3(WorldToChunkId(worldBlockPos));
+        Chunk *chunk = getChunk(chunkId);
+        if (!chunk || !chunk->voxelData.isGenerated())
+            return false;
+
+        glm::ivec3 arrayPos = WorldToChunkArray(worldBlockPos);
+        Voxel voxelData = chunk->voxelData.getVoxel(arrayPos.x, arrayPos.y, arrayPos.z);
+        auto optionalVoxel = BlockRegistry::Get().GetBlockByID(voxelData.blockID);
+        Block voxel;
+
+        if (optionalVoxel)
+            voxel = optionalVoxel->get();
+
+        if (voxel.renderType == RenderType::Block)
+        {
+            return chunk->voxelData.get(arrayPos.x, arrayPos.y, arrayPos.z);
+        }
+        else
+        {
+            return CollisionDetection::rayBoxIntersection(rayPos, rayDirection, worldBlockPos, voxel.highlightBoxSize);
+        }
     }
 
     uint16_t Area::getBlockID(glm::vec3 worldBlockPos)

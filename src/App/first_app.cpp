@@ -172,7 +172,7 @@ namespace lve
                 glm::vec3 boxSize{1, 1, 1};
                 if (block)
                     boxSize = block->get().highlightBoxSize;
-                // std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
+                std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
 
                 highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, boxSize);
                 auto &testTrans = coordinator.GetComponent<Transform>(testEntity);

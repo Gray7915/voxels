@@ -30,10 +30,10 @@ inline constexpr uint16_t BlockStateTwoInt(blockState b)
     return std::bit_cast<uint16_t>(b);
 }
 
-struct voxel
+struct Voxel
 {
     uint16_t blockID;
     blockState state;
 };
 
-static_assert(sizeof(voxel) == 4);
+static_assert(sizeof(Voxel) == 4);

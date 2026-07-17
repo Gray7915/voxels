@@ -24,6 +24,7 @@ Lighting:
   ✔ Fix AO (probably just use the full voxel data rather than my neighbor data thingie) @done(26-07-16 16:11)
 
 Interaction:
-  ☐ Do AABB for objects that arn't solid blocks (like the vase)
+  ✔ Do AABB for objects that arn't solid blocks (like the vase) @done(26-07-17 14:10)
+  ☐ Refactor and cleanup AABB and Collision, its gonna get painful soon
   ☐ Make blocks drop themselves to be picked up by player
   ✔ Refactor ray casting so it returns a struct of hit location, hit block id, ect @done(26-07-16 16:07)

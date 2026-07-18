@@ -132,12 +132,12 @@ namespace lve
 
             boxPos.x += 0.5f;
             boxPos.z += 0.5f;
-            std::cout << "boxPos " << boxPos.x << " " << boxPos.y << " " << boxPos.z << '\n';
+            //std::cout << "boxPos " << boxPos.x << " " << boxPos.y << " " << boxPos.z << '\n';
 
             glm::vec3 boxMin = boxPos - (boxSize / glm::vec3(2, 1, 2));
             glm::vec3 boxMax = boxPos + (boxSize / glm::vec3(2, 1, 2));
-            std::cout << "min: " << boxMin.x << " " << boxMin.y << " " << boxMin.z << '\n';
-            std::cout << "max: " << boxMax.x << " " << boxMax.y << " " << boxMax.z << '\n';
+            //std::cout << "min: " << boxMin.x << " " << boxMin.y << " " << boxMin.z << '\n';
+            //std::cout << "max: " << boxMax.x << " " << boxMax.y << " " << boxMax.z << '\n';
 
             glm::vec3 tVals(-1, -1, -1);
 

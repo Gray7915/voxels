@@ -140,14 +140,16 @@ namespace lve
     void ChunkMeshWorkerPool::emitMesh(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces)
     {
         LveModel::Builder builder{};
-        builder.loadModel("../models/flat_vase.obj");
+        builder.loadModel("../models/TestFence.obj");
         uint32_t baseVertex = static_cast<uint32_t>(result.verticies.size());
         for (Vertex vert : builder.vertices)
         {
-            vert.position = vert.position + glm::vec3(pos) + glm::vec3(0.5, 0, 0.5);
-            vert.uv = glm::vec2(0, 0);
-            vert.color = glm::vec3(0.5, 0.5, 0.5);
+            //std::cout << "fence verts " << vert.position.x << " " << vert.position.y << " " << vert.position.z << '\n';
 
+            vert.position = vert.position + glm::vec3(pos) + glm::vec3(0.5, 0, 0.5);
+
+            // vert.uv = glm::vec2(0, 0);
+            vert.color = glm::vec3(1.0);
             result.verticies.push_back(vert);
         }
 

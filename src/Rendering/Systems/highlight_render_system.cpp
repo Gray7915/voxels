@@ -81,21 +81,13 @@ namespace lve
         if (!hasHit)
             return;
         cubeModel = createOutlineModel(lveDevice, boxSize);
-        //std::cout << "highlight box size " << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
+        // std::cout << "highlight box size " << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
         lvePipeline->bind(frameInfo.commandBuffer);
-        vkCmdBindDescriptorSets(
-            frameInfo.commandBuffer,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipelineLayout,
-            0, 1, &frameInfo.globalDescriptorSet,
-            0, nullptr);
+        vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
         HighlightPushConstantData push{};
         float inflate = 0.0001f;
-        glm::vec3 origin{
-            blockPos.x + 0.5f,
-            blockPos.y,
-            blockPos.z + 0.5f};
+        glm::vec3 origin{blockPos.x + 0.5f, blockPos.y, blockPos.z + 0.5f};
         glm::vec3 size = glm::vec3(1.f + 2.f * inflate);
         push.modelMatrix = glm::translate(glm::mat4(1.f), origin) * glm::scale(glm::mat4(1.f), size);
 

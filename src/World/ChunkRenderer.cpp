@@ -91,7 +91,7 @@ namespace lve
     void ChunkRenderer::emitCustomModel(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, int blocks[18][128][18], glm::vec3 worldOffset, int blockType)
     {
         LveModel::Builder builder{};
-        builder.loadModel("../models/flat_vase.obj");
+        builder.loadModel("../models/TestFence.obj");
         uint32_t baseVertex = static_cast<uint32_t>(vertices.size());
         for (Vertex vert : builder.vertices)
         {

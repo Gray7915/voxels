@@ -60,6 +60,7 @@ namespace lve
         coordinator.Init();
         ItemRegistrySetup::SetupItemRegistry(ItemRegistry::Get());
         BlockRegistrySetup::SetupBlockRegistry(BlockRegistry::Get());
+        TextureAtlas::Get().createAtlas();
 
         VkQueryPoolCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
@@ -172,7 +173,7 @@ namespace lve
                 glm::vec3 boxSize{1, 1, 1};
                 if (block)
                     boxSize = block->get().highlightBoxSize;
-                std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
+                // std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
 
                 highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, boxSize);
                 auto &testTrans = coordinator.GetComponent<Transform>(testEntity);

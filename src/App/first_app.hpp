@@ -36,6 +36,8 @@
 #include <memory>
 #include <vector>
 
+#include "App/TextureAtlas.hpp"
+
 namespace lve
 {
     class FirstApp
@@ -78,5 +80,7 @@ namespace lve
         ChunkMutationSystem chunkMutationSystem{};
 
         VkQueryPool queryPool;
+
+        TextureAtlas atlas{};
     };
 }

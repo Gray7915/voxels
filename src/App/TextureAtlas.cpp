@@ -2,13 +2,20 @@
 #include <filesystem>
 #include <fstream>
 #include "App/TextureAtlas.hpp"
+#include <stb_image.h>
+#include <cstring>
 
 namespace lve
 {
     TextureAtlas::~TextureAtlas()
     {
-        // cleanup here
+        if (atlasPixels)
+        {
+            stbi_image_free(atlasPixels);
+            atlasPixels = nullptr;
+        }
     }
+
     void TextureAtlas::createAtlas()
     {
         int currentX = 0;
@@ -43,7 +50,9 @@ namespace lve
 
         atlasHeight = currentY + rowHeight;
 
-        std::vector<uint8_t> atlasPixels(atlasWidth * atlasHeight * 4);
+        atlasPixels = static_cast<stbi_uc *>(malloc(atlasWidth * atlasHeight * 4));
+        memset(atlasPixels, 0, atlasWidth * atlasHeight * 4);
+
         for (auto &texture : textures)
         {
             for (int y = 0; y < texture.height; y++)

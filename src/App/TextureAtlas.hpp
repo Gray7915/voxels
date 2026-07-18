@@ -37,6 +37,7 @@ namespace lve
             static TextureAtlas instance;
             return instance;
         }
+        ~TextureAtlas();
 
         void createAtlas();
 
@@ -46,5 +47,6 @@ namespace lve
 
         const int atlasWidth = 512;
         int atlasHeight = 0;
+        stbi_uc *atlasPixels = nullptr;
     };
 }

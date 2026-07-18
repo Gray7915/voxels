@@ -1,6 +1,10 @@
-#include "World/Generation/ChunkMeshWorkerPool.hpp"
-#include "Rendering/Core/lve_device.hpp"
 #include <iostream>
+#include <optional>
+
+#include "World/Generation/ChunkMeshWorkerPool.hpp"
+#include "World/Blocks/BlockRegistry.hpp"
+#include "Rendering/Core/lve_device.hpp"
+#include "App/TextureAtlas.hpp"
 
 namespace lve
 {
@@ -144,7 +148,7 @@ namespace lve
         uint32_t baseVertex = static_cast<uint32_t>(result.verticies.size());
         for (Vertex vert : builder.vertices)
         {
-            //std::cout << "fence verts " << vert.position.x << " " << vert.position.y << " " << vert.position.z << '\n';
+            // std::cout << "fence verts " << vert.position.x << " " << vert.position.y << " " << vert.position.z << '\n';
 
             vert.position = vert.position + glm::vec3(pos) + glm::vec3(0.5, 0, 0.5);
 
@@ -257,42 +261,37 @@ namespace lve
 
     glm::vec2 ChunkMeshWorkerPool::getAtlasUV(int face, glm::vec2 uv, int blockType)
     {
-        const float tileWidth = 16.0f / 32.0f;
-        const float tileHeight = 16.0f / 48.0f;
+        /*
+        For models need to change this
+        Probably have the texture put into the atlas at us the regular model uvs combined with
+        the texture placement on the atlas to correctly texture the model
+        atlasUV = regionOffset + (modelUV * regionSize)?
+        */
+        std::string requstTexture = BlockRegistry::Get().GetBlockByID(blockType)->get().name;
+        // std::cout << requstTexture << '\n';
 
-        glm::vec2 v(uv.x, 1.0f - uv.y);
-
-        int col = 0;
-        int row = 1;
-
-        if (blockType == 3)
+        const auto &region = TextureAtlas::Get().atlasRegions.find(requstTexture);
+        if (region != TextureAtlas::Get().atlasRegions.end())
         {
-            col = 1;
-            row = 0;
-        }
-        else if (blockType == 2)
-        {
-            col = 0;
-            row = 2;
-        }
-        else
-        {
-            switch (face)
-            {
-            case 4:
-                row = 0;
-                break;
-            case 5:
-                row = 2;
-                break;
-            default:
-                row = 1;
-                break;
-            }
-        }
+            const auto &atlas = TextureAtlas::Get();
 
-        glm::vec2 offset(col * tileWidth, row * tileHeight);
-        return offset + glm::vec2(v.x * tileWidth, v.y * tileHeight);
+            float u = (region->second.x + uv.x * region->second.width) / static_cast<float>(atlas.atlasWidth);
+
+            float v = (region->second.y + uv.y * region->second.height) / static_cast<float>(atlas.atlasHeight);
+
+            return {u, v};
+        }
+        return uv;
+    }
+
+    glm::vec2 ChunkMeshWorkerPool::getModelAtlasUV(glm::vec2 modelUV, const std::string &textureName)
+    {
+        const auto &atlas = TextureAtlas::Get();
+        const auto &region = atlas.atlasRegions.at(textureName);
+
+        return {
+            (region.x + modelUV.x * region.width) / atlas.atlasWidth,
+            (region.y + modelUV.y * region.height) / atlas.atlasHeight};
     }
 
     bool ChunkMeshWorkerPool::getNeighborData(const MeshJob &job, glm::ivec3 v)

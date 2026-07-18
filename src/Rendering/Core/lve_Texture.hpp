@@ -28,7 +28,7 @@ namespace lve
         LveTexture(LveDevice &device, const std::string &filepath);
 
         // load from memory
-        //LveTexture(LveDevice &device, const unsigned char *pixels, uint32_t width, uint32_t height);
+        // LveTexture(LveDevice &device, const unsigned char *pixels, uint32_t width, uint32_t height);
         ~LveTexture();
 
         LveTexture(const LveTexture &) = delete;
@@ -43,6 +43,8 @@ namespace lve
         uint32_t getWidth() const;
 
         uint32_t getHeight() const;
+
+        void createTextureImageWithPixels();
 
     private:
         void loadTextureData();

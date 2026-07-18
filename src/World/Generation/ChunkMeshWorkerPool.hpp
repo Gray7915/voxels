@@ -36,6 +36,7 @@ namespace lve
         int calculateAO(glm::ivec3 pos, int face, int vertexIndex, MeshJob &job);
         static glm::ivec3 getDirection(int i);
         static glm::vec2 getAtlasUV(int face, glm::vec2 uv, int blockType);
+        static glm::vec2 getModelAtlasUV(glm::vec2 modelUV, const std::string &textureName);
 
         glm::ivec3 getFaceTangent1(int face);
         glm::ivec3 getFaceTangent2(int face);

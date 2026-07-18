@@ -16,7 +16,7 @@ namespace lve
         static constexpr int DEPTH = 16;
         static constexpr int VOLUME = WIDTH * HEIGHT * DEPTH;
 
-        void allocate(Voxel fillValue = Voxel{.blockID = 0, .state = 0})
+        void allocate(Voxel fillValue = Voxel{0, {0, 0, 0}})
         {
             blocks.assign(VOLUME, fillValue);
         }

@@ -1,20 +1,20 @@
 #include "lve_Texture.hpp"
 #include "lve_buffer.hpp"
+#include "App/TextureAtlas.hpp"
 
 #include <stb_image.h>
 #include <iostream>
 
-
-
 #ifndef ENGINE_DIR
-#define ENGINE_DIR "../" 
+#define ENGINE_DIR "../"
 #endif
 
 namespace lve
 {
     LveTexture::LveTexture(LveDevice &device, const std::string &filepath) : lveDevice(device)
     {
-        createTextureImage();
+        createTextureImageWithPixels();
+
         createTextureImageView();
         createTextureSampler();
     }
@@ -35,6 +35,51 @@ namespace lve
     VkImageView LveTexture::getImageView() const
     {
         return imageView;
+    }
+
+    void LveTexture::createTextureImageWithPixels()
+    {
+        auto &atlas = TextureAtlas::Get();
+
+        stbi_uc *pixels = atlas.atlasPixels;
+        texWidth = atlas.atlasWidth;
+        texHeight = atlas.atlasHeight;
+        imageSize = texWidth * texHeight * 4;
+
+        if (!pixels)
+        {
+            throw std::runtime_error("failed to load atlas pixels!");
+        }
+
+        LveBuffer stagingBuffer = LveBuffer(lveDevice, imageSize, 1, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        stagingBuffer.map();
+        stagingBuffer.writeToBuffer(pixels, imageSize);
+        stagingBuffer.unmap();
+
+        // no stbi_image_free — atlas owns the buffer and frees it in its destructor
+
+        format = VK_FORMAT_R8G8B8A8_SRGB;
+
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.extent.width = texWidth;
+        imageInfo.extent.height = texHeight;
+        imageInfo.extent.depth = 1;
+        imageInfo.mipLevels = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.format = format;
+        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        lveDevice.createImageWithInfo(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, imageMemory);
+
+        transitionImageLayout(format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        copyBufferToImage(stagingBuffer.getBuffer());
+        transitionImageLayout(format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     void LveTexture::createTextureImage()
@@ -186,7 +231,7 @@ namespace lve
 
         samplerInfo.anisotropyEnable = VK_FALSE;
         samplerInfo.maxAnisotropy = 1.0f;
-         
+
         samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
         samplerInfo.unnormalizedCoordinates = VK_FALSE;
 
@@ -197,7 +242,7 @@ namespace lve
         samplerInfo.mipLodBias = 0.0f;
         samplerInfo.minLod = 0.0f;
         samplerInfo.maxLod = 0.0f;
-        
+
         if (vkCreateSampler(lveDevice.device(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create texture sampler!");

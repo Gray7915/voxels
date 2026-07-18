@@ -60,7 +60,6 @@ namespace lve
         coordinator.Init();
         ItemRegistrySetup::SetupItemRegistry(ItemRegistry::Get());
         BlockRegistrySetup::SetupBlockRegistry(BlockRegistry::Get());
-        TextureAtlas::Get().createAtlas();
 
         VkQueryPoolCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
@@ -72,6 +71,7 @@ namespace lve
         }
 
         auto systems = registerECSComponents(coordinator);
+        TextureAtlas::Get().createAtlas(); // This must run before the render setup. if it doesn't sadness will happen
         auto renderSetup = setupRender(lveDevice);
         std::cout << "setup systems" << '\n';
         imguiManager = std::make_unique<ImguiManager>(lveDevice, lveWindow, lveRenderer);

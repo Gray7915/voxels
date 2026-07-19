@@ -104,6 +104,7 @@ namespace lve
     void pickPhysicalDevice();
     void createLogicalDevice();
     void createCommandPool();
+    void printDeviceExtensions();
     // helper functions
     bool isDeviceSuitable(VkPhysicalDevice device);
     std::vector<const char *> getRequiredExtensions();

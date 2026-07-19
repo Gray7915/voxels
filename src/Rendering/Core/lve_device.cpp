@@ -63,6 +63,7 @@ namespace lve
     pickPhysicalDevice();
     createLogicalDevice();
     createCommandPool();
+    printDeviceExtensions();
   }
 
   LveDevice::~LveDevice()
@@ -358,6 +359,18 @@ namespace lve
         throw std::runtime_error("Missing required glfw extension");
       }
     }
+  }
+
+  void LveDevice::printDeviceExtensions()
+  {
+    uint32_t extCount;
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount, nullptr);
+    std::vector<VkExtensionProperties> exts(extCount);
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount, exts.data());
+
+    std::cout << "device extensions:" << std::endl;
+    for (auto &e : exts)
+      std::cout << "\t" << e.extensionName << "\n";
   }
 
   bool LveDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)

@@ -19,7 +19,7 @@ namespace lve
         static const int width = 16;
         static const int height = 128;
         inline static const glm::ivec3 CHUNK_SIZE{16, 128, 16};
-
+        void buildBLAS(LveDevice &device);
         VoxelData voxelData;
 
         int indicies = 0;

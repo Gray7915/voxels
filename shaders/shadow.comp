@@ -1,0 +1,133 @@
+#version 460
+
+#extension GL_EXT_ray_query : require
+
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+
+layout(set = 0, binding = 0)
+uniform accelerationStructureEXT tlas;
+
+
+layout(set = 0, binding = 1)
+uniform sampler2D depthSampler;
+
+
+layout(set = 0, binding = 2, r8)
+uniform image2D shadowMask;
+
+
+layout(push_constant) uniform PushConstants
+{
+    vec3 sunDirection;
+    float pad;
+    mat4 invViewProj;
+
+} push;
+
+
+
+void main()
+{
+    ivec2 pixel =
+        ivec2(gl_GlobalInvocationID.xy);
+
+
+    ivec2 size =
+        imageSize(shadowMask);
+
+
+    if(pixel.x >= size.x ||
+       pixel.y >= size.y)
+        return;
+
+
+
+    vec2 uv =
+        (vec2(pixel)+0.5) /
+        vec2(size);
+
+
+    float depth =
+        texture(depthSampler, uv).r;
+
+
+
+    if(depth >= 1.0)
+    {
+        imageStore(
+            shadowMask,
+            pixel,
+            vec4(1.0));
+
+        return;
+    }
+
+
+
+    vec4 clip =
+        vec4(
+            uv * 2.0 - 1.0,
+            depth,
+            1.0);
+
+
+
+    vec4 world =
+        push.invViewProj * clip;
+
+
+    world /= world.w;
+
+
+
+    vec3 origin =
+        world.xyz -
+        push.sunDirection * 0.01;
+
+
+
+    vec3 direction =
+        -normalize(push.sunDirection);
+
+
+
+    rayQueryEXT query;
+
+
+    rayQueryInitializeEXT(
+        query,
+        tlas,
+        gl_RayFlagsTerminateOnFirstHitEXT |
+        gl_RayFlagsOpaqueEXT,
+        0xFF,
+        origin,
+        0.001,
+        direction,
+        1000.0);
+
+
+
+    rayQueryProceedEXT(query);
+
+
+
+    float visibility = 1.0;
+
+
+    if(rayQueryGetIntersectionTypeEXT(
+            query,
+            true)
+        != gl_RayQueryCommittedIntersectionNoneEXT)
+    {
+        visibility = 0.0;
+    }
+
+
+
+    imageStore(
+        shadowMask,
+        pixel,
+        vec4(visibility));
+}

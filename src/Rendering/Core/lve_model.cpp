@@ -87,7 +87,9 @@ namespace lve
             lveDevice,
             vertexSize,
             vertexCount,
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+                VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         lveDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize, pool);
@@ -120,7 +122,9 @@ namespace lve
             lveDevice,
             indexSize,
             indexCount,
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+                VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         lveDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize, pool);
@@ -199,8 +203,8 @@ namespace lve
                         attrib.vertices[3 * index.vertex_index + 1], // y
                         attrib.vertices[3 * index.vertex_index + 2], // z
                     };
-                   // vertex.position.y = -vertex.position.y;
-                   // vertex.position.z = -vertex.position.z;
+                    // vertex.position.y = -vertex.position.y;
+                    // vertex.position.z = -vertex.position.z;
 
                     auto colorIndex = 3 * index.vertex_index + 2;
                     vertex.color = {

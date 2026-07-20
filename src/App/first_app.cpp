@@ -79,11 +79,55 @@ namespace lve
         HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         ChunkRenderSystem chunkRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
+        std::vector<VkFramebuffer> compositeFramebuffers;
+
+        for (size_t i = 0;
+             i < lveRenderer.getSwapChain().imageCount();
+             i++)
+        {
+            VkImageView attachments[] =
+                {
+                    lveRenderer.getSwapChain().getImageView(i)};
+
+            VkFramebufferCreateInfo framebufferInfo{};
+
+            framebufferInfo.sType =
+                VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+
+            framebufferInfo.renderPass = lveRenderer.compositePass->getRenderPass();
+
+            framebufferInfo.attachmentCount = 1;
+
+            framebufferInfo.pAttachments =
+                attachments;
+
+            framebufferInfo.width =
+                lveRenderer.getSwapChain().width();
+
+            framebufferInfo.height =
+                lveRenderer.getSwapChain().height();
+
+            framebufferInfo.layers = 1;
+
+            VkFramebuffer framebuffer;
+
+            if (vkCreateFramebuffer(
+                    lveDevice.device(),
+                    &framebufferInfo,
+                    nullptr,
+                    &framebuffer) != VK_SUCCESS)
+            {
+                throw std::runtime_error(
+                    "failed creating composite framebuffer");
+            }
+
+            compositeFramebuffers.push_back(framebuffer);
+        }
         std::cout << "setup render systems" << '\n';
 
         Entity mainCamera = coordinator.CreateEntity();
         coordinator.AddComponent(mainCamera, Transform{.position = {0, 68, 0}});
-        coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, -15.0f, 0.0f)});
+        coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
         coordinator.AddComponent(mainCamera, CameraComponent{});
         coordinator.AddComponent(mainCamera, InputComponent{});
@@ -142,22 +186,42 @@ namespace lve
             if (auto commandBuffer = lveRenderer.beginFrame())
             {
                 int frameIndex = lveRenderer.getFrameIndex();
+
                 chunkMeshSystem.Update(lveDevice, frameIndex);
                 area.tick(lveDevice, camTransform.position, frameIndex, chunkGenSystem);
 
-                FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
+                FrameInfo frameInfo{
+                    frameIndex,
+                    frameTime,
+                    commandBuffer,
+                    renderSetup.globalDescriptorSets[frameIndex]};
 
-                // flip so pos y is up and neg y is down
+                // Flip Vulkan projection Y
                 camera.projectionMatrix[1][1] *= -1;
 
                 GlobalUbo ubo{};
-                ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
-                // ubo.lightPosition = camTransform.position;
-                ubo.cameraPosition = glm::ivec4(camTransform.position, 1);
+                ubo.projectionView =
+                    camera.projectionMatrix * camera.viewMatrix;
+
+                ubo.cameraPosition =
+                    glm::ivec4(camTransform.position, 1);
+
                 renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 renderSetup.uboBuffers[frameIndex]->flush();
 
-                vkCmdResetQueryPool(commandBuffer, queryPool, 0, 8);
+                vkCmdResetQueryPool(
+                    commandBuffer,
+                    queryPool,
+                    0,
+                    8);
+
+                // ============================================================
+                // GEOMETRY PASS
+                // Writes:
+                //  binding 0 albedo
+                //  binding 1 normal
+                //  depth
+                // ============================================================
 
                 vkCmdWriteTimestamp(
                     commandBuffer,
@@ -165,53 +229,122 @@ namespace lve
                     queryPool,
                     0);
 
-                lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
+                lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getSwapChain().getSwapChainExtent());
 
                 chunkRenderSystem.renderChunks(frameInfo, area.chunks);
-                // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
+
                 auto block = BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w);
+
                 glm::vec3 boxSize{1, 1, 1};
+
                 if (block)
                     boxSize = block->get().highlightBoxSize;
-                // std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
 
-                highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, boxSize);
-                auto &testTrans = coordinator.GetComponent<Transform>(testEntity);
-                auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
+                highlightRenderSystem.render(
+                    frameInfo,
+                    systems.interactionSystem->hoveredID.w != 0,
+                    systems.interactionSystem->hoveredID,
+                    boxSize);
 
-                simpleRenderSystem.renderGameObjects(frameInfo, testTrans.mat4(), testTrans.normalMatrix(), testModel.model);
+                auto &testTrans =
+                    coordinator.GetComponent<Transform>(testEntity);
+
+                auto &testModel =
+                    coordinator.GetComponent<RenderableComponent>(testEntity);
+
+                simpleRenderSystem.renderGameObjects(
+                    frameInfo,
+                    testTrans.mat4(),
+                    testTrans.normalMatrix(),
+                    testModel.model);
 
                 lveRenderer.geometryPass->end(commandBuffer);
+                std::cout << "end geom pass " << '\n';
 
-                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 1);
+                vkCmdWriteTimestamp(
+                    commandBuffer,
+                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                    queryPool,
+                    1);
+
+                // ============================================================
+                // SHADOW PASS
+                // Depth -> world position -> ray query -> shadow mask
+                // ============================================================
+
+                ShadowPushConstants shadowPush{};
+
+                shadowPush.sunDirection = glm::normalize(glm::vec3(-1.0f, -2.0f, -1.0f));
+
+                shadowPush.invViewProj = glm::inverse(camera.projectionMatrix * camera.viewMatrix);
+                std::cout << "shadow pass not yet executed pass " << '\n';
+                if (lveRenderer.accelStructure.needsTLASUpdate())
+                {
+                    lveRenderer.accelStructure.rebuildTLAS(area.AllChunks());
+                    lveRenderer.accelStructure.clearTLASDirty();
+                }
+                lveRenderer.shadowPass->execute(commandBuffer, lveRenderer.getSwapChain().getSwapChainExtent(), lveRenderer.accelStructure.getTLAS(), shadowPush);
+                std::cout << "shadow pass executed pass " << '\n';
+
+                CompositePushConstants compositePush{};
+
+                compositePush.sunDirection = shadowPush.sunDirection;
+
+                compositePush.sunColor = glm::vec3(1.0f);
+
+                compositePush.ambientColor = glm::vec3(0.15f);
+
+                lveRenderer.compositePass->begin(commandBuffer, compositeFramebuffers[lveRenderer.getImageIndex()], lveRenderer.getSwapChain().getSwapChainExtent());
+
+                lveRenderer.compositePass->execute(commandBuffer);
+
+                lveRenderer.compositePass->end(commandBuffer);
+                std::cout << "end comp pass " << '\n';
+
                 vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 2);
 
+                // ============================================================
+                // UI PASS
+                // Draws over final lit image
+                // ============================================================
+
                 lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
+
                 imguiManager->newFrame();
-                imguiManager->drawDebugWindow(frameTime, camTransform.position);
-                imguiManager->drawCrosshair(lveWindow.getExtent().width, lveWindow.getExtent().height);
+
+                imguiManager->drawDebugWindow(
+                    frameTime,
+                    camTransform.position);
+
+                imguiManager->drawCrosshair(
+                    lveWindow.getExtent().width,
+                    lveWindow.getExtent().height);
+
                 imguiManager->drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
-                // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
+
                 imguiManager->render(commandBuffer);
+
                 lveRenderer.UiRenderPass->end(commandBuffer);
 
                 vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 3);
+
                 lveRenderer.endFrame();
 
                 uint64_t timestamps[4];
 
                 vkGetQueryPoolResults(lveDevice.device(), queryPool, 0, 4, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
 
-                double geometryMs =
-                    (timestamps[1] - timestamps[0]) *
-                    lveDevice.getTimestampPeriod() / 1'000'000.0;
+                double geometryMs = (timestamps[1] - timestamps[0]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
 
-                double uiMs =
-                    (timestamps[3] - timestamps[2]) *
-                    lveDevice.getTimestampPeriod() / 1'000'000.0;
+                double uiMs = (timestamps[3] - timestamps[2]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
 
-                // std::cout << "Chunks: " << area.chunks.size() << " Geometry: " << geometryMs << "\n";
-                // std::cout << "UI Pass time " << uiMs << '\n';
+                // std::cout << "Geometry: "
+                //           << geometryMs
+                //           << " ms\n";
+
+                // std::cout << "UI: "
+                //           << uiMs
+                //           << " ms\n";
             }
 
             static bool colWasPressed = false;

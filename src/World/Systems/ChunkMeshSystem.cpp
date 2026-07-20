@@ -17,7 +17,7 @@ namespace lve
         {1, 0, -1}   // up left
     };
 
-    ChunkMeshSystem::ChunkMeshSystem(Area &worldArea, LveDevice &device) : area{worldArea}, device{device}
+    ChunkMeshSystem::ChunkMeshSystem(Area &worldArea, LveDevice &device, AccelerationStructure &accelerationStructure) : area{worldArea}, device{device}, accelerationStructure{accelerationStructure}
     {
     }
 
@@ -72,6 +72,11 @@ namespace lve
                 continue;
 
             chunk->applyMesh(std::move(result.model), frameIndex, device);
+
+            accelerationStructure.buildBLAS(
+                result.chunkCoord,
+                *chunk->chunkModel);
+            std::cout << "blas added" << '\n';
             chunk->chunkState = ChunkState::Uploaded;
             chunk->indicies = result.indices.size();
             chunk->verticies = result.verticies.size();

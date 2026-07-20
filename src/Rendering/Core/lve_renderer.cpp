@@ -9,7 +9,7 @@
 namespace lve
 {
 
-    LveRenderer::LveRenderer(LveWindow &window, LveDevice &device) : lveWindow{window}, lveDevice{device}
+    LveRenderer::LveRenderer(LveWindow &window, LveDevice &device) : lveWindow{window}, lveDevice{device}, accelStructure{device}
     {
         recreateSwapChain();
         createCommandBuffers();
@@ -53,18 +53,54 @@ namespace lve
                 throw std::runtime_error("swap chain image or depth format has changed");
             }
         }
+
         createGeometryPass();
-        creatUIPass();
+        createShadowPass();
+        createUIPass();
+        createCompositePass();
+    }
+
+    void LveRenderer::createUIPass()
+    {
+        UiRenderPass = std::make_unique<UIRenderPass>(
+            lveDevice,
+            *swapChain);
     }
 
     void LveRenderer::createGeometryPass()
     {
-        geometryPass = std::make_unique<GeometryPass>(lveDevice, *swapChain);
+        auto extent = swapChain->getSwapChainExtent();
+
+        gBuffer = std::make_unique<GBuffer>(
+            lveDevice,
+            extent);
+
+        geometryPass = std::make_unique<GeometryPass>(
+            lveDevice,
+            *gBuffer,
+            extent);
     }
 
-    void LveRenderer::creatUIPass()
+    void LveRenderer::createShadowPass()
     {
-        UiRenderPass = std::make_unique<UIRenderPass>(lveDevice, *swapChain);
+        auto extent = swapChain->getSwapChainExtent();
+
+        shadowPass = std::make_unique<ShadowPass>(
+            lveDevice,
+            *gBuffer,
+            extent);
+    }
+
+    void LveRenderer::createCompositePass()
+    {
+        auto extent = swapChain->getSwapChainExtent();
+
+        compositePass = std::make_unique<CompositePass>(
+            lveDevice,
+            *gBuffer,
+            shadowPass->getShadowMaskView(),
+            UiRenderPass->getRenderPass(),
+            extent);
     }
 
     void LveRenderer::createCommandBuffers()

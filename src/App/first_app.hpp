@@ -76,7 +76,7 @@ namespace lve
         std::unique_ptr<ImguiManager> imguiManager;
 
         ChunkGenerationSystem chunkGenSystem{area};
-        ChunkMeshSystem chunkMeshSystem{area, lveDevice};
+        ChunkMeshSystem chunkMeshSystem{area, lveDevice, lveRenderer.accelStructure};
         ChunkMutationSystem chunkMutationSystem{};
 
         VkQueryPool queryPool;

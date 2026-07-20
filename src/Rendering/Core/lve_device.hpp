@@ -87,6 +87,7 @@ namespace lve
 
     VkPhysicalDeviceProperties properties;
     VkImageView createImageView(VkImage image, VkFormat format);
+    uint64_t getBufferDeviceAddress(VkBuffer buffer);
 
     void queueDeletion(std::function<void()> &&deleter, uint32_t frameIndex);
     void flushDeletionQueue(uint32_t currentFrame);
@@ -97,8 +98,15 @@ namespace lve
       return properties.limits.timestampPeriod;
     }
 
+    PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR;
+    PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR;
+    PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR;
+    PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures;
+    PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR;
+
   private:
-    void createInstance();
+    void
+    createInstance();
     void setupDebugMessenger();
     void createSurface();
     void pickPhysicalDevice();
@@ -114,6 +122,7 @@ namespace lve
     void hasGflwRequiredInstanceExtensions();
     bool checkDeviceExtensionSupport(VkPhysicalDevice device);
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+    void loadRTFunctions();
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
@@ -128,8 +137,13 @@ namespace lve
     VkQueue presentQueue_;
 
     const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-    const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
+    const std::vector<const char *> deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+        VK_KHR_RAY_QUERY_EXTENSION_NAME,
+        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+    };
     struct DeletionEntry
     {
       std::function<void()> deleter;

@@ -1,11 +1,14 @@
 {
+    "version": "0.2.0",
     "configurations": [
         {
-            "name": "CMake: CMake Script",
-            "type": "cmake",
+            "name": "Debug voxels",
+            "type": "cppvsdbg",
             "request": "launch",
-            "cmakeDebugType": "script",
-            "scriptPath": "${/home/patrick/Documents/Projects/voxels/Makefile}"
+            "program": "${workspaceFolder}/build/voxels.exe",
+            "cwd": "${workspaceFolder}/build",
+            "stopAtEntry": false,
+            "console": "integratedTerminal"
         }
     ]
 }

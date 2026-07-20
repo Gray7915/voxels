@@ -2,6 +2,7 @@
 #include "Rendering/Core/lve_device.hpp"
 #include "World/Area.hpp"
 #include "World/Generation/ChunkMeshWorkerPool.hpp"
+#include "Rendering/Core/AccelerationStructure.hpp"
 
 #include "World/NeighborVoxelInfo.hpp"
 #include "World/VoxelData.hpp"
@@ -11,7 +12,7 @@ namespace lve
     class ChunkMeshSystem
     {
     public:
-        ChunkMeshSystem(Area &worldArea, LveDevice &device);
+        ChunkMeshSystem(Area &worldArea, LveDevice &device, AccelerationStructure &accelerationStructure);
         ~ChunkMeshSystem();
         void Update(LveDevice &device, int frameIndex);
 
@@ -21,5 +22,6 @@ namespace lve
         Area &area;
         LveDevice &device;
         ChunkMeshWorkerPool meshPool{device};
+        AccelerationStructure &accelerationStructure;
     };
 }

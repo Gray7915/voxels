@@ -1,39 +1,29 @@
 #pragma once
+#include <vulkan/vulkan.h>
+#include <array>
 #include "Rendering/Core/lve_device.hpp"
-#include "Rendering/Core/SwapChain.hpp"
+#include "Rendering/Core/GBuffer.hpp"
 
 namespace lve
 {
     class GeometryPass
     {
     public:
-        GeometryPass(LveDevice &device, SwapChain &swapChain);
-        VkRenderPass getRenderPass(){return renderPass;};
+        GeometryPass(LveDevice &device, GBuffer &gbuffer, VkExtent2D extent);
+        ~GeometryPass();
 
-        void begin(VkCommandBuffer cmd, int frameIndex);
+        void begin(VkCommandBuffer cmd, VkExtent2D extent);
         void end(VkCommandBuffer cmd);
 
+        VkRenderPass getRenderPass() const { return renderPass; }
+
     private:
-        LveDevice &device;
-        SwapChain &swapChain;
-        VkRenderPass renderPass;
-
-        std::vector<VkImage> depthImages;
-        std::vector<VkDeviceMemory> depthImageMemorys;
-        std::vector<VkImageView> depthImageViews;
-        std::vector<VkFramebuffer> Framebuffers;
-
-
-        // std::vector<VkImage> colorImages;
-        // std::vector<VkDeviceMemory> colorImageMemorys;
-        // std::vector<VkImageView> colorImageViews;
-
         void createRenderPass();
-        void createDepthResources();
+        void createFramebuffer(VkExtent2D extent);
 
-        //void createColorResources();
-
-        void createFrameBuffers();
-        VkFormat findDepthFormat(LveDevice device);
+        LveDevice &device;
+        GBuffer &gbuffer;
+        VkRenderPass renderPass = VK_NULL_HANDLE;
+        VkFramebuffer framebuffer = VK_NULL_HANDLE;
     };
 }

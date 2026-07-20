@@ -9,6 +9,7 @@ namespace lve
     Chunk::~Chunk() = default;
     Chunk::Chunk(LveDevice &lveDevice, glm::vec3 offset) : offset{offset} {}
 
+    
     glm::mat4 Chunk::mat4()
     {
         const float c3 = glm::cos(rotation.z);

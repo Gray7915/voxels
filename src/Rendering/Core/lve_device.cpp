@@ -62,6 +62,7 @@ namespace lve
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
+    loadRTFunctions();
     createCommandPool();
     printDeviceExtensions();
   }
@@ -98,7 +99,7 @@ namespace lve
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.apiVersion = VK_API_VERSION_1_2;
 
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -179,22 +180,43 @@ namespace lve
       queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceFeatures deviceFeatures = {};
+    // Replace from "VkPhysicalDeviceFeatures deviceFeatures = {};"
+    // down to "if (vkCreateDevice...)" with this:
+
+    VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.wideLines = VK_TRUE;
 
-    VkDeviceCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR accelFeatures{};
+    accelFeatures.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+    accelFeatures.accelerationStructure = VK_TRUE;
 
+    VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures{};
+    rayQueryFeatures.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR;
+    rayQueryFeatures.rayQuery = VK_TRUE;
+
+    accelFeatures.pNext = &rayQueryFeatures;
+
+    VkPhysicalDeviceVulkan12Features vulkan12Features{};
+    vulkan12Features.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+
+    vulkan12Features.bufferDeviceAddress = VK_TRUE;
+    vulkan12Features.runtimeDescriptorArray = VK_TRUE;
+
+    vulkan12Features.pNext = &accelFeatures;
+
+    VkDeviceCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pNext = &vulkan12Features; // ← chain starts here
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
     createInfo.pEnabledFeatures = &deviceFeatures;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-    // might not really be necessary anymore because device specific validation layers
-    // have been deprecated
     if (enableValidationLayers)
     {
       createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -368,9 +390,11 @@ namespace lve
     std::vector<VkExtensionProperties> exts(extCount);
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount, exts.data());
 
-    std::cout << "device extensions:" << std::endl;
+    // std::cout << "device extensions:" << std::endl;
     for (auto &e : exts)
-      std::cout << "\t" << e.extensionName << "\n";
+    {
+      // std::cout << "\t" << e.extensionName << "\n";
+    }
   }
 
   bool LveDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
@@ -511,22 +535,26 @@ namespace lve
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     if (vkCreateBuffer(device_, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-    {
       throw std::runtime_error("failed to create vertex buffer!");
-    }
 
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(device_, buffer, &memRequirements);
+
+    // Set device address flag if buffer needs it
+    VkMemoryAllocateFlagsInfo allocFlagsInfo{};
+    allocFlagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
+    allocFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
+
+    bool needsDeviceAddress = (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) != 0;
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+    allocInfo.pNext = needsDeviceAddress ? &allocFlagsInfo : nullptr;
 
     if (vkAllocateMemory(device_, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-    {
       throw std::runtime_error("failed to allocate vertex buffer memory!");
-    }
 
     vkBindBufferMemory(device_, buffer, bufferMemory, 0);
   }
@@ -681,5 +709,63 @@ namespace lve
       deletionQueue_.front().deleter();
       deletionQueue_.pop_front();
     }
+  }
+
+  uint64_t LveDevice::getBufferDeviceAddress(VkBuffer buffer)
+  {
+    VkBufferDeviceAddressInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    info.buffer = buffer;
+
+    VkDeviceAddress address = vkGetBufferDeviceAddress(device_, &info);
+
+    std::cout << "buffer handle: " << buffer << "\n";
+    std::cout << "device address decimal: " << address << "\n";
+    std::cout << "device address hex: 0x"
+              << std::hex
+              << address
+              << std::dec
+              << "\n";
+
+    return address;
+  }
+
+  void LveDevice::loadRTFunctions()
+  {
+    auto load = [&](const char *name) -> PFN_vkVoidFunction
+    {
+      auto fn = vkGetDeviceProcAddr(device_, name);
+
+      std::cout
+          << name
+          << " = "
+          << reinterpret_cast<void *>(fn)
+          << "\n";
+
+      if (!fn)
+        throw std::runtime_error(std::string("Failed to load ") + name);
+
+      return fn;
+    };
+
+    vkCreateAccelerationStructureKHR =
+        reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(
+            load("vkCreateAccelerationStructureKHR"));
+
+    vkDestroyAccelerationStructureKHR =
+        reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(
+            load("vkDestroyAccelerationStructureKHR"));
+
+    vkGetAccelerationStructureBuildSizesKHR =
+        reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(
+            load("vkGetAccelerationStructureBuildSizesKHR"));
+
+    vkCmdBuildAccelerationStructures =
+        reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(
+            load("vkCmdBuildAccelerationStructuresKHR"));
+
+    vkGetAccelerationStructureDeviceAddressKHR =
+        reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(
+            load("vkGetAccelerationStructureDeviceAddressKHR"));
   }
 } // namespace lve

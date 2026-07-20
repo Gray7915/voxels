@@ -6,6 +6,8 @@
 #include "SwapChain.hpp"
 #include "Rendering/Passes/UIRenderPass.hpp"
 #include "Rendering/Passes/GeometryPass.hpp"
+#include "Rendering/Passes/CompositePass.hpp"
+#include "Rendering/Passes/ShadowPass.hpp"
 
 // std
 #include <memory>
@@ -58,7 +60,9 @@ namespace lve
         }
 
         void createGeometryPass();
-        void creatUIPass();
+        void createShadowPass();
+        void createUIPass();
+        void createCompositePass();
 
         VkCommandBuffer beginFrame();
         void endFrame();
@@ -68,6 +72,11 @@ namespace lve
 
         std::unique_ptr<GeometryPass> geometryPass;
         std::unique_ptr<UIRenderPass> UiRenderPass;
+
+        std::unique_ptr<GBuffer> gBuffer;
+        std::unique_ptr<ShadowPass> shadowPass;
+        std::unique_ptr<CompositePass> compositePass;
+        AccelerationStructure accelStructure;
 
     private:
         void createCommandBuffers();

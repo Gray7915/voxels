@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #ifndef ENGINE_DIR
-#define ENGINE_DIR "../" 
+#define ENGINE_DIR "../"
 #endif
 
 namespace lve
@@ -85,10 +85,9 @@ namespace lve
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
         vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
-        
+
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
         vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
-
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -167,22 +166,38 @@ namespace lve
         configInfo.multisampleInfo.alphaToCoverageEnable = VK_FALSE; // Optional
         configInfo.multisampleInfo.alphaToOneEnable = VK_FALSE;      // Optional
 
-        configInfo.colorBlendAttachment.colorWriteMask =
-            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-            VK_COLOR_COMPONENT_A_BIT;
-        configInfo.colorBlendAttachment.blendEnable = VK_FALSE;
-        configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;  // Optional
-        configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-        configInfo.colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;             // Optional
-        configInfo.colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;  // Optional
-        configInfo.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-        configInfo.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;             // Optional
+        configInfo.colorBlendAttachments.resize(configInfo.colorAttachmentCount);
 
-        configInfo.colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        for (auto &attachment : configInfo.colorBlendAttachments)
+        {
+            attachment = {};
+
+            attachment.colorWriteMask =
+                VK_COLOR_COMPONENT_R_BIT |
+                VK_COLOR_COMPONENT_G_BIT |
+                VK_COLOR_COMPONENT_B_BIT |
+                VK_COLOR_COMPONENT_A_BIT;
+
+            attachment.blendEnable = VK_FALSE;
+        }
+
+        configInfo.colorBlendInfo = {};
+
+        configInfo.colorBlendInfo.sType =
+            VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+
         configInfo.colorBlendInfo.logicOpEnable = VK_FALSE;
-        configInfo.colorBlendInfo.logicOp = VK_LOGIC_OP_COPY; // Optional
-        configInfo.colorBlendInfo.attachmentCount = 1;
-        configInfo.colorBlendInfo.pAttachments = &configInfo.colorBlendAttachment;
+
+        configInfo.colorBlendInfo.attachmentCount =
+            static_cast<uint32_t>(configInfo.colorBlendAttachments.size());
+
+        configInfo.colorBlendInfo.pAttachments =
+            configInfo.colorBlendAttachments.data();
+
+        configInfo.colorBlendInfo.blendConstants[0] = 0.0f;
+        configInfo.colorBlendInfo.blendConstants[1] = 0.0f;
+        configInfo.colorBlendInfo.blendConstants[2] = 0.0f;
+        configInfo.colorBlendInfo.blendConstants[3] = 0.0f;
         configInfo.colorBlendInfo.blendConstants[0] = 0.0f; // Optional
         configInfo.colorBlendInfo.blendConstants[1] = 0.0f; // Optional
         configInfo.colorBlendInfo.blendConstants[2] = 0.0f; // Optional

@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 #include <cstdint>
+#include <iostream>
 
 namespace lve
 {
@@ -25,7 +26,7 @@ namespace lve
             void loadModel(const std::string &filepath);
         };
 
-        LveModel(LveDevice &device, const LveModel::Builder &builder); 
+        LveModel(LveDevice &device, const LveModel::Builder &builder);
         LveModel(LveDevice &device, const LveModel::Builder &builder, VkCommandPool pool);
         LveModel();
         ~LveModel();
@@ -37,6 +38,27 @@ namespace lve
         static std::unique_ptr<LveModel> createChunkModel(LveDevice &device, std::vector<Vertex> vertices, std::vector<uint32_t> indices, VkCommandPool pool);
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
+
+        // Add to lve_model.hpp public section:
+        uint32_t getVertexCount() const { return vertexCount; }
+        uint32_t getIndexCount() const { return indexCount; }
+        VkBuffer getVertexBuffer() const
+        {
+            auto buf = vertexBuffer->getBuffer();
+            std::cout
+                << "MODEL vertexBuffer ptr: "
+                << vertexBuffer.get()
+                << "\n";
+
+            std::cout
+                << "MODEL VkBuffer: "
+                << buf
+                << "\n";
+
+            return vertexBuffer->getBuffer();
+        }
+        VkBuffer getIndexBuffer() const { return indexBuffer->getBuffer(); }
+        bool hasIndices() const { return hasIndexBuffer; }
 
     private:
         void createVertexBuffers(const std::vector<Vertex> &vertices, VkCommandPool pool);

@@ -33,6 +33,7 @@ namespace lve
         auto makeImage = [&](VkFormat format, VkImageUsageFlags usage,
                              VkImageAspectFlags aspect,
                              VkImage &image, VkDeviceMemory &memory, VkImageView &view)
+
         {
             VkImageCreateInfo imageInfo{};
             imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -78,7 +79,8 @@ namespace lve
                   depthImage, depthMemory, depthView);
     }
 
-    void GBuffer::destroyImages()
+    void
+    GBuffer::destroyImages()
     {
         vkDestroyImageView(device.device(), albedoView, nullptr);
         vkDestroyImageView(device.device(), normalView, nullptr);
@@ -141,7 +143,7 @@ namespace lve
         std::array<VkDescriptorImageInfo, 3> imageInfos{};
         imageInfos[0] = {sampler, albedoView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
         imageInfos[1] = {sampler, normalView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-        imageInfos[2] = {sampler, depthView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+        imageInfos[2] = {sampler, depthView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL};
 
         std::array<VkWriteDescriptorSet, 3> writes{};
         for (int i = 0; i < 3; i++)

@@ -1,47 +1,46 @@
 #version 450
+
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 color;
 layout(location = 2) in vec3 normal;
 layout(location = 3) in vec2 uv;
 layout(location = 4) in float ao;
 
-layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec3 fragWorldPos;
-layout(location = 2) out vec3 fragNormal;
-layout(location = 3) out vec2 fragUV;
-layout(location = 4) out float fragAO;
+layout(location = 0) out vec3 fragWorldPos;
+layout(location = 1) out vec3 fragNormal;
+layout(location = 2) out vec2 fragUv;
+layout(location = 3) out vec3 fragColor;
+layout(location = 4) out float fragAo;
 
-layout(set = 0, binding = 0) uniform GlobalUbo {
-  mat4 projectionViewMatrix;
-  vec4 ambientLightColor; // w is intensity
-  vec3 lightPosition;
-  vec4 lightColor;
+layout(set = 0, binding = 0) uniform GlobalUbo
+{
+    mat4 projectionView;
+    vec4 ambientLightColor;
+    vec3 lightPosition;
+    vec4 lightColor;
+    vec4 cameraPosition;
 } ubo;
 
-layout(push_constant) uniform Push {
+layout(push_constant) uniform Push
+{
     mat4 modelMatrix;
     mat4 normalMatrix;
 } push;
 
 void main()
 {
-    vec4 positionWorld = push.modelMatrix * vec4(position, 1.0);
+    vec4 worldPosition = push.modelMatrix * vec4(position, 1.0);
 
-    gl_Position = ubo.projectionViewMatrix * push.modelMatrix * vec4(position, 1.0);
+    gl_Position = ubo.projectionView * worldPosition;
 
-    vec3 normalWorldSpace = normalize(mat3(push.normalMatrix) * normal);
+    fragWorldPos = worldPosition.xyz;
 
-    vec3 directionToLight = ubo.lightPosition - positionWorld.xyz;
-    float attenuation = 1.0 / dot(directionToLight, directionToLight); // distance squared
+    fragNormal =
+        normalize(mat3(push.normalMatrix) * normal);
 
-    vec3 lightColor = ubo.lightColor.xyz * ubo.lightColor.w * attenuation;
-    vec3 ambientLight = ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
-    vec3 diffuseLight = lightColor * max(dot(normalWorldSpace, normalize(directionToLight)), 0);
+    fragUv = uv;
 
-    fragNormal = normalize(mat3(push.normalMatrix) * normal);
-    fragWorldPos = positionWorld.xyz;
-    fragColor = (diffuseLight + ambientLight) * color;
-    fragUV = uv;
-    fragAO = ao;
+    fragColor = color;
 
+    fragAo = ao;
 }

@@ -95,12 +95,7 @@ namespace lve
     {
         auto extent = swapChain->getSwapChainExtent();
 
-        compositePass = std::make_unique<CompositePass>(
-            lveDevice,
-            *gBuffer,
-            shadowPass->getShadowMaskView(),
-            UiRenderPass->getRenderPass(),
-            extent);
+        compositePass = std::make_unique<CompositePass>(lveDevice, *gBuffer, shadowPass->getShadowMaskView(), UiRenderPass->getRenderPass(), extent, *swapChain);
     }
 
     void LveRenderer::createCommandBuffers()

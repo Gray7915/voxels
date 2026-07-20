@@ -39,7 +39,7 @@ namespace lve
         depth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         depth.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        depth.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        depth.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
         std::array<VkAttachmentDescription, 3> attachments = {albedo, normal, depth};
 
@@ -56,16 +56,24 @@ namespace lve
         subpass.pDepthStencilAttachment = &depthRef;
 
         VkSubpassDependency dep{};
-        dep.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dep.dstSubpass = 0;
-        dep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                           VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        dep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                           VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        dep.srcAccessMask = 0;
-        dep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
+        dep.srcSubpass = 0;
+        dep.dstSubpass = VK_SUBPASS_EXTERNAL;
+
+        dep.srcStageMask =
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+            VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+
+        dep.dstStageMask =
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+        dep.srcAccessMask =
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        dep.dstAccessMask =
+            VK_ACCESS_SHADER_READ_BIT;
         VkRenderPassCreateInfo rpInfo{};
         rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         rpInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -102,8 +110,9 @@ namespace lve
     void GeometryPass::begin(VkCommandBuffer cmd, VkExtent2D extent)
     {
         std::array<VkClearValue, 3> clearValues{};
-        clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f}; // albedo
-        clearValues[1].color = {0.0f, 0.0f, 0.0f, 0.0f}; // normal
+
+        clearValues[0].color = {0.0f, 1.0f, 0.0f, 1.0f}; // RED albedo test
+        clearValues[1].color = {0.0f, 1.0f, 0.0f, 0.0f}; // normal
         clearValues[2].depthStencil = {1.0f, 0};         // depth
 
         VkRenderPassBeginInfo beginInfo{};
@@ -124,7 +133,6 @@ namespace lve
         vkCmdSetViewport(cmd, 0, 1, &viewport);
         vkCmdSetScissor(cmd, 0, 1, &scissor);
     }
-
     void GeometryPass::end(VkCommandBuffer cmd)
     {
         vkCmdEndRenderPass(cmd);

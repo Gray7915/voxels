@@ -7,14 +7,8 @@
 namespace lve
 {
 
-    CompositePass::CompositePass(
-        LveDevice &device,
-        GBuffer &gbuffer,
-        VkImageView shadowMaskView,
-        VkRenderPass uiRenderPass,
-        VkExtent2D extent)
-        : device{device},
-          gbuffer{gbuffer}
+    CompositePass::CompositePass(LveDevice &device, GBuffer &gbuffer, VkImageView shadowMaskView, VkRenderPass uiRenderPass, VkExtent2D extent, SwapChain &swapChain)
+        : device{device}, gbuffer{gbuffer}, swapChain{swapChain}
     {
         createRenderPass();
         createDescriptors(shadowMaskView);
@@ -23,81 +17,55 @@ namespace lve
 
     CompositePass::~CompositePass()
     {
+        vkDeviceWaitIdle(device.device());
+
+        vkDestroyDescriptorPool(device.device(), descriptorPool, nullptr);
+
         vkDestroySampler(device.device(), sampler, nullptr);
+        std::cout << "Destroying CompositePass sampler " << sampler << "\n";
+        vkDestroyDescriptorSetLayout(device.device(), descriptorLayout, nullptr);
 
-        vkDestroyDescriptorPool(
-            device.device(),
-            descriptorPool,
-            nullptr);
+        vkDestroyPipeline(device.device(), pipeline, nullptr);
 
-        vkDestroyDescriptorSetLayout(
-            device.device(),
-            descriptorLayout,
-            nullptr);
+        vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
 
-        vkDestroyPipeline(
-            device.device(),
-            pipeline,
-            nullptr);
-
-        vkDestroyPipelineLayout(
-            device.device(),
-            pipelineLayout,
-            nullptr);
-
-        vkDestroyRenderPass(
-            device.device(),
-            renderPass,
-            nullptr);
+        vkDestroyRenderPass(device.device(), renderPass, nullptr);
     }
 
     void CompositePass::createRenderPass()
     {
         VkAttachmentDescription color{};
-        color.format = VK_FORMAT_B8G8R8A8_SRGB;
+        color.format = swapChain.getSwapChainImageFormat();
         color.samples = VK_SAMPLE_COUNT_1_BIT;
 
         color.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         color.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
-        color.initialLayout =
-            VK_IMAGE_LAYOUT_UNDEFINED;
+        color.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-        color.finalLayout =
-            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        color.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorRef{};
         colorRef.attachment = 0;
-        colorRef.layout =
-            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         VkSubpassDescription subpass{};
-        subpass.pipelineBindPoint =
-            VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorRef;
 
         VkSubpassDependency dependency{};
 
-        dependency.srcSubpass =
-            VK_SUBPASS_EXTERNAL;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-        dependency.dstSubpass = 0;
-
-        dependency.srcStageMask =
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-        dependency.dstStageMask =
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-        dependency.dstAccessMask =
-            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
         VkRenderPassCreateInfo info{};
 
-        info.sType =
-            VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 
         info.attachmentCount = 1;
         info.pAttachments = &color;
@@ -149,6 +117,8 @@ namespace lve
             throw std::runtime_error(
                 "failed creating composite sampler");
         }
+        std::cout << "Creating CompositePass sampler "
+                  << sampler << "\n";
 
         std::array<VkDescriptorSetLayoutBinding, 4> bindings{};
 
@@ -282,58 +252,65 @@ namespace lve
 
     void CompositePass::createPipeline()
     {
+        VkPushConstantRange pushRange{};
+
+        pushRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        pushRange.offset = 0;
+
+        pushRange.size = sizeof(CompositePushConstants);
+
         VkPipelineLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType =
-            VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+
+        layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
         layoutInfo.setLayoutCount = 1;
         layoutInfo.pSetLayouts = &descriptorLayout;
 
-        if (vkCreatePipelineLayout(
-                device.device(),
-                &layoutInfo,
-                nullptr,
-                &pipelineLayout) != VK_SUCCESS)
+        layoutInfo.pushConstantRangeCount = 1;
+        layoutInfo.pPushConstantRanges = &pushRange;
+        if (vkCreatePipelineLayout(device.device(), &layoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
         {
-            throw std::runtime_error(
-                "failed to create composite pipeline layout");
+            throw std::runtime_error("failed to create composite pipeline layout");
         }
 
         // ----------------------------
         // Load shaders
         // ----------------------------
 
-        auto readFile = [](const std::string &filename)
+        auto readFile = [](const std::string &filepath)
         {
-            std::ifstream file(
-                filename,
-                std::ios::ate | std::ios::binary);
+            std::string enginePath = "../" + filepath;
+
+            std::ifstream file{enginePath, std::ios::ate | std::ios::binary};
 
             if (!file.is_open())
             {
                 throw std::runtime_error(
-                    "failed to open shader: " + filename);
+                    "failed to open file: " + enginePath);
             }
 
-            size_t size =
+            size_t fileSize =
                 static_cast<size_t>(file.tellg());
 
-            std::vector<char> buffer(size);
+            std::vector<char> buffer(fileSize);
 
             file.seekg(0);
 
             file.read(
                 buffer.data(),
-                size);
+                fileSize);
+
+            file.close();
 
             return buffer;
         };
 
         auto vertCode =
-            readFile("shaders/composite.vert.spv");
+            readFile("shaders/Composite.vert.spv");
 
         auto fragCode =
-            readFile("shaders/composite.frag.spv");
+            readFile("shaders/Composite.frag.spv");
 
         auto createShaderModule =
             [&](const std::vector<char> &code)
@@ -505,42 +482,32 @@ namespace lve
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
 
-        pipelineInfo.sType =
-            VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
         pipelineInfo.stageCount = 2;
 
-        pipelineInfo.pStages =
-            stages;
+        pipelineInfo.pStages = stages;
 
-        pipelineInfo.pVertexInputState =
-            &vertexInput;
+        pipelineInfo.pVertexInputState = &vertexInput;
 
-        pipelineInfo.pInputAssemblyState =
-            &inputAssembly;
+        pipelineInfo.pInputAssemblyState = &inputAssembly;
 
-        pipelineInfo.pViewportState =
-            &viewport;
+        pipelineInfo.pViewportState = &viewport;
 
-        pipelineInfo.pRasterizationState =
-            &raster;
+        pipelineInfo.pRasterizationState = &raster;
 
-        pipelineInfo.pMultisampleState =
-            &multisample;
+        pipelineInfo.pMultisampleState = &multisample;
 
-        pipelineInfo.pColorBlendState =
-            &colorState;
+        pipelineInfo.pColorBlendState = &colorState;
 
-        pipelineInfo.pDynamicState =
-            &dynamic;
+        pipelineInfo.pDynamicState = &dynamic;
 
-        pipelineInfo.layout =
-            pipelineLayout;
+        pipelineInfo.layout = pipelineLayout;
 
-        pipelineInfo.renderPass =
-            renderPass;
+        pipelineInfo.renderPass = renderPass;
 
         pipelineInfo.subpass = 0;
+        std::cout << "Composite pipeline RP " << renderPass << "\n";
 
         if (vkCreateGraphicsPipelines(
                 device.device(),
@@ -574,46 +541,30 @@ namespace lve
     {
 
         VkClearValue clear{};
-        clear.color =
-            {
-                0.f,
-                0.f,
-                0.f,
-                1.f};
+        clear.color = {0.f, 1.f, 0.f, 1.f};
 
         VkRenderPassBeginInfo begin{};
 
-        begin.sType =
-            VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        begin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
-        begin.renderPass =
-            renderPass;
+        begin.renderPass = renderPass;
 
-        begin.framebuffer =
-            framebuffer;
+        begin.framebuffer = framebuffer;
 
-        begin.renderArea =
-            {
-                {0, 0},
-                extent};
+        begin.renderArea = {{0, 0}, extent};
 
         begin.clearValueCount = 1;
         begin.pClearValues = &clear;
 
-        vkCmdBeginRenderPass(
-            cmd,
-            &begin,
-            VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(cmd, &begin, VK_SUBPASS_CONTENTS_INLINE);
 
         VkViewport viewport{};
-
-        viewport.width =
-            extent.width;
-
-        viewport.height =
-            extent.height;
-
-        viewport.maxDepth = 1.f;
+        viewport.x = 0;
+        viewport.y = 0;
+        viewport.width = static_cast<float>(extent.width);
+        viewport.height = static_cast<float>(extent.height);
+        viewport.minDepth = 0;
+        viewport.maxDepth = 1;
 
         VkRect2D scissor{};
 
@@ -632,14 +583,9 @@ namespace lve
             &scissor);
     }
 
-    void CompositePass::execute(
-        VkCommandBuffer cmd)
+    void CompositePass::execute(VkCommandBuffer cmd, const CompositePushConstants &push)
     {
-
-        vkCmdBindPipeline(
-            cmd,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipeline);
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
         vkCmdBindDescriptorSets(
             cmd,
@@ -651,13 +597,18 @@ namespace lve
             0,
             nullptr);
 
-        // Fullscreen triangle
-        vkCmdDraw(
+        vkCmdPushConstants(
             cmd,
-            3,
-            1,
+            pipelineLayout,
+            VK_SHADER_STAGE_FRAGMENT_BIT,
             0,
-            0);
+            sizeof(CompositePushConstants),
+            &push);
+        std::cout << "Composite execute\n";
+        VkPipelineStageFlags flags;
+
+        std::cout << "Composite draw call\n";
+        vkCmdDraw(cmd, 300, 1, 0, 0);
     }
 
     void CompositePass::end(

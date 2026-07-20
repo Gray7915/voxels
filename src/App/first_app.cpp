@@ -76,9 +76,21 @@ namespace lve
         std::cout << "setup systems" << '\n';
         imguiManager = std::make_unique<ImguiManager>(lveDevice, lveWindow, lveRenderer);
 
-        HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
-        ChunkRenderSystem chunkRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
-        SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
+        HighlightRenderSystem highlightRenderSystem{
+            lveDevice,
+            lveRenderer.getSwapChainRenderPass(),
+            renderSetup.globalSetLayout->getDescriptorSetLayout()};
+
+        ChunkRenderSystem chunkRenderSystem{
+            lveDevice,
+            lveRenderer.getSwapChainRenderPass(),
+            renderSetup.globalSetLayout->getDescriptorSetLayout()};
+
+        SimpleRenderSystem simpleRenderSystem{
+            lveDevice,
+            lveRenderer.getSwapChainRenderPass(),
+            renderSetup.globalSetLayout->getDescriptorSetLayout()};
+
         std::vector<VkFramebuffer> compositeFramebuffers;
 
         for (size_t i = 0;
@@ -90,25 +102,14 @@ namespace lve
                     lveRenderer.getSwapChain().getImageView(i)};
 
             VkFramebufferCreateInfo framebufferInfo{};
-
-            framebufferInfo.sType =
-                VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = lveRenderer.compositePass->getRenderPass();
-
             framebufferInfo.attachmentCount = 1;
-
-            framebufferInfo.pAttachments =
-                attachments;
-
-            framebufferInfo.width =
-                lveRenderer.getSwapChain().width();
-
-            framebufferInfo.height =
-                lveRenderer.getSwapChain().height();
-
+            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.width = lveRenderer.getSwapChain().width();
+            framebufferInfo.height = lveRenderer.getSwapChain().height();
             framebufferInfo.layers = 1;
-
+            std::cout << "Composite FB RP " << framebufferInfo.renderPass << "\n";
             VkFramebuffer framebuffer;
 
             if (vkCreateFramebuffer(
@@ -233,7 +234,8 @@ namespace lve
 
                 chunkRenderSystem.renderChunks(frameInfo, area.chunks);
 
-                auto block = BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w);
+                auto block = BlockRegistry::Get().GetBlockByID(
+                    systems.interactionSystem->hoveredID.w);
 
                 glm::vec3 boxSize{1, 1, 1};
 
@@ -266,65 +268,68 @@ namespace lve
                     VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                     queryPool,
                     1);
+                /*
+                                // ============================================================
+                                // SHADOW PASS
+                                // Depth -> world position -> ray query -> shadow mask
+                                // ============================================================
 
-                // ============================================================
-                // SHADOW PASS
-                // Depth -> world position -> ray query -> shadow mask
-                // ============================================================
+                                ShadowPushConstants shadowPush{};
 
-                ShadowPushConstants shadowPush{};
+                                shadowPush.sunDirection = glm::normalize(glm::vec3(1.0f, 2.0f, 1.0f));
 
-                shadowPush.sunDirection = glm::normalize(glm::vec3(-1.0f, -2.0f, -1.0f));
+                                shadowPush.invViewProj = glm::inverse(camera.projectionMatrix * camera.viewMatrix);
+                                std::cout << "shadow pass not yet executed pass " << '\n';
+                                if (lveRenderer.accelStructure.needsTLASUpdate())
+                                {
+                                    lveRenderer.accelStructure.rebuildTLAS(area.AllChunks());
+                                    lveRenderer.accelStructure.clearTLASDirty();
+                                }
+                                lveRenderer.shadowPass->execute(commandBuffer, lveRenderer.getSwapChain().getSwapChainExtent(), lveRenderer.accelStructure.getTLAS(), shadowPush, frameIndex);
+                                std::cout << "shadow pass executed pass " << '\n';
 
-                shadowPush.invViewProj = glm::inverse(camera.projectionMatrix * camera.viewMatrix);
-                std::cout << "shadow pass not yet executed pass " << '\n';
-                if (lveRenderer.accelStructure.needsTLASUpdate())
-                {
-                    lveRenderer.accelStructure.rebuildTLAS(area.AllChunks());
-                    lveRenderer.accelStructure.clearTLASDirty();
-                }
-                lveRenderer.shadowPass->execute(commandBuffer, lveRenderer.getSwapChain().getSwapChainExtent(), lveRenderer.accelStructure.getTLAS(), shadowPush);
-                std::cout << "shadow pass executed pass " << '\n';
+                                CompositePushConstants compositePush{};
 
-                CompositePushConstants compositePush{};
+                                compositePush.sunDirection = glm::vec4(shadowPush.sunDirection, 0.0f);
 
-                compositePush.sunDirection = shadowPush.sunDirection;
+                                compositePush.sunColor = glm::vec4(1.0f);
 
-                compositePush.sunColor = glm::vec3(1.0f);
+                                compositePush.ambientColor = glm::vec4(0.8f);
 
-                compositePush.ambientColor = glm::vec3(0.15f);
+                                lveRenderer.compositePass->begin(commandBuffer, compositeFramebuffers[lveRenderer.getImageIndex()], lveRenderer.getSwapChain().getSwapChainExtent());
 
-                lveRenderer.compositePass->begin(commandBuffer, compositeFramebuffers[lveRenderer.getImageIndex()], lveRenderer.getSwapChain().getSwapChainExtent());
+                                lveRenderer.compositePass->execute(commandBuffer, compositePush);
 
-                lveRenderer.compositePass->execute(commandBuffer);
+                                lveRenderer.compositePass->end(commandBuffer);
+                                std::cout << "end comp pass " << '\n';
 
-                lveRenderer.compositePass->end(commandBuffer);
-                std::cout << "end comp pass " << '\n';
+                                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 2);
 
-                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 2);
+                                // ============================================================
+                                // UI PASS
+                                // Draws over final lit image
+                                // ============================================================
+                */
 
-                // ============================================================
-                // UI PASS
-                // Draws over final lit image
-                // ============================================================
+                /*
+ lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
 
-                lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
+ imguiManager->newFrame();
 
-                imguiManager->newFrame();
+ imguiManager->drawDebugWindow(
+     frameTime,
+     camTransform.position);
 
-                imguiManager->drawDebugWindow(
-                    frameTime,
-                    camTransform.position);
+ imguiManager->drawCrosshair(
+     lveWindow.getExtent().width,
+     lveWindow.getExtent().height);
 
-                imguiManager->drawCrosshair(
-                    lveWindow.getExtent().width,
-                    lveWindow.getExtent().height);
+ imguiManager->drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
 
-                imguiManager->drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
+ imguiManager->render(commandBuffer);
 
-                imguiManager->render(commandBuffer);
-
-                lveRenderer.UiRenderPass->end(commandBuffer);
+ lveRenderer.UiRenderPass->end(commandBuffer);
+ */
 
                 vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 3);
 

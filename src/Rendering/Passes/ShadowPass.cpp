@@ -102,9 +102,7 @@ namespace lve
         vkAllocateDescriptorSets(device.device(), &allocInfo, &descriptorSet);
     }
 
-    void ShadowPass::execute(VkCommandBuffer cmd, VkExtent2D extent,
-                             VkAccelerationStructureKHR tlas,
-                             const ShadowPushConstants &push)
+    void ShadowPass::execute(VkCommandBuffer cmd, VkExtent2D extent, VkAccelerationStructureKHR tlas, const ShadowPushConstants &push, int currentFrame)
     {
         std::cout
             << "ShadowPass execute "
@@ -117,14 +115,11 @@ namespace lve
             std::cout << "Skipping shadow pass: no TLAS\n";
 
             VkImageMemoryBarrier barrier{};
-            barrier.sType =
-                VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 
-            barrier.oldLayout =
-                VK_IMAGE_LAYOUT_UNDEFINED;
+            barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-            barrier.newLayout =
-                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
             barrier.image =
                 shadowMaskImage;
@@ -141,7 +136,7 @@ namespace lve
 
             barrier.dstAccessMask =
                 VK_ACCESS_SHADER_READ_BIT;
-
+            std::cout << "SHADOW BARRIER 1\n";
             vkCmdPipelineBarrier(
                 cmd,
                 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
@@ -176,8 +171,10 @@ namespace lve
         VkSampler sampler;
         vkCreateSampler(device.device(), &samplerInfo, nullptr, &sampler);
 
-        VkDescriptorImageInfo depthInfo{sampler, gbuffer.getDepthView(),
-                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+        VkDescriptorImageInfo depthInfo{
+            sampler,
+            gbuffer.getDepthView(),
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL};
         VkDescriptorImageInfo shadowInfo{VK_NULL_HANDLE, shadowMaskView,
                                          VK_IMAGE_LAYOUT_GENERAL};
 
@@ -214,7 +211,7 @@ namespace lve
         barrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-
+        std::cout << "SHADOW BARRIER 2\n";
         vkCmdPipelineBarrier(cmd,
                              VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                              VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -237,13 +234,19 @@ namespace lve
         barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
+        std::cout << "SHADOW BARRIER 3\n";
         vkCmdPipelineBarrier(cmd,
                              VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                              0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-        vkDestroySampler(device.device(), sampler, nullptr);
+        device.queueDeletion(
+            [device = &device, sampler]()
+            {
+                vkDestroySampler(device->device(), sampler, nullptr);
+            },
+            currentFrame);
+        // std::cout << "Destroying sampler " << std::hex << sampler << std::endl;
     }
 
     void ShadowPass::createPipeline()

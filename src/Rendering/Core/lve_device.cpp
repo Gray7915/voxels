@@ -703,14 +703,20 @@ namespace lve
   void LveDevice::flushDeletionQueue(uint32_t currentFrame)
   {
     std::lock_guard<std::mutex> lock(deletionQueueMutex_);
-    while (!deletionQueue_.empty() &&
-           deletionQueue_.front().frameQueued != currentFrame)
+
+    while (!deletionQueue_.empty())
     {
-      deletionQueue_.front().deleter();
+      auto &entry = deletionQueue_.front();
+
+      if (currentFrame - entry.frameQueued < 3)
+      {
+        break;
+      }
+
+      entry.deleter();
       deletionQueue_.pop_front();
     }
   }
-
   uint64_t LveDevice::getBufferDeviceAddress(VkBuffer buffer)
   {
     VkBufferDeviceAddressInfo info{};

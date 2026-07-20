@@ -17,6 +17,7 @@ namespace lve
         VkImageView getNormalView() const { return normalView; }
         VkImageView getDepthView() const { return depthView; }
 
+        VkImage getDepthImage() const { return depthImage; }
         // Descriptor set exposing all G-buffer images to shadow + composite passes
         VkDescriptorSet getDescriptorSet() const { return descriptorSet; }
         VkDescriptorSetLayout getDescriptorLayout() const { return descriptorLayout; }

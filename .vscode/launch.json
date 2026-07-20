@@ -3,12 +3,15 @@
     "configurations": [
         {
             "name": "Debug voxels",
-            "type": "cppvsdbg",
+            "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/voxels.exe",
+            "program": "${workspaceFolder}/build/voxels",
+            "args": [],
             "cwd": "${workspaceFolder}/build",
             "stopAtEntry": false,
-            "console": "integratedTerminal"
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
 }

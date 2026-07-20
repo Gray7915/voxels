@@ -4,25 +4,21 @@
 
 #include "Rendering/Core/lve_device.hpp"
 #include "Rendering/Core/GBuffer.hpp"
+#include "Rendering/Core/SwapChain.hpp"
 
 namespace lve
 {
     struct CompositePushConstants
     {
-        alignas(16) glm::vec3 sunDirection;
-        alignas(16) glm::vec3 sunColor;
-        alignas(16) glm::vec3 ambientColor;
+        glm::vec4 sunDirection;
+        glm::vec4 sunColor;
+        glm::vec4 ambientColor;
     };
 
     class CompositePass
     {
     public:
-        CompositePass(
-            LveDevice &device,
-            GBuffer &gbuffer,
-            VkImageView shadowMaskView,
-            VkRenderPass uiRenderPass,
-            VkExtent2D extent);
+        CompositePass(LveDevice &device, GBuffer &gbuffer, VkImageView shadowMaskView, VkRenderPass uiRenderPass, VkExtent2D extent, SwapChain &swapChain);
 
         ~CompositePass();
 
@@ -33,7 +29,7 @@ namespace lve
 
         void begin(VkCommandBuffer cmd, VkFramebuffer framebuffer, VkExtent2D extent);
 
-        void execute(VkCommandBuffer cmd);
+        void execute(VkCommandBuffer cmd, const CompositePushConstants &push);
 
         void end(VkCommandBuffer cmd);
 
@@ -44,6 +40,7 @@ namespace lve
 
         LveDevice &device;
         GBuffer &gbuffer;
+        SwapChain &swapChain;
 
         VkRenderPass renderPass{VK_NULL_HANDLE};
 

@@ -58,7 +58,6 @@ namespace lve
     private:
         void createPipelineLayout();
         void createPipeline();
-        void renderGameObjects(VkCommandBuffer commandBuffer);
         // void registerECSComponents();
         // bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
 
@@ -73,6 +72,7 @@ namespace lve
 
         ECSSystems systems;
         RenderSetup renderSetup;
+        TextureAtlas atlas{};
         std::unique_ptr<ImguiManager> imguiManager;
 
         ChunkGenerationSystem chunkGenSystem{area};
@@ -80,7 +80,5 @@ namespace lve
         ChunkMutationSystem chunkMutationSystem{};
 
         VkQueryPool queryPool;
-
-        TextureAtlas atlas{};
     };
 }

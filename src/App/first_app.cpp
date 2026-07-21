@@ -6,7 +6,6 @@
 
 #include "World/Chunk.hpp"
 
-#include "World/ChunkRenderer.hpp"
 #include "Rendering/Core/lve_buffer.hpp"
 #include "ECS/Coordinator.hpp"
 

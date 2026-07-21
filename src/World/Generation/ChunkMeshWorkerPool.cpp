@@ -6,6 +6,8 @@
 #include "Rendering/Core/lve_device.hpp"
 #include "App/TextureAtlas.hpp"
 
+#include "Util/Direction.hpp"
+#include "Util/Types.hpp"
 namespace lve
 {
     static const size_t UNIQUE_INDICES[] = {0, 1, 2, 5};
@@ -26,7 +28,7 @@ namespace lve
 
     static const glm::vec2 CUBE_UVS[] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 
-    static const glm::ivec3 DIRECTIONS[] = {{0, 0, 1}, {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}};
+    // static const glm::ivec3 DIRECTIONS[] = {{0, 0, 1}, {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}};
 
     ChunkMeshWorkerPool::ChunkMeshWorkerPool(LveDevice &device, size_t threadCount) : device(device)
     {
@@ -77,11 +79,11 @@ namespace lve
 
                     if (job.voxelData.get(x, y, z) != 4)
                     {
-                        emitBlock(job, result, glm::ivec3(x, y, z), emittedFaces);
+                        emitBlock(job, result, ivec3(x, y, z), emittedFaces);
                     }
                     else
                     {
-                        emitMesh(job, result, glm::ivec3(x, y, z), emittedFaces);
+                        emitMesh(job, result, ivec3(x, y, z), emittedFaces);
                     }
                 }
             }
@@ -91,15 +93,13 @@ namespace lve
         return result;
     }
 
-    void ChunkMeshWorkerPool::emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces)
+    void ChunkMeshWorkerPool::emitBlock(MeshJob &job, MeshResult &result, ivec3 pos, u32 &emittedFaces)
     {
         int blockType = job.voxelData.get(pos.x, pos.y, pos.z);
 
         for (int face = 0; face < 6; face++)
         {
-            glm::ivec3 n = pos + getDirection(face);
-            bool thingie = !getNeighborData(job, n);
-            // std::cout << thingie << "hopefully this works?" << '\n';
+            glm::ivec3 n = pos + Math::DirectionByFaceInt(face);
             bool outOfChunk = n.x < 0 || n.x >= VoxelData::WIDTH || n.z < 0 || n.z >= VoxelData::DEPTH || n.y < 0 || n.y >= VoxelData::HEIGHT;
 
             bool neighborSolid = false;
@@ -163,11 +163,6 @@ namespace lve
         }
     }
 
-    glm::ivec3 ChunkMeshWorkerPool::getDirection(int i)
-    {
-        return DIRECTIONS[i];
-    }
-
     int ChunkMeshWorkerPool::getSign(glm::ivec3 tangent, glm::ivec3 vertex)
     {
         if (tangent.x != 0)
@@ -211,7 +206,7 @@ namespace lve
         glm::ivec3 side2 = tangent2 * sign2;
         glm::ivec3 corner = side1 + side2;
 
-        glm::ivec3 faceDir = DIRECTIONS[face];
+        glm::ivec3 faceDir = Math::DirectionByFaceInt(face);
 
         int block1 = getSolid(pos + faceDir + side1, job);
         int block2 = getSolid(pos + faceDir + side2, job);

@@ -1,5 +1,4 @@
 #include "Chunk.hpp"
-#include "ChunkRenderer.hpp"
 #include <iostream>
 #include <algorithm>
 #include "Area.hpp"

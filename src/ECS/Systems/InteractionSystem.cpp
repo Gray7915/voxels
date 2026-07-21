@@ -5,7 +5,6 @@
 #include "ECS/Components/AABBComponent.hpp"
 
 #include "World/Area.hpp"
-#include "World/ChunkRenderer.hpp"
 
 #include "Util/ray.hpp"
 #include "Util/lve_util.hpp"

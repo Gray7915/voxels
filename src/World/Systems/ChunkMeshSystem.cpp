@@ -1,22 +1,12 @@
 #include "ChunkMeshSystem.hpp"
 #include "World/Area.hpp"
-#include "World/ChunkRenderer.hpp"
 
 #include "Util/ThreadSafeQueue.hpp"
+#include "Util/Direction.hpp"
+#include "Util/Types.hpp"
 
 namespace lve
 {
-    static const glm::ivec3 DIRECTIONS[] = {
-        {1, 0, 0},   // up
-        {1, 0, 1},   // up right
-        {0, 0, 1},   // right
-        {-1, 0, 1},  // down right
-        {-1, 0, 0},  // down
-        {-1, 0, -1}, // down left
-        {0, 0, -1},  // left
-        {1, 0, -1}   // up left
-    };
-
     ChunkMeshSystem::ChunkMeshSystem(Area &worldArea, LveDevice &device) : area{worldArea}, device{device}
     {
     }
@@ -33,7 +23,7 @@ namespace lve
             {
                 // Wait for any neighbor that exists but isn't generated yet
                 bool neighborsReady = true;
-                for (glm::ivec3 direction : DIRECTIONS)
+                for (ivec3 direction : Math::AllHorizontalDirections)
                 {
                     auto chunkNeighbor = neighbors.find(coord + direction);
                     if (chunkNeighbor != neighbors.end() &&
@@ -43,12 +33,14 @@ namespace lve
                         break;
                     }
                 }
+
                 if (!neighborsReady)
                     continue;
 
                 NeighborVoxelInfo neighborVoxelInfo;
                 neighborVoxelInfo.allocate();
-                for (glm::ivec3 direction : DIRECTIONS)
+
+                for (ivec3 direction : Math::AllHorizontalDirections)
                 {
                     auto chunkNeighbor = neighbors.find(coord + direction);
                     VoxelData neighborChunkData;
@@ -79,7 +71,7 @@ namespace lve
             // Only on first generation for border AO
             if (result.isFirstMesh)
             {
-                for (glm::ivec3 direction : DIRECTIONS)
+                for (ivec3 direction : Math::AllHorizontalDirections)
                 {
                     Chunk *neighbor = area.getChunk(result.chunkCoord + direction);
                     if (neighbor && neighbor->chunkState == ChunkState::Uploaded)
@@ -89,7 +81,7 @@ namespace lve
         }
     }
 
-    void ChunkMeshSystem::tryQueueForMeshing(glm::ivec3 coord, Chunk &chunk, LveDevice &device, NeighborVoxelInfo neighborVoxelInfo)
+    void ChunkMeshSystem::tryQueueForMeshing(ivec3 coord, Chunk &chunk, LveDevice &device, NeighborVoxelInfo neighborVoxelInfo)
     {
         MeshJob job;
         job.chunkCoord = coord;
@@ -97,15 +89,15 @@ namespace lve
         job.voxelData = chunk.voxelData;
         job.neighborVoxelData = neighborVoxelInfo;
         job.device = &device;
-        job.isFirstMesh = (chunk.chunkState == ChunkState::Generated);
+        job.isFirstMesh = chunk.chunkState == ChunkState::Generated;
 
         chunk.chunkState = ChunkState::QueuedForMeshing;
         meshPool.submit(std::move(job));
     }
 
-    void ChunkMeshSystem::getNeighborChunkInfo(glm::ivec3 chunkDir, VoxelData chunkData, NeighborVoxelInfo &neighborChunkInfo)
+    void ChunkMeshSystem::getNeighborChunkInfo(ivec3 chunkDir, VoxelData chunkData, NeighborVoxelInfo &neighborChunkInfo)
     {
-        if (chunkDir == glm::ivec3{1, 0, 0})
+        if (chunkDir == ivec3{1, 0, 0})
         { // up
             // x == 0, loop z and y
             for (int z = 0; z < VoxelData::DEPTH; z++)
@@ -116,7 +108,7 @@ namespace lve
                 }
             }
         }
-        else if (chunkDir == glm::ivec3{1, 0, 1})
+        else if (chunkDir == ivec3{1, 0, 1})
         { // up right
           // x == 0, z == 0 loop y
             for (int y = 0; y < VoxelData::HEIGHT; y++)
@@ -124,7 +116,7 @@ namespace lve
                 neighborChunkInfo.set(16, y, 0, chunkData.get(0, y, 0));
             }
         }
-        else if (chunkDir == glm::ivec3{0, 0, 1})
+        else if (chunkDir == ivec3{0, 0, 1})
         { // right
             // z == 0, loop x and y
             for (int x = 0; x < VoxelData::DEPTH; x++)
@@ -135,7 +127,7 @@ namespace lve
                 }
             }
         }
-        else if (chunkDir == glm::ivec3{-1, 0, 1})
+        else if (chunkDir == ivec3{-1, 0, 1})
         { // down right
           // x == 0, z == 0 loop y
             for (int y = 0; y < VoxelData::HEIGHT; y++)
@@ -143,7 +135,7 @@ namespace lve
                 neighborChunkInfo.set(16, y, 1, chunkData.get(15, y, 0));
             }
         }
-        else if (chunkDir == glm::ivec3{-1, 0, 0})
+        else if (chunkDir == ivec3{-1, 0, 0})
         { // down
             // x == 15, loop z and y
             for (int z = 0; z < VoxelData::DEPTH; z++)
@@ -154,7 +146,7 @@ namespace lve
                 }
             }
         }
-        else if (chunkDir == glm::ivec3{-1, 0, -1})
+        else if (chunkDir == ivec3{-1, 0, -1})
         { // down left
           // x == 15, z == 15 loop y
             for (int y = 0; y < VoxelData::HEIGHT; y++)
@@ -162,7 +154,7 @@ namespace lve
                 neighborChunkInfo.set(16, y, 2, chunkData.get(15, y, 15));
             }
         }
-        else if (chunkDir == glm::ivec3{0, 0, -1})
+        else if (chunkDir == ivec3{0, 0, -1})
         { // left
             // x == 15, loop z and y
             for (int x = 0; x < VoxelData::DEPTH; x++)
@@ -173,7 +165,7 @@ namespace lve
                 }
             }
         }
-        else if (chunkDir == glm::ivec3{1, 0, -1})
+        else if (chunkDir == ivec3{1, 0, -1})
         { // up left
           // x == 15, z == 15 loop y
             for (int y = 0; y < VoxelData::HEIGHT; y++)

@@ -21,7 +21,6 @@ namespace lve
             for (int z = offset.z - MinMaxOffset; z <= offset.z + MinMaxOffset; z++)
             {
                 glm::ivec3 chunkCoord = glm::ivec3(x, 0, z);
-                // getOrCreateChunk(chunkCoord, lveDevice, chunkGenSystem);
             }
         }
     }
@@ -37,9 +36,6 @@ namespace lve
                 coord.z < c.z - MinMaxOffset || coord.z > c.z + MinMaxOffset)
             {
                 auto chunkPtr = std::shared_ptr<Chunk>(std::move(it->second));
-                // Intentionally empty body — capturing chunkPtr keeps the Chunk
-                // (and its Vulkan buffers) alive until this deletion job runs,
-                // deferring destruction until the GPU is confirmed done with it.
                 lveDevice.queueDeletion([chunk = chunkPtr]() {}, currentFrameIndex);
                 it = chunks.erase(it);
             }

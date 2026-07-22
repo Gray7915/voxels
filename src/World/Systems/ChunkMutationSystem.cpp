@@ -19,14 +19,8 @@ namespace lve
                 continue;
 
             chunk->voxelData.set(e.blockPos.x, e.blockPos.y, e.blockPos.z, 0);
-            static const glm::ivec3 CARDINAL[] = {{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}};
             chunk->chunkState = ChunkState::Dirty;
-            for (glm::ivec3 dir : CARDINAL)
-            {
-                Chunk *neighbor = area.getChunk(e.chunkPos + dir);
-                if (neighbor && neighbor->chunkState == ChunkState::Uploaded)
-                    neighbor->chunkState = ChunkState::Dirty;
-            }
+            area.markNeighborChunksDirty(e.chunkPos);
         }
 
         for (auto &req : coordinator.eventBus.blockPlaceRequested.read())

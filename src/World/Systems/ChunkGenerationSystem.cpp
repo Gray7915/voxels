@@ -11,7 +11,6 @@ namespace lve
 
     void ChunkGenerationSystem::update()
     {
-        // 1. Sweep for newly-created chunks that need generation
         for (auto &[coord, chunk] : area.AllChunks())
         {
             if (chunk->chunkState == ChunkState::Unloaded)
@@ -21,7 +20,6 @@ namespace lve
             }
         }
 
-        // 2. Drain finished generation results
         GenResult result;
         int budget = 4;
         while (budget-- > 0 && genPool.tryGetResult(result))
@@ -32,7 +30,8 @@ namespace lve
 
             chunk->setVoxelData(std::move(result.data));
             chunk->chunkState = ChunkState::Generated;
-            //std::cout << "generated chunk " << result.chunkCoord.x << ", "<< result.chunkCoord.y << ", " << result.chunkCoord.z << '\n';
+            area.markNeighborChunksDirty(result.chunkCoord);
+            // std::cout << "generated chunk " << result.chunkCoord.x << ", "<< result.chunkCoord.y << ", " << result.chunkCoord.z << '\n';
         }
     }
 

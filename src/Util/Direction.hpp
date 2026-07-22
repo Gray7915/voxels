@@ -16,6 +16,12 @@ namespace Math
         UP,
         DOWN
     };
+    constexpr std::array<ivec3, 4> HorizontalCardinal = {{
+        {0, 0, 1},
+        {0, 0, -1},
+        {1, 0, 0},
+        {-1, 0, 0},
+    }};
 
     constexpr std::array<ivec3, 6> CardinalDirections = {{
         {0, 0, 1},

@@ -5,7 +5,7 @@
 #include "Util/Direction.hpp"
 #include "Util/Types.hpp"
 
-namespace lve
+    namespace lve
 {
     ChunkMeshSystem::ChunkMeshSystem(Area &worldArea, LveDevice &device) : area{worldArea}, device{device}
     {
@@ -67,17 +67,6 @@ namespace lve
             chunk->chunkState = ChunkState::Uploaded;
             chunk->indicies = result.indices.size();
             chunk->verticies = result.verticies.size();
-
-            // Only on first generation for border AO
-            if (result.isFirstMesh)
-            {
-                for (ivec3 direction : Math::AllHorizontalDirections)
-                {
-                    Chunk *neighbor = area.getChunk(result.chunkCoord + direction);
-                    if (neighbor && neighbor->chunkState == ChunkState::Uploaded)
-                        neighbor->chunkState = ChunkState::Dirty;
-                }
-            }
         }
     }
 

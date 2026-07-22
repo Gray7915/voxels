@@ -19,7 +19,13 @@ namespace lve
         ShadowPass(LveDevice &device, GBuffer &gbuffer, VkExtent2D extent);
         ~ShadowPass();
 
+<<<<<<< HEAD
         void execute(VkCommandBuffer cmd, VkExtent2D extent, VkAccelerationStructureKHR tlas, const ShadowPushConstants &push, int currentFrame);
+=======
+        void execute(VkCommandBuffer cmd, VkExtent2D extent,
+                     VkAccelerationStructureKHR tlas,
+                     const ShadowPushConstants &push);
+>>>>>>> 6b374db (some stuff)
 
         VkImageView getShadowMaskView() const { return shadowMaskView; }
 

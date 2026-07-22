@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #include "Rendering/Passes/ShadowPass.hpp"
+=======
+#include "ShadowPass.hpp"
+>>>>>>> 6b374db (some stuff)
 #include <stdexcept>
 #include <fstream>
 
@@ -102,6 +106,7 @@ namespace lve
         vkAllocateDescriptorSets(device.device(), &allocInfo, &descriptorSet);
     }
 
+<<<<<<< HEAD
     void ShadowPass::execute(VkCommandBuffer cmd, VkExtent2D extent, VkAccelerationStructureKHR tlas, const ShadowPushConstants &push, int currentFrame)
     {
         std::cout
@@ -157,6 +162,12 @@ namespace lve
             throw std::runtime_error(
                 "Shadow pipeline missing");
         }
+=======
+    void ShadowPass::execute(VkCommandBuffer cmd, VkExtent2D extent,
+                             VkAccelerationStructureKHR tlas,
+                             const ShadowPushConstants &push)
+    {
+>>>>>>> 6b374db (some stuff)
         // Update TLAS descriptor (may change each frame)
         VkWriteDescriptorSetAccelerationStructureKHR tlasWrite{};
         tlasWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
@@ -171,10 +182,15 @@ namespace lve
         VkSampler sampler;
         vkCreateSampler(device.device(), &samplerInfo, nullptr, &sampler);
 
+<<<<<<< HEAD
         VkDescriptorImageInfo depthInfo{
             sampler,
             gbuffer.getDepthView(),
             VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL};
+=======
+        VkDescriptorImageInfo depthInfo{sampler, gbuffer.getDepthView(),
+                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+>>>>>>> 6b374db (some stuff)
         VkDescriptorImageInfo shadowInfo{VK_NULL_HANDLE, shadowMaskView,
                                          VK_IMAGE_LAYOUT_GENERAL};
 
@@ -211,7 +227,11 @@ namespace lve
         barrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+<<<<<<< HEAD
         std::cout << "SHADOW BARRIER 2\n";
+=======
+
+>>>>>>> 6b374db (some stuff)
         vkCmdPipelineBarrier(cmd,
                              VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                              VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -234,12 +254,17 @@ namespace lve
         barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+<<<<<<< HEAD
         std::cout << "SHADOW BARRIER 3\n";
+=======
+
+>>>>>>> 6b374db (some stuff)
         vkCmdPipelineBarrier(cmd,
                              VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                              0, 0, nullptr, 0, nullptr, 1, &barrier);
 
+<<<<<<< HEAD
         device.queueDeletion(
             [device = &device, sampler]()
             {
@@ -247,11 +272,17 @@ namespace lve
             },
             currentFrame);
         // std::cout << "Destroying sampler " << std::hex << sampler << std::endl;
+=======
+        vkDestroySampler(device.device(), sampler, nullptr);
+>>>>>>> 6b374db (some stuff)
     }
 
     void ShadowPass::createPipeline()
     {
+<<<<<<< HEAD
         std::cout << "Creating shadow pipeline\n";
+=======
+>>>>>>> 6b374db (some stuff)
         VkPushConstantRange pushRange{};
         pushRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         pushRange.size = sizeof(ShadowPushConstants);
@@ -269,9 +300,12 @@ namespace lve
         if (!file.is_open())
             throw std::runtime_error("failed to open shadow.comp.spv!");
         size_t fileSize = file.tellg();
+<<<<<<< HEAD
         std::cout << "SPIR-V size: "
                   << fileSize
                   << "\n";
+=======
+>>>>>>> 6b374db (some stuff)
         std::vector<char> code(fileSize);
         file.seekg(0);
         file.read(code.data(), fileSize);
@@ -282,6 +316,7 @@ namespace lve
         moduleInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
 
         VkShaderModule shaderModule;
+<<<<<<< HEAD
         if (vkCreateShaderModule(
                 device.device(),
                 &moduleInfo,
@@ -292,6 +327,10 @@ namespace lve
             throw std::runtime_error(
                 "failed to create shadow shader module");
         }
+=======
+        vkCreateShaderModule(device.device(), &moduleInfo, nullptr, &shaderModule);
+
+>>>>>>> 6b374db (some stuff)
         VkComputePipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
         pipelineInfo.layout = pipelineLayout;
@@ -300,6 +339,7 @@ namespace lve
         pipelineInfo.stage.module = shaderModule;
         pipelineInfo.stage.pName = "main";
 
+<<<<<<< HEAD
         VkResult result = vkCreateComputePipelines(
             device.device(),
             VK_NULL_HANDLE,
@@ -316,5 +356,11 @@ namespace lve
         std::cout << "Pipeline handle: "
                   << pipeline
                   << "\n";
+=======
+        vkCreateComputePipelines(device.device(), VK_NULL_HANDLE, 1,
+                                 &pipelineInfo, nullptr, &pipeline);
+
+        vkDestroyShaderModule(device.device(), shaderModule, nullptr);
+>>>>>>> 6b374db (some stuff)
     }
 }

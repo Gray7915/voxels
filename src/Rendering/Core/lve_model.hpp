@@ -39,6 +39,7 @@ namespace lve
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
 
+<<<<<<< HEAD
         // Add to lve_model.hpp public section:
         uint32_t getVertexCount() const { return vertexCount; }
         uint32_t getIndexCount() const { return indexCount; }
@@ -57,6 +58,11 @@ namespace lve
 
             return vertexBuffer->getBuffer();
         }
+=======
+        uint32_t getVertexCount() const { return vertexCount; }
+        uint32_t getIndexCount() const { return indexCount; }
+        VkBuffer getVertexBuffer() const { return vertexBuffer->getBuffer(); }
+>>>>>>> 6b374db (some stuff)
         VkBuffer getIndexBuffer() const { return indexBuffer->getBuffer(); }
         bool hasIndices() const { return hasIndexBuffer; }
 

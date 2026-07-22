@@ -69,6 +69,7 @@ namespace lve
 
     void LveRenderer::createGeometryPass()
     {
+<<<<<<< HEAD
         auto extent = swapChain->getSwapChainExtent();
 
         gBuffer = std::make_unique<GBuffer>(
@@ -79,6 +80,9 @@ namespace lve
             lveDevice,
             *gBuffer,
             extent);
+=======
+        geometryPass = std::make_unique<GeometryPass>(lveDevice, *gBuffer, swapChain->getSwapChainExtent());
+>>>>>>> 6b374db (some stuff)
     }
 
     void LveRenderer::createShadowPass()

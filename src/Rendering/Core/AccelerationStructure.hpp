@@ -1,5 +1,9 @@
 #pragma once
 #include <unordered_map>
+<<<<<<< HEAD
+=======
+#include <memory>
+>>>>>>> 6b374db (some stuff)
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 
@@ -16,11 +20,16 @@ namespace lve
         AccelerationStructure(LveDevice &device);
         ~AccelerationStructure();
 
+<<<<<<< HEAD
         void buildBLAS(const glm::ivec3 &chunkPos, const LveModel &model);
+=======
+        void buildBLAS(const glm::ivec3 &chunkPos, const LveModel &model, VkCommandBuffer cmd);
+>>>>>>> 6b374db (some stuff)
         void rebuildTLAS(const std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> &chunks);
 
         VkAccelerationStructureKHR getTLAS() const { return tlas; }
 
+<<<<<<< HEAD
         bool needsTLASUpdate() const;
         void clearTLASDirty();
 
@@ -30,6 +39,21 @@ namespace lve
         VkAccelerationStructureKHR createAccelerationStructure(VkAccelerationStructureTypeKHR type, VkAccelerationStructureGeometryKHR &geometry,
                                                                VkAccelerationStructureBuildRangeInfoKHR &rangeInfo, VkBuildAccelerationStructureFlagsKHR flags,
                                                                VkBuffer &outBuffer, VkDeviceMemory &outMemory);
+=======
+    private:
+        void primitiveToGeometry(
+            const LveModel &model,
+            VkAccelerationStructureGeometryKHR &geometry,
+            VkAccelerationStructureBuildRangeInfoKHR &rangeInfo);
+
+        VkAccelerationStructureKHR createAccelerationStructure(
+            VkAccelerationStructureTypeKHR type,
+            VkAccelerationStructureGeometryKHR &geometry,
+            VkAccelerationStructureBuildRangeInfoKHR &rangeInfo,
+            VkBuildAccelerationStructureFlagsKHR flags,
+            VkBuffer &outBuffer,
+            VkDeviceMemory &outMemory);
+>>>>>>> 6b374db (some stuff)
 
         LveDevice &lveDevice;
 
@@ -43,7 +67,12 @@ namespace lve
 
         VkPhysicalDeviceAccelerationStructurePropertiesKHR asProperties{
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR};
+<<<<<<< HEAD
 
         bool blasDirty = false;
     };
 }
+=======
+    };
+}
+>>>>>>> 6b374db (some stuff)

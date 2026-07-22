@@ -78,7 +78,7 @@ namespace lve
     }
     VkCommandPool createTransientCommandPool();
     void destroyCommandPool(VkCommandPool pool);
-
+    
     void createImageWithInfo(
         const VkImageCreateInfo &imageInfo,
         VkMemoryPropertyFlags properties,
@@ -98,11 +98,22 @@ namespace lve
       return properties.limits.timestampPeriod;
     }
 
+<<<<<<< HEAD
     PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR;
     PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR;
     PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR;
     PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures;
     PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR;
+=======
+    // RT function pointers
+    PFN_vkDestroyAccelerationStructureKHR fnDestroyAccelerationStructure = nullptr;
+    PFN_vkCreateAccelerationStructureKHR fnCreateAccelerationStructure = nullptr;
+    PFN_vkGetAccelerationStructureBuildSizesKHR fnGetAccelerationStructureBuildSizes = nullptr;
+    PFN_vkCmdBuildAccelerationStructuresKHR fnCmdBuildAccelerationStructures = nullptr;
+    PFN_vkGetAccelerationStructureDeviceAddressKHR fnGetAccelerationStructureDeviceAddress = nullptr;
+
+    uint64_t getBufferDeviceAddress(VkBuffer buffer);
+>>>>>>> 6b374db (some stuff)
 
   private:
     void
@@ -113,6 +124,7 @@ namespace lve
     void createLogicalDevice();
     void createCommandPool();
     void printDeviceExtensions();
+    void loadRTFunctions();
     // helper functions
     bool isDeviceSuitable(VkPhysicalDevice device);
     std::vector<const char *> getRequiredExtensions();
@@ -139,6 +151,10 @@ namespace lve
     const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
     const std::vector<const char *> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+<<<<<<< HEAD
+=======
+        // RT extensions
+>>>>>>> 6b374db (some stuff)
         VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
         VK_KHR_RAY_QUERY_EXTENSION_NAME,
         VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,

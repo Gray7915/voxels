@@ -39,7 +39,11 @@ namespace lve
         depth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         depth.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+<<<<<<< HEAD
         depth.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+=======
+        depth.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+>>>>>>> 6b374db (some stuff)
 
         std::array<VkAttachmentDescription, 3> attachments = {albedo, normal, depth};
 
@@ -56,6 +60,7 @@ namespace lve
         subpass.pDepthStencilAttachment = &depthRef;
 
         VkSubpassDependency dep{};
+<<<<<<< HEAD
 
         dep.srcSubpass = 0;
         dep.dstSubpass = VK_SUBPASS_EXTERNAL;
@@ -83,6 +88,27 @@ namespace lve
         rpInfo.dependencyCount = 1;
         rpInfo.pDependencies = &dep;
 
+=======
+        dep.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dep.dstSubpass = 0;
+        dep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                           VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                           VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dep.srcAccessMask = 0;
+        dep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        VkRenderPassCreateInfo rpInfo{};
+        rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        rpInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        rpInfo.pAttachments = attachments.data();
+        rpInfo.subpassCount = 1;
+        rpInfo.pSubpasses = &subpass;
+        rpInfo.dependencyCount = 1;
+        rpInfo.pDependencies = &dep;
+
+>>>>>>> 6b374db (some stuff)
         if (vkCreateRenderPass(device.device(), &rpInfo, nullptr, &renderPass) != VK_SUCCESS)
             throw std::runtime_error("failed to create geometry render pass!");
     }
@@ -110,6 +136,7 @@ namespace lve
     void GeometryPass::begin(VkCommandBuffer cmd, VkExtent2D extent)
     {
         std::array<VkClearValue, 3> clearValues{};
+<<<<<<< HEAD
 
         clearValues[0].color = {0.0f, 1.0f, 0.0f, 1.0f}; // RED albedo test
         clearValues[1].color = {0.0f, 1.0f, 0.0f, 0.0f}; // normal
@@ -123,6 +150,20 @@ namespace lve
         beginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         beginInfo.pClearValues = clearValues.data();
 
+=======
+        clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f}; // albedo
+        clearValues[1].color = {0.0f, 0.0f, 0.0f, 0.0f}; // normal
+        clearValues[2].depthStencil = {1.0f, 0};         // depth
+
+        VkRenderPassBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        beginInfo.renderPass = renderPass;
+        beginInfo.framebuffer = framebuffer;
+        beginInfo.renderArea = {{0, 0}, extent};
+        beginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+        beginInfo.pClearValues = clearValues.data();
+
+>>>>>>> 6b374db (some stuff)
         vkCmdBeginRenderPass(cmd, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         VkViewport viewport{0, 0,

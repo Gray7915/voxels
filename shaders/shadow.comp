@@ -1,4 +1,5 @@
 #version 460
+<<<<<<< HEAD
 
 #extension GL_EXT_ray_query : require
 
@@ -131,3 +132,64 @@ void main()
         pixel,
         vec4(visibility));
 }
+=======
+#extension GL_EXT_ray_query : require
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) uniform accelerationStructureEXT tlas;
+layout(set = 0, binding = 1) uniform sampler2D depthSampler;
+layout(set = 0, binding = 2, r8) uniform image2D shadowMask;
+
+layout(push_constant) uniform PushConstants {
+    vec3  sunDirection;
+    float pad;
+    mat4  invViewProj;
+} push;
+
+void main()
+{
+    ivec2 pixel    = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 imgSize  = imageSize(shadowMask);
+    if (pixel.x >= imgSize.x || pixel.y >= imgSize.y) return;
+
+    vec2 uv    = (vec2(pixel) + 0.5) / vec2(imgSize);
+    float depth = texture(depthSampler, uv).r;
+
+    // Sky pixels are always lit
+    if (depth >= 1.0) {
+        imageStore(shadowMask, pixel, vec4(1.0));
+        return;
+    }
+
+    // Reconstruct world position from depth
+    vec4 clip  = vec4(uv * 2.0 - 1.0, depth, 1.0);
+    vec4 world = push.invViewProj * clip;
+    world /= world.w;
+
+    // Offset along sun direction to avoid self-intersection
+    vec3 origin = world.xyz + push.sunDirection * 0.01;
+
+    // Fire shadow ray toward sun
+    rayQueryEXT rayQuery;
+    rayQueryInitializeEXT(
+        rayQuery, tlas,
+        gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT,
+        0xFF,
+        origin,
+        0.001,              // tMin
+        push.sunDirection,
+        1000.0);            // tMax — sun distance
+
+    rayQueryProceedEXT(rayQuery);
+
+    float shadow = 1.0; // lit
+    if (rayQueryGetIntersectionTypeEXT(rayQuery, true) !=
+        gl_RayQueryCommittedIntersectionNoneEXT)
+    {
+        shadow = 0.0; // occluded
+    }
+
+    imageStore(shadowMask, pixel, vec4(shadow));
+}
+>>>>>>> 6b374db (some stuff)

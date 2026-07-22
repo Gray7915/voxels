@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include "AccelerationStructure.hpp"
 #include "Rendering/Core/lve_buffer.hpp"
 #include <glm/gtc/type_ptr.hpp>
@@ -57,6 +58,17 @@ namespace lve
     // Generic function to create an acceleration structure (BLAS or TLAS)
     // Note: This function creates and destroys a scratch buffer for each call.
     // Not optimal but easier to read and understand. See Helper function for a better approach.
+=======
+#include <memory>
+#include <glm/gtc/type_ptr.hpp>
+#include <cstring>
+
+#include "Rendering/Core/AccelerationStructure.hpp"
+
+namespace lve
+{
+
+>>>>>>> 6b374db (some stuff)
     VkAccelerationStructureKHR AccelerationStructure::createAccelerationStructure(
         VkAccelerationStructureTypeKHR type,
         VkAccelerationStructureGeometryKHR &geometry,
@@ -70,7 +82,10 @@ namespace lve
             return (value + alignment - 1) & ~(alignment - 1);
         };
 
+<<<<<<< HEAD
         std::cout << "got into method " << '\n';
+=======
+>>>>>>> 6b374db (some stuff)
         // 1. Query build sizes
         VkAccelerationStructureBuildGeometryInfoKHR buildInfo{};
         buildInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
@@ -79,6 +94,7 @@ namespace lve
         buildInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
         buildInfo.geometryCount = 1;
         buildInfo.pGeometries = &geometry;
+<<<<<<< HEAD
         std::cout << "did build info " << '\n';
         std::cout << "type: " << buildInfo.type << "\n";
         std::cout << "flags: " << buildInfo.flags << "\n";
@@ -118,12 +134,20 @@ namespace lve
 
         auto &tri = geometry.geometry.triangles;
         lveDevice.vkGetAccelerationStructureBuildSizesKHR(
+=======
+
+        uint32_t primCount = rangeInfo.primitiveCount;
+        VkAccelerationStructureBuildSizesInfoKHR sizeInfo{};
+        sizeInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;
+        lveDevice.fnGetAccelerationStructureBuildSizes(
+>>>>>>> 6b374db (some stuff)
             lveDevice.device(),
             VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
             &buildInfo,
             &primCount,
             &sizeInfo);
 
+<<<<<<< HEAD
         std::cout << "did get accel struct build sizes" << '\n';
         VkResult result;
 
@@ -136,6 +160,17 @@ namespace lve
         VkDeviceSize asSize = sizeInfo.accelerationStructureSize;
         std::cout << "got size " << '\n';
         lveDevice.createBuffer(asSize, VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, outBuffer, outMemory);
+=======
+        // 2. Create the AS buffer
+        VkDeviceSize asSize = sizeInfo.accelerationStructureSize;
+        lveDevice.createBuffer(
+            asSize,
+            VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR |
+                VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            outBuffer,
+            outMemory);
+>>>>>>> 6b374db (some stuff)
 
         // 3. Create the acceleration structure
         VkAccelerationStructureCreateInfoKHR createInfo{};
@@ -145,6 +180,7 @@ namespace lve
         createInfo.type = type;
 
         VkAccelerationStructureKHR accelStruct = VK_NULL_HANDLE;
+<<<<<<< HEAD
         result = lveDevice.vkCreateAccelerationStructureKHR(lveDevice.device(), &createInfo, nullptr, &accelStruct);
         if (result != VK_SUCCESS)
         {
@@ -152,6 +188,10 @@ namespace lve
                       << result << "\n";
             throw std::runtime_error("failed creating AS");
         }
+=======
+        lveDevice.fnCreateAccelerationStructure(
+            lveDevice.device(), &createInfo, nullptr, &accelStruct);
+>>>>>>> 6b374db (some stuff)
 
         // 4. Create scratch buffer
         VkDeviceSize scratchSize = alignUp(
@@ -176,12 +216,17 @@ namespace lve
 
         VkCommandBuffer cmd = lveDevice.beginSingleTimeCommands();
         VkAccelerationStructureBuildRangeInfoKHR *pRangeInfo = &rangeInfo;
+<<<<<<< HEAD
         lveDevice.vkCmdBuildAccelerationStructures(cmd, 1, &buildInfo, &pRangeInfo);
+=======
+        lveDevice.fnCmdBuildAccelerationStructures(cmd, 1, &buildInfo, &pRangeInfo);
+>>>>>>> 6b374db (some stuff)
         lveDevice.endSingleTimeCommands(cmd);
 
         // 6. Cleanup scratch
         vkDestroyBuffer(lveDevice.device(), scratchBuffer, nullptr);
         vkFreeMemory(lveDevice.device(), scratchMemory, nullptr);
+<<<<<<< HEAD
             std::cout << "return accel structu" << '\n';
         return accelStruct;
     }
@@ -193,6 +238,38 @@ namespace lve
         if (blasMap.count(chunkPos))
         {
             lveDevice.vkDestroyAccelerationStructureKHR(lveDevice.device(), blasMap[chunkPos], nullptr);
+=======
+
+        return accelStruct;
+    }
+
+    AccelerationStructure::~AccelerationStructure()
+    {
+        if (tlas != VK_NULL_HANDLE)
+            lveDevice.fnDestroyAccelerationStructure(lveDevice.device(), tlas, nullptr);
+        if (tlasBuffer != VK_NULL_HANDLE)
+            vkDestroyBuffer(lveDevice.device(), tlasBuffer, nullptr);
+        if (tlasMemory != VK_NULL_HANDLE)
+            vkFreeMemory(lveDevice.device(), tlasMemory, nullptr);
+
+        for (auto &[pos, blas] : blasMap)
+            lveDevice.fnDestroyAccelerationStructure(lveDevice.device(), blas, nullptr);
+        for (auto &[pos, buf] : blasBuffers)
+            vkDestroyBuffer(lveDevice.device(), buf, nullptr);
+        for (auto &[pos, mem] : blasMemories)
+            vkFreeMemory(lveDevice.device(), mem, nullptr);
+    }
+
+    void AccelerationStructure::buildBLAS(
+        const glm::ivec3 &chunkPos,
+        const LveModel &model,
+        VkCommandBuffer cmd)
+    {
+        // Destroy existing BLAS for this chunk if it exists
+        if (blasMap.count(chunkPos))
+        {
+            lveDevice.fnDestroyAccelerationStructure(lveDevice.device(), blasMap[chunkPos], nullptr);
+>>>>>>> 6b374db (some stuff)
             vkDestroyBuffer(lveDevice.device(), blasBuffers[chunkPos], nullptr);
             vkFreeMemory(lveDevice.device(), blasMemories[chunkPos], nullptr);
         }
@@ -203,8 +280,11 @@ namespace lve
 
         VkBuffer buffer;
         VkDeviceMemory memory;
+<<<<<<< HEAD
         std::cout << "creating BLAS AS\n";
 
+=======
+>>>>>>> 6b374db (some stuff)
         VkAccelerationStructureKHR blas = createAccelerationStructure(
             VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
             geometry,
@@ -214,6 +294,7 @@ namespace lve
             buffer,
             memory);
 
+<<<<<<< HEAD
         std::cout << "BLAS AS created\n";
 
         blasMap[chunkPos] = blas;
@@ -233,6 +314,16 @@ namespace lve
         }
         std::cout << "rebuild tlas" << '\n';
 
+=======
+        blasMap[chunkPos] = blas;
+        blasBuffers[chunkPos] = buffer;
+        blasMemories[chunkPos] = memory;
+    }
+
+    void AccelerationStructure::rebuildTLAS(
+        const std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> &chunks)
+    {
+>>>>>>> 6b374db (some stuff)
         // VkTransformMatrixKHR is row-major 3x4, glm::mat4 is column-major
         auto toTransformMatrixKHR = [](const glm::mat4 &m)
         {
@@ -241,15 +332,21 @@ namespace lve
             return t;
         };
 
+<<<<<<< HEAD
         std::cout << "step 1" << '\n';
 
+=======
+>>>>>>> 6b374db (some stuff)
         // 1. Build instance list from all chunks that have a BLAS
         std::vector<VkAccelerationStructureInstanceKHR> tlasInstances;
         tlasInstances.reserve(chunks.size());
 
         for (auto &[pos, chunk] : chunks)
         {
+<<<<<<< HEAD
             // std::cout << "enter loop" << '\n';
+=======
+>>>>>>> 6b374db (some stuff)
             if (!chunk || !chunk->chunkModel)
                 continue;
             if (!blasMap.count(pos))
@@ -259,6 +356,7 @@ namespace lve
             VkAccelerationStructureDeviceAddressInfoKHR addressInfo{};
             addressInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR;
             addressInfo.accelerationStructure = blasMap[pos];
+<<<<<<< HEAD
             uint64_t blasAddress = lveDevice.vkGetAccelerationStructureDeviceAddressKHR(
                 lveDevice.device(), &addressInfo);
 
@@ -275,6 +373,13 @@ namespace lve
             instance.transform = toTransformMatrixKHR(transform);
 
             std::cout << "converted transform\n";
+=======
+            uint64_t blasAddress = lveDevice.fnGetAccelerationStructureDeviceAddress(
+                lveDevice.device(), &addressInfo);
+
+            VkAccelerationStructureInstanceKHR instance{};
+            instance.transform = toTransformMatrixKHR(chunk->mat4());
+>>>>>>> 6b374db (some stuff)
             instance.instanceCustomIndex = 0;
             instance.accelerationStructureReference = blasAddress;
             instance.instanceShaderBindingTableRecordOffset = 0;
@@ -286,8 +391,11 @@ namespace lve
         if (tlasInstances.empty())
             return;
 
+<<<<<<< HEAD
         std::cout << "step 2" << '\n';
 
+=======
+>>>>>>> 6b374db (some stuff)
         // 2. Upload instance buffer
         VkDeviceSize instanceBufferSize = sizeof(VkAccelerationStructureInstanceKHR) * tlasInstances.size();
 
@@ -322,12 +430,19 @@ namespace lve
 
         vkDestroyBuffer(lveDevice.device(), stagingBuffer, nullptr);
         vkFreeMemory(lveDevice.device(), stagingMemory, nullptr);
+<<<<<<< HEAD
         std::cout << "step 3" << '\n';
+=======
+>>>>>>> 6b374db (some stuff)
 
         // 3. Destroy old TLAS
         if (tlas != VK_NULL_HANDLE)
         {
+<<<<<<< HEAD
             lveDevice.vkDestroyAccelerationStructureKHR(lveDevice.device(), tlas, nullptr);
+=======
+            lveDevice.fnDestroyAccelerationStructure(lveDevice.device(), tlas, nullptr);
+>>>>>>> 6b374db (some stuff)
             vkDestroyBuffer(lveDevice.device(), tlasBuffer, nullptr);
             vkFreeMemory(lveDevice.device(), tlasMemory, nullptr);
             tlas = VK_NULL_HANDLE;
@@ -336,7 +451,10 @@ namespace lve
         }
 
         // 4. Build TLAS geometry
+<<<<<<< HEAD
         std::cout << "build tlas" << '\n';
+=======
+>>>>>>> 6b374db (some stuff)
         VkAccelerationStructureGeometryInstancesDataKHR geometryInstances{};
         geometryInstances.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
         geometryInstances.data.deviceAddress = lveDevice.getBufferDeviceAddress(instanceBuffer);
@@ -349,16 +467,27 @@ namespace lve
         VkAccelerationStructureBuildRangeInfoKHR rangeInfo{};
         rangeInfo.primitiveCount = static_cast<uint32_t>(tlasInstances.size());
 
+<<<<<<< HEAD
         tlas = createAccelerationStructure(VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR, geometry, rangeInfo,
                                            VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
                                            tlasBuffer,
                                            tlasMemory);
+=======
+        tlas = createAccelerationStructure(
+            VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
+            geometry,
+            rangeInfo,
+            VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+            tlasBuffer,
+            tlasMemory);
+>>>>>>> 6b374db (some stuff)
 
         // 5. Cleanup instance buffer
         vkDestroyBuffer(lveDevice.device(), instanceBuffer, nullptr);
         vkFreeMemory(lveDevice.device(), instanceMemory, nullptr);
     }
 
+<<<<<<< HEAD
     bool AccelerationStructure::needsTLASUpdate() const
     {
         return blasDirty;
@@ -369,3 +498,37 @@ namespace lve
         blasDirty = false;
     }
 }
+=======
+    void AccelerationStructure::primitiveToGeometry(
+        const LveModel &model,
+        VkAccelerationStructureGeometryKHR &geometry,
+        VkAccelerationStructureBuildRangeInfoKHR &rangeInfo)
+    {
+        const uint32_t triangleCount = model.getIndexCount() / 3;
+
+        // Get device addresses for vertex and index buffers
+        uint64_t vertexAddress = lveDevice.getBufferDeviceAddress(model.getVertexBuffer());
+        uint64_t indexAddress = lveDevice.getBufferDeviceAddress(model.getIndexBuffer());
+
+        VkAccelerationStructureGeometryTrianglesDataKHR triangles{};
+        triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
+        triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT; // matches glm::vec3 position
+        triangles.vertexData = {.deviceAddress = vertexAddress};
+        triangles.vertexStride = sizeof(Vertex); // stride is full vertex size
+        triangles.maxVertex = model.getVertexCount() - 1;
+        triangles.indexType = VK_INDEX_TYPE_UINT32; // you use uint32_t indices
+        triangles.indexData = {.deviceAddress = indexAddress};
+        // no transformData — chunk world position goes in the TLAS instance transform instead
+
+        geometry = {};
+        geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
+        geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+        geometry.geometry = {.triangles = triangles};
+        geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR; // voxels are always opaque
+
+        rangeInfo = {};
+        rangeInfo.primitiveCount = triangleCount;
+        // firstVertex / primitiveOffset stay 0 — no offset into the buffers
+    }
+}
+>>>>>>> 6b374db (some stuff)

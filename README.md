@@ -30,3 +30,4 @@
  - [ ] Loads of vulkan errors if you exit the program via the window rather than via the command line
  - [ ] Can place blocks at head height and get stuck in them (easy aabb fix)
  - [ ] if moving and placing player can be accelerated in the direction rather than either not having the block paced or have the place put on top of it
+ - [ ] Face culling when they shouldn't be (fences)

@@ -15,12 +15,6 @@ namespace lve
             auto &aabb = coordinator.GetComponent<AABBComponent>(entity);
             auto &rigidBody = coordinator.GetComponent<RigidBodyComponent>(entity);
 
-            if (aabb.isTrigger)
-            {
-                transform.position += rigidBody.velocity * dt;
-                continue;
-            }
-
             glm::vec3 desiredMove = rigidBody.velocity * dt;
             glm::vec3 actualMove;
             if (aabb.collisionEnabled)

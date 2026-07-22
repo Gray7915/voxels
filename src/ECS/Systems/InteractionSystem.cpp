@@ -39,7 +39,7 @@ namespace lve
             if (pWasPressed && !pIsPressed)
                 pWasPressed = false;
 
-            if (pIsPressed && !pWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
+            if (pIsPressed && !pWasPressed && rayHit.hitPosition != ivec3(-1.0f))
             {
                 pWasPressed = true;
                 ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
@@ -53,7 +53,7 @@ namespace lve
             if (rightWasPressed && !rightIsPressed)
                 rightWasPressed = false;
 
-            if (rightIsPressed && !rightWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
+            if (rightIsPressed && !rightWasPressed && rayHit.hitPosition != ivec3(-1.0f))
             {
                 rightWasPressed = true;
                 // std::cout << "ray hit block: " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';

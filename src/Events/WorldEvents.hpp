@@ -2,20 +2,22 @@
 
 #include <glm/glm.hpp>
 #include "ECS/Type.hpp"
+#include "Util/Types.hpp"
 
 namespace lve
 {
-    struct BlockBrokenEvent
+    struct BlockBrokenRequest
     {
-        glm::ivec3 chunkPos;
-        glm::ivec3 blockPos;
+        ivec3 chunkPos;
+        ivec3 blockPos;
         Entity brokenBy;
+        BlockId blockID;
     };
 
     struct BlockPlaceRequest
     {
-        glm::ivec3 blockPos;
-        glm::ivec3 chunkPos;
+        ivec3 blockPos;
+        ivec3 chunkPos;
         int blockType;
         Entity placedBy;
     };

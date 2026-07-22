@@ -22,13 +22,11 @@ namespace lve
         0, 3, 7, 0, 7, 4  // down  (-y)
     };
 
-    static const glm::vec3 CUBE_VERTICES[] = {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}, {0, 0, 1}, {0, 1, 1}, {1, 1, 1}, {1, 0, 1}};
+    static const vec3 CUBE_VERTICES[] = {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}, {0, 0, 1}, {0, 1, 1}, {1, 1, 1}, {1, 0, 1}};
 
-    static const glm::vec3 CUBE_NORMALS[] = {{0, 0, 1}, {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}};
+    static const vec3 CUBE_NORMALS[] = {{0, 0, 1}, {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}};
 
-    static const glm::vec2 CUBE_UVS[] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
-
-    // static const glm::ivec3 DIRECTIONS[] = {{0, 0, 1}, {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}};
+    static const vec2 CUBE_UVS[] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 
     ChunkMeshWorkerPool::ChunkMeshWorkerPool(LveDevice &device, size_t threadCount) : device(device)
     {
@@ -62,9 +60,7 @@ namespace lve
     {
         MeshResult result{};
         result.chunkCoord = job.chunkCoord;
-        uint32_t emittedFaces = 0;
-        // std::cout << "chunk coord in gen mesh " << job.chunkCoord.x << ", " << job.chunkCoord.y << ", " << job.chunkCoord.z << '\n';
-        // std::cout << "world offset in gen mesh " << job.worldOffset.x << ", " << job.worldOffset.y << ", " << job.worldOffset.z << '\n';
+        u32 emittedFaces = 0;
 
         for (int x = 0; x < VoxelData::WIDTH; x++)
         {
@@ -88,7 +84,6 @@ namespace lve
                 }
             }
         }
-        //  std::cout<< "Chunk "<< job.chunkCoord.x << ","<< job.chunkCoord.y << ","<< job.chunkCoord.z<< " Faces: "<< emittedFaces<< " Vertices: "<< result.verticies.size()<< "\n";
         result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, myPool);
         return result;
     }
@@ -130,8 +125,6 @@ namespace lve
                 vertex.color = {1, 1, 1};
                 int ao = calculateAO(pos, face, cubeVertex, job);
 
-                // std::cout << "AO: " << ao << " value " << aoValues[ao] << "\n";
-
                 vertex.ao = aoValues[ao];
                 result.verticies.push_back(vertex);
             }
@@ -141,7 +134,7 @@ namespace lve
         }
     }
 
-    void ChunkMeshWorkerPool::emitMesh(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces)
+    void ChunkMeshWorkerPool::emitMesh(MeshJob &job, MeshResult &result, ivec3 pos, u32 &emittedFaces)
     {
         LveModel::Builder builder{};
         builder.loadModel("../models/TestFence.obj");
@@ -150,10 +143,10 @@ namespace lve
         {
             // std::cout << "fence verts " << vert.position.x << " " << vert.position.y << " " << vert.position.z << '\n';
 
-            vert.position = vert.position + glm::vec3(pos) + glm::vec3(0.5, 0, 0.5);
+            vert.position = vert.position + vec3(pos) + vec3(0.5, 0, 0.5);
 
             // vert.uv = glm::vec2(0, 0);
-            vert.color = glm::vec3(1.0);
+            vert.color = vec3(1.0);
             result.verticies.push_back(vert);
         }
 
@@ -163,7 +156,7 @@ namespace lve
         }
     }
 
-    int ChunkMeshWorkerPool::getSign(glm::ivec3 tangent, glm::ivec3 vertex)
+    int ChunkMeshWorkerPool::getSign(ivec3 tangent, ivec3 vertex)
     {
         if (tangent.x != 0)
             return vertex.x ? 1 : -1;
@@ -192,21 +185,21 @@ namespace lve
         return {};
     }
 
-    int ChunkMeshWorkerPool::calculateAO(glm::ivec3 pos, int face, int cubeVertex, MeshJob &job)
+    int ChunkMeshWorkerPool::calculateAO(ivec3 pos, int face, int cubeVertex, MeshJob &job)
     {
-        glm::ivec3 localVertex = glm::ivec3(CUBE_VERTICES[cubeVertex]);
+        ivec3 localVertex = ivec3(CUBE_VERTICES[cubeVertex]);
 
-        glm::ivec3 tangent1 = getFaceTangent1(face);
-        glm::ivec3 tangent2 = getFaceTangent2(face);
+        ivec3 tangent1 = getFaceTangent1(face);
+        ivec3 tangent2 = getFaceTangent2(face);
 
         int sign1 = getSign(tangent1, localVertex);
         int sign2 = getSign(tangent2, localVertex);
 
-        glm::ivec3 side1 = tangent1 * sign1;
-        glm::ivec3 side2 = tangent2 * sign2;
-        glm::ivec3 corner = side1 + side2;
+        ivec3 side1 = tangent1 * sign1;
+        ivec3 side2 = tangent2 * sign2;
+        ivec3 corner = side1 + side2;
 
-        glm::ivec3 faceDir = Math::DirectionByFaceInt(face);
+        ivec3 faceDir = Math::DirectionByFaceInt(face);
 
         int block1 = getSolid(pos + faceDir + side1, job);
         int block2 = getSolid(pos + faceDir + side2, job);
@@ -218,7 +211,7 @@ namespace lve
         return 3 - (block1 + block2 + blockCorner);
     }
 
-    int ChunkMeshWorkerPool::getSolid(glm::ivec3 voxel, const MeshJob &job)
+    int ChunkMeshWorkerPool::getSolid(ivec3 voxel, const MeshJob &job)
     {
         if (voxel.y < 0 || voxel.y >= VoxelData::HEIGHT)
             return 0;
@@ -254,7 +247,7 @@ namespace lve
         return job.voxelData.get(voxel.x, voxel.y, voxel.z) != 0 ? 1 : 0;
     }
 
-    glm::vec2 ChunkMeshWorkerPool::getAtlasUV(int face, glm::vec2 uv, int blockType)
+    glm::vec2 ChunkMeshWorkerPool::getAtlasUV(int face, vec2 uv, int blockType)
     {
         /*
         For models need to change this
@@ -279,7 +272,7 @@ namespace lve
         return uv;
     }
 
-    glm::vec2 ChunkMeshWorkerPool::getModelAtlasUV(glm::vec2 modelUV, const std::string &textureName)
+    glm::vec2 ChunkMeshWorkerPool::getModelAtlasUV(vec2 modelUV, const std::string &textureName)
     {
         const auto &atlas = TextureAtlas::Get();
         const auto &region = atlas.atlasRegions.at(textureName);

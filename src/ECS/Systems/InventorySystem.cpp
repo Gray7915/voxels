@@ -57,7 +57,7 @@ namespace lve
                 }
                 if (!added)
                 {
-                    // Drop item into world or ignore
+                    // Drop item into world implement in a tad
                 }
             }
         }

@@ -45,7 +45,6 @@ namespace lve
     public:
         static constexpr int WIDTH = 800;
         static constexpr int HEIGHT = 600;
-        std::unique_ptr<LveTexture> texture;
 
         FirstApp();
         ~FirstApp();
@@ -64,16 +63,10 @@ namespace lve
         LveWindow lveWindow{WIDTH, HEIGHT, "Hello Vulkan"};
         LveDevice lveDevice{lveWindow};
         LveRenderer lveRenderer{lveWindow, lveDevice};
-        // std::vector<LveGameObject> gameObjects;
-        // std::unordered_map<glm::vec3, LveGameObject> gameObjects;
-        std::unique_ptr<LveDescriptorPool> globalPool{};
+        ImguiManager imguiManager{lveDevice, lveWindow, lveRenderer};
+
         Area area;
         // glm::ivec4 hoveredID;
-
-        ECSSystems systems;
-        RenderSetup renderSetup;
-        TextureAtlas atlas{};
-        std::unique_ptr<ImguiManager> imguiManager;
 
         ChunkGenerationSystem chunkGenSystem{area};
         ChunkMeshSystem chunkMeshSystem{area, lveDevice};

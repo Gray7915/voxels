@@ -25,21 +25,14 @@ namespace lve
             auto &aabb = coordinator.GetComponent<AABBComponent>(entity);
             auto &camera = coordinator.GetComponent<CameraComponent>(entity);
 
-            glm::vec3 rot = transform.rotation;
-            glm::vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
-            glm::vec3 rayDir = glm::normalize(forward);
+            vec3 rot = transform.rotation;
+            vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
+            vec3 rayDir = glm::normalize(forward);
 
             Ray ray((transform.position + camera.relativePosition), rayDir);
             RayHit rayHit = ray.detectBlockHit(4.0f, area);
 
-            if (rayHit.hitPosition == glm::ivec3(-1.0f))
-            {
-                hoveredID = glm::ivec4(-1.0f);
-            }
-            else
-            {
-                hoveredID = glm::ivec4(rayHit.hitPosition, rayHit.blockID);
-            }
+            hoveredID = {rayHit.hitPosition, rayHit.blockID};
 
             static bool pWasPressed = false;
             bool pIsPressed = glfwGetMouseButton(lveWindow.getGLFWwindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
@@ -49,8 +42,8 @@ namespace lve
             if (pIsPressed && !pWasPressed && rayHit.hitPosition != glm::ivec3(-1.0f))
             {
                 pWasPressed = true;
-                glm::ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
-                glm::ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
+                ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
+                ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
                 // std::cout << "block place request made " << '\n';
                 coordinator.eventBus.blockBreakRequest.push({chunkPosition, blockCoord, entity});
             }
@@ -64,11 +57,11 @@ namespace lve
             {
                 rightWasPressed = true;
                 // std::cout << "ray hit block: " << rayHit.hitPosition.x << " " << rayHit.hitPosition.y << " " << rayHit.hitPosition.z << '\n';
-                glm::ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
+                ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
                 // std::cout << "block place request corrd: " << blockPos.x << " " << blockPos.y << " " << blockPos.z << '\n';
 
-                glm::ivec3 blockCoord = WorldToChunkArray(blockPos);
-                glm::ivec3 chunkPosition = WorldToChunkId(blockPos);
+                ivec3 blockCoord = WorldToChunkArray(blockPos);
+                ivec3 chunkPosition = WorldToChunkId(blockPos);
                 // std::cout << "block place chunk cord in interaction system: " << chunkPosition.x << " " << chunkPosition.y << " " << chunkPosition.z << '\n';
 
                 coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, 4, entity}); // hard code block to be placed for now

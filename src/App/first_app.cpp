@@ -73,8 +73,6 @@ namespace lve
         TextureAtlas::Get().createAtlas(); // This must run before the render setup. if it doesn't sadness will happen
         auto renderSetup = setupRender(lveDevice);
         std::cout << "setup systems" << '\n';
-        imguiManager = std::make_unique<ImguiManager>(lveDevice, lveWindow, lveRenderer);
-
         HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         ChunkRenderSystem chunkRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
@@ -93,8 +91,6 @@ namespace lve
 
         float aspect = lveRenderer.getAspectRatio();
         systems.cameraSystem->Update(aspect);
-        auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
-        camera.projectionMatrix[1][1] *= -1;
 
         Entity testEntity = coordinator.CreateEntity();
         coordinator.AddComponent(testEntity, Transform{.position = {0, 66, 0}, .scale = {1, 1, 1}});
@@ -113,29 +109,21 @@ namespace lve
             // std::cout << "Set time in loop" << '\n';
 
             systems.inputSystem->Update(&lveWindow);
-            // std::cout << "input system" << '\n';
             systems.movementSystem->Update(frameTime);
-            // std::cout << "interaction system" << '\n';
             systems.physicsSystem->Update(frameTime);
-            // std::cout << "physics system" << '\n';
             systems.collisionSystem->Update(frameTime, area);
-            // std::cout << "collision system" << '\n';
             systems.interactionSystem->Update(frameTime, lveWindow, lveDevice, area);
-            // std::cout << "interaction system" << '\n';
             systems.inventorySystem->Update(area);
 
             chunkMutationSystem.Update(area);
+            chunkGenSystem.update();
             coordinator.eventBus.blockBreakRequest.clear();
             coordinator.eventBus.blockPlaceRequested.clear();
-            // std::cout << "try gen chunk first app" << '\n';
-            chunkGenSystem.update();
 
             aspect = lveRenderer.getAspectRatio();
             systems.cameraSystem->Update(aspect);
 
             auto &camCollision = coordinator.GetComponent<AABBComponent>(mainCamera);
-            auto &camBody = coordinator.GetComponent<RigidBodyComponent>(mainCamera);
-            auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
             auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
 
             if (auto commandBuffer = lveRenderer.beginFrame())
@@ -145,10 +133,7 @@ namespace lve
                 area.tick(lveDevice, camTransform.position, frameIndex, chunkGenSystem);
 
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
-
-                // flip so pos y is up and neg y is down
-                camera.projectionMatrix[1][1] *= -1;
-
+                auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
                 GlobalUbo ubo{};
                 ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
                 // ubo.lightPosition = camTransform.position;
@@ -158,11 +143,7 @@ namespace lve
 
                 vkCmdResetQueryPool(commandBuffer, queryPool, 0, 8);
 
-                vkCmdWriteTimestamp(
-                    commandBuffer,
-                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                    queryPool,
-                    0);
+                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
 
                 lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
 
@@ -186,12 +167,12 @@ namespace lve
                 vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 2);
 
                 lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
-                imguiManager->newFrame();
-                imguiManager->drawDebugWindow(frameTime, camTransform.position);
-                imguiManager->drawCrosshair(lveWindow.getExtent().width, lveWindow.getExtent().height);
-                imguiManager->drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
+                imguiManager.newFrame();
+                imguiManager.drawDebugWindow(frameTime, camTransform.position);
+                imguiManager.drawCrosshair(lveWindow.getExtent().width, lveWindow.getExtent().height);
+                imguiManager.drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
                 // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
-                imguiManager->render(commandBuffer);
+                imguiManager.render(commandBuffer);
                 lveRenderer.UiRenderPass->end(commandBuffer);
 
                 vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 3);
@@ -201,14 +182,8 @@ namespace lve
 
                 vkGetQueryPoolResults(lveDevice.device(), queryPool, 0, 4, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
 
-                double geometryMs =
-                    (timestamps[1] - timestamps[0]) *
-                    lveDevice.getTimestampPeriod() / 1'000'000.0;
-
-                double uiMs =
-                    (timestamps[3] - timestamps[2]) *
-                    lveDevice.getTimestampPeriod() / 1'000'000.0;
-
+                                // double geometryMs = (timestamps[1] - timestamps[0]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
+                // double uiMs = (timestamps[3] - timestamps[2]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
                 // std::cout << "Chunks: " << area.chunks.size() << " Geometry: " << geometryMs << "\n";
                 // std::cout << "UI Pass time " << uiMs << '\n';
             }

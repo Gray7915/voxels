@@ -6,7 +6,7 @@ namespace lve
 {
     struct EventBus
     {
-        EventQueue<BlockBrokenEvent> blockBreakRequest;
+        EventQueue<BlockBrokenRequest> blockBreakRequest;
         EventQueue<BlockPlaceRequest> blockPlaceRequested;
 
         

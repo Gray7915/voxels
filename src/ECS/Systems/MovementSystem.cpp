@@ -58,7 +58,7 @@ namespace lve
 
             float friction = rigidBody.isGrounded ? moveStats.groundFriction : moveStats.airFriction;
             if (moveStats.flying)
-                rigidBody.velocity.y *= friction;
+                rigidBody.velocity.y *= friction * dt;
 
             rigidBody.velocity.x *= friction;
             rigidBody.velocity.z *= friction;

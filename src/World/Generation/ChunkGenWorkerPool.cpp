@@ -14,7 +14,7 @@ namespace lve
     ChunkGenWorkerPool::~ChunkGenWorkerPool()
     {
         running = false;
-        jobQueue.shutdown(); // wakes any thread blocked in wait_and_pop
+        jobQueue.shutdown();
         for (auto &t : workers)
             if (t.joinable())
                 t.join();

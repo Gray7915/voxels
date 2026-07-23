@@ -70,6 +70,7 @@ namespace lve
                 }
             }
             atlasRegions.emplace(texture.name, AtlasRegion{texture.name, texture.atlasX, texture.atlasY, texture.width, texture.height});
+            std::cout << "texture added " << texture.name <<'\n';
         }
 
         for (auto &texture : textures)

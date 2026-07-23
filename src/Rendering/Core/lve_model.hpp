@@ -25,7 +25,7 @@ namespace lve
             void loadModel(const std::string &filepath);
         };
 
-        LveModel(LveDevice &device, const LveModel::Builder &builder); 
+        LveModel(LveDevice &device, const LveModel::Builder &builder);
         LveModel(LveDevice &device, const LveModel::Builder &builder, VkCommandPool pool);
         LveModel();
         ~LveModel();
@@ -37,6 +37,9 @@ namespace lve
         static std::unique_ptr<LveModel> createChunkModel(LveDevice &device, std::vector<Vertex> vertices, std::vector<uint32_t> indices, VkCommandPool pool);
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
+
+        std::vector<Vertex> modelVerticies{};
+        std::vector<uint32_t> modelIindices{};
 
     private:
         void createVertexBuffers(const std::vector<Vertex> &vertices, VkCommandPool pool);

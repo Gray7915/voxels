@@ -136,23 +136,24 @@ namespace lve
 
     void ChunkMeshWorkerPool::emitMesh(MeshJob &job, MeshResult &result, ivec3 pos, u32 &emittedFaces)
     {
-        LveModel::Builder builder{};
-        builder.loadModel("../models/TestFence.obj");
-        uint32_t baseVertex = static_cast<uint32_t>(result.verticies.size());
-        for (Vertex vert : builder.vertices)
+        auto &block = BlockRegistry::Get().GetBlockByID(4);
+        if (block)
         {
-            // std::cout << "fence verts " << vert.position.x << " " << vert.position.y << " " << vert.position.z << '\n';
+            uint32_t baseVertex = static_cast<uint32_t>(result.verticies.size());
+            for (Vertex vert : block->get().model->modelVerticies)
+            {
+                vert.position = vert.position + vec3(pos) + vec3(0.5, 0, 0.5);
+                vert.color = {1.f, 1.f, 1.f};
+                vert.ao = 1.f;
+                vert.uv.y = 1.0f - vert.uv.y;
+                vert.uv = getModelAtlasUV(vert.uv, "fenceTexture");
+                result.verticies.push_back(vert);
+            }
 
-            vert.position = vert.position + vec3(pos) + vec3(0.5, 0, 0.5);
-
-            // vert.uv = glm::vec2(0, 0);
-            vert.color = vec3(1.0);
-            result.verticies.push_back(vert);
-        }
-
-        for (auto index : builder.indices)
-        {
-            result.indices.push_back(baseVertex + index);
+            for (auto index : block->get().model->modelIindices)
+            {
+                result.indices.push_back(baseVertex + index);
+            }
         }
     }
 
@@ -275,11 +276,11 @@ namespace lve
     glm::vec2 ChunkMeshWorkerPool::getModelAtlasUV(vec2 modelUV, const std::string &textureName)
     {
         const auto &atlas = TextureAtlas::Get();
-        const auto &region = atlas.atlasRegions.at(textureName);
-
+        const auto it = atlas.atlasRegions.find(textureName);
+        const auto &region = it->second;
         return {
-            (region.x + modelUV.x * region.width) / atlas.atlasWidth,
-            (region.y + modelUV.y * region.height) / atlas.atlasHeight};
+            (region.x + modelUV.x * region.width) / static_cast<float>(atlas.atlasWidth),
+            (region.y + modelUV.y * region.height) / static_cast<float>(atlas.atlasHeight)};
     }
 
     bool ChunkMeshWorkerPool::getNeighborData(const MeshJob &job, glm::ivec3 v)

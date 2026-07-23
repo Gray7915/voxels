@@ -20,7 +20,7 @@ namespace lve
         uint16_t id;
 
         std::string name;
-
+        std::string modelName;
         // AABB collision boxes for each rotation
         std::vector<BoxVolume> boundingBoxes;
         // Render options struct? contains things like is transparent, ect
@@ -32,5 +32,7 @@ namespace lve
         int hardness;
 
         RenderType renderType = RenderType::Block;
+
+        std::shared_ptr<LveModel> model;
     };
 }

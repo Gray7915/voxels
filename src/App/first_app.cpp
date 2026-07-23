@@ -58,7 +58,7 @@ namespace lve
     {
         coordinator.Init();
         ItemRegistrySetup::SetupItemRegistry(ItemRegistry::Get());
-        BlockRegistrySetup::SetupBlockRegistry(BlockRegistry::Get());
+        BlockRegistrySetup::SetupBlockRegistry(BlockRegistry::Get(), lveDevice);
 
         VkQueryPoolCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
@@ -129,7 +129,16 @@ namespace lve
             if (auto commandBuffer = lveRenderer.beginFrame())
             {
                 int frameIndex = lveRenderer.getFrameIndex();
+                auto start = std::chrono::high_resolution_clock::now();
+
                 chunkMeshSystem.Update(lveDevice, frameIndex);
+
+                auto end = std::chrono::high_resolution_clock::now();
+
+                std::cout
+                    << "Chunk mesh update: "
+                    << std::chrono::duration<double, std::milli>(end - start).count()
+                    << "ms\n";
                 area.tick(lveDevice, camTransform.position, frameIndex, chunkGenSystem);
 
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
@@ -182,10 +191,11 @@ namespace lve
 
                 vkGetQueryPoolResults(lveDevice.device(), queryPool, 0, 4, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
 
-                                // double geometryMs = (timestamps[1] - timestamps[0]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
-                // double uiMs = (timestamps[3] - timestamps[2]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
-                // std::cout << "Chunks: " << area.chunks.size() << " Geometry: " << geometryMs << "\n";
+                double geometryMs = (timestamps[1] - timestamps[0]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
+                double uiMs = (timestamps[3] - timestamps[2]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
+                //  std::cout << "Chunks: " << area.chunks.size() << " Geometry: " << geometryMs << "\n";
                 // std::cout << "UI Pass time " << uiMs << '\n';
+                std::cout << frameTime << "\n";
             }
 
             static bool colWasPressed = false;

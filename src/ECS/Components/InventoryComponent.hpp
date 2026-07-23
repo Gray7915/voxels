@@ -9,9 +9,7 @@
 
 struct InventoryComponent
 {
-    int one;
-    int two;
-    int three;
+    int selectedStack = 0;
 
     int InventoryCapacity = 5;
 

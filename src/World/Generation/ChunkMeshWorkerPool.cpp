@@ -256,6 +256,14 @@ namespace lve
         the texture placement on the atlas to correctly texture the model
         atlasUV = regionOffset + (modelUV * regionSize)?
         */
+        auto block = BlockRegistry::Get().GetBlockByID(blockType);
+
+        if (!block)
+        {
+            std::cerr << "Missing block ID: " << blockType << '\n';
+            return {0,0};
+        }
+
         std::string requstTexture = BlockRegistry::Get().GetBlockByID(blockType)->get().name;
         // std::cout << requstTexture << '\n';
 

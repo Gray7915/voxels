@@ -40,6 +40,7 @@ namespace lve
         createIndexBuffer(builder.indices, pool);
         modelVerticies = builder.vertices;
         modelIindices = builder.indices;
+        modelSections = builder.sections;
     }
 
     LveModel::~LveModel()
@@ -49,7 +50,7 @@ namespace lve
     std::unique_ptr<LveModel> LveModel::createModelFromFile(LveDevice &device, const std::string &filepath)
     {
         Builder builder{};
-        builder.loadModel(ENGINE_DIR + filepath);        
+        builder.loadModel(ENGINE_DIR + filepath);
         return std::make_unique<LveModel>(device, builder);
     }
 
@@ -185,10 +186,20 @@ namespace lve
         }
         vertices.clear();
         indices.clear();
+        sections.clear();
 
         std::unordered_map<Vertex, uint32_t> uniqueVerticies{};
         for (const auto &shape : shapes)
         {
+            if (sections.find(shape.name) == sections.end())
+            {
+                sections[shape.name] = ModelSection{};
+                sections[shape.name].name = shape.name;
+            }
+
+            ModelSection &section = sections[shape.name];
+            std::unordered_map<Vertex, uint32_t> sectionUniqueVertices{};
+
             for (const auto &index : shape.mesh.indices)
             {
                 Vertex vertex{};
@@ -232,6 +243,13 @@ namespace lve
                     vertices.push_back(vertex);
                 }
                 indices.push_back(uniqueVerticies[vertex]);
+
+                if (sectionUniqueVertices.count(vertex) == 0)
+                {
+                    sectionUniqueVertices[vertex] = static_cast<uint32_t>(section.vertices.size());
+                    section.vertices.push_back(vertex);
+                }
+                section.indices.push_back(sectionUniqueVertices[vertex]);
             }
         }
     }

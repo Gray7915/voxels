@@ -85,11 +85,16 @@ namespace lve
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
     }
 
-    void ImguiManager::drawDebugWindow(float frameTime, glm::vec3 pos)
+    void ImguiManager::drawDebugWindow(float frameTime, glm::vec3 pos, const Transform &transform, const CameraComponent &camera, Area &area)
     {
         fpsAccumulator += frameTime;
         fpsFrameCount++;
-
+        vec3 rot = transform.rotation;
+        vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
+        vec3 rayDir = glm::normalize(forward);
+        vec3 startPos = transform.position + camera.relativePosition;
+        Ray ray((transform.position + camera.relativePosition), rayDir);
+        RayHit rayHit = ray.detectBlockHit(4.0f, area);
         displayedFps = fpsFrameCount / fpsAccumulator;
         fpsAccumulator = 0.0f;
         fpsFrameCount = 0;
@@ -101,6 +106,9 @@ namespace lve
         ImGui::Text("FPS: %.1f", displayedFps);
         ImGui::Text("Frame time: %.3f ms", frameTime * 1000.0f);
         ImGui::Text("Player Position: x %.2f, y %.2f, z %.2f", pos.x, pos.y, pos.z);
+        ImGui::Text("Ray Start Position: x%d, y  %d, z %d", startPos.x, startPos.y, startPos.z);
+        ImGui::Text("Ray Direction  x%.2f, y  %.2f, z %.2f", rayDir.x, rayDir.y, rayDir.z);
+        ImGui::Text("RayHit Position: x %d, y %d, z %d", rayHit.hitPosition.x, rayHit.hitPosition.y, rayHit.hitPosition.z);
         ImGui::End();
     }
 

@@ -3,13 +3,15 @@
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <glm/glm.hpp>
-#include "glm/gtx/norm.hpp"
+#include <glm/gtx/norm.hpp>
 #include <iostream>
 #include <functional>
-#include "World/Area.hpp"
-#include "math.hpp"
-#include "lve_util.hpp"
 #include <algorithm>
+
+#include "World/Area.hpp"
+#include "lve_util.hpp"
+#include "Util/Types.hpp"
+#include "math.hpp"
 
 namespace lve
 {
@@ -111,13 +113,27 @@ namespace lve
 
         glm::vec3 intbound(glm::vec3 s, glm::vec3 ds)
         {
-            glm::vec3 res;
-            for (size_t i = 0; i < 3; i++)
+            glm::vec3 result;
+
+            for (int i = 0; i < 3; i++)
             {
-                res[i] =
-                    (ds[i] > 0 ? (glm::ceil(s[i]) - s[i]) : (s[i] - glm::floor(s[i]))) / glm::abs(ds[i]);
+                if (ds[i] > 0.0f)
+                {
+                    float next = std::floor(s[i]) + 1.0f;
+                    result[i] = (next - s[i]) / ds[i];
+                }
+                else if (ds[i] < 0.0f)
+                {
+                    float next = std::floor(s[i]);
+                    result[i] = (s[i] - next) / -ds[i];
+                }
+                else
+                {
+                    result[i] = std::numeric_limits<float>::infinity();
+                }
             }
-            return res;
+
+            return result;
         }
     };
 }

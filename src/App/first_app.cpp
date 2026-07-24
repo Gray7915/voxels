@@ -33,7 +33,7 @@
 #include "ECS/Components/Thrust.hpp"
 #include "ECS/Components/Input.hpp"
 #include "ECS/Components/MovementStats.hpp"
-//#include "ECS/Components/ColliderComponent.hpp"
+// #include "ECS/Components/ColliderComponent.hpp"
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Renderable.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
@@ -178,7 +178,7 @@ namespace lve
 
                 lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
                 imguiManager.newFrame();
-                imguiManager.drawDebugWindow(frameTime, camTransform.position);
+                imguiManager.drawDebugWindow(frameTime, camTransform.position, camTransform, coordinator.GetComponent<CameraComponent>(mainCamera), area);
                 imguiManager.drawCrosshair(lveWindow.getExtent().width, lveWindow.getExtent().height);
                 imguiManager.drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
                 // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
@@ -196,7 +196,7 @@ namespace lve
                 double uiMs = (timestamps[3] - timestamps[2]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
                 //  std::cout << "Chunks: " << area.chunks.size() << " Geometry: " << geometryMs << "\n";
                 // std::cout << "UI Pass time " << uiMs << '\n';
-                //std::cout << frameTime << "\n";
+                // std::cout << frameTime << "\n";
             }
 
             static bool colWasPressed = false;

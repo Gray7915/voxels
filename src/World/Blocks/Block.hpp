@@ -11,6 +11,17 @@ namespace lve
         Mesh,
     };
 
+    enum class BlockFace : uint8_t
+    {
+        Up,
+        Down,
+        North,
+        South,
+        East,
+        West,
+        Count
+    };
+
     class Block
     {
     public:
@@ -27,6 +38,7 @@ namespace lve
         // Render options struct? contains things like is transparent, ect
 
         // mesh / model -> optional only for non blocks (things like chest count as non-block)
+        std::array<std::string, static_cast<size_t>(BlockFace::Count)> faces;
 
         glm::vec3 highlightBoxSize = {1, 1, 1};
 

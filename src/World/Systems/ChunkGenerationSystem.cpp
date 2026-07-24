@@ -26,18 +26,16 @@ namespace lve
         {
             Chunk *chunk = area.getChunk(result.chunkCoord);
             if (!chunk)
-                continue; // chunk was unloaded while its job was in flight — discard
+                continue;
 
             chunk->setVoxelData(std::move(result.data));
             chunk->chunkState = ChunkState::Generated;
             area.markNeighborChunksDirty(result.chunkCoord);
-            // std::cout << "generated chunk " << result.chunkCoord.x << ", "<< result.chunkCoord.y << ", " << result.chunkCoord.z << '\n';
         }
     }
 
     void ChunkGenerationSystem::requestGeneration(glm::ivec3 coord)
     {
-        // std::cout << "Queued " << coord.x << ", " << coord.y << ", " << coord.z << '\n';
         genPool.submit({coord});
     }
 }

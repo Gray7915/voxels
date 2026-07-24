@@ -80,7 +80,6 @@ namespace lve
         chunk->voxelData.set(arrayPos.x, arrayPos.y, arrayPos.z, id);
     }
 
-    //Simple check
     bool Area::isBlockSolid(glm::vec3 worldBlockPos)
     {
         glm::ivec3 chunkId = glm::ivec3(WorldToChunkId(worldBlockPos));
@@ -89,16 +88,10 @@ namespace lve
             return false;
 
         glm::ivec3 arrayPos = WorldToChunkArray(worldBlockPos);
-        Voxel voxelData = chunk->voxelData.getVoxel(arrayPos.x, arrayPos.y, arrayPos.z);
-        auto optionalVoxel = BlockRegistry::Get().GetBlockByID(voxelData.blockID);
-        Block voxel;
-
-        if (optionalVoxel)
-            voxel = optionalVoxel->get();
         return chunk->voxelData.get(arrayPos.x, arrayPos.y, arrayPos.z);
     }
-
-    //Check for non block blocks (fences ect)
+    
+    // Check for non block blocks (fences ect)
     bool Area::isBlockSolid(glm::vec3 worldBlockPos, glm::vec3 rayPos, glm::vec3 rayDirection)
     {
         glm::ivec3 chunkId = glm::ivec3(WorldToChunkId(worldBlockPos));

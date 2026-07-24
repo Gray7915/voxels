@@ -21,6 +21,7 @@ namespace lve
 
     void MovementSystem::Update(float dt)
     {
+        dt = glm::min(dt, 0.05f);
         for (auto const &entity : mEntities)
         {
             auto &transform = coordinator.GetComponent<Transform>(entity);

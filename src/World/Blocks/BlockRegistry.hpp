@@ -1,57 +1,53 @@
-#pragma once
+    #pragma once
 
-#include <utility>
-#include <iostream>
-#include <optional>
-#include <functional>
-#include <unordered_map>
-#include <string>
+    #include <utility>
+    #include <iostream>
+    #include <optional>
+    #include <functional>
+    #include <unordered_map>
+    #include <string>
 
-#include "World/Blocks/Block.hpp"
+    #include "World/Blocks/Block.hpp"
 
-namespace lve
-{
-    class BlockRegistry
+    namespace lve
     {
-    public:
-        static BlockRegistry &Get()
+        class BlockRegistry
         {
-            static BlockRegistry instance;
-            return instance;
-        }
-
-        void Register(Block block)
-        {
-            blocksByNumeric.try_emplace(block.id, block);
-            std::cout << " block id added " << block.id << '\n';
-            blocksByString.try_emplace(block.name, block.id);
-        }
-
-        const std::optional<std::reference_wrapper<const Block>> GetBlockByID(uint16_t id)
-        {
-            auto item = blocksByNumeric.find(id);
-
-            if (item == blocksByNumeric.end())
+        public:
+            static BlockRegistry &Get()
             {
-                // std::cout << "block id not found " << id << '\n';
-                return std::nullopt;
+                static BlockRegistry instance;
+                return instance;
             }
 
-            // std::cout << "gotten item id " << item->second.id << '\n';
+            void Register(Block block)
+            {
+                blocksByNumeric.try_emplace(block.id, block);
+                std::cout << " block id added " << block.id << '\n';
+                blocksByString.try_emplace(block.name, block.id);
+            }
 
-            return item->second;
-        }
+            const std::optional<std::reference_wrapper<const Block>> GetBlockByID(uint16_t id)
+            {
+                auto item = blocksByNumeric.find(id);
 
-        const std::optional<std::reference_wrapper<const Block>> GetBlockByName(std::string name)
-        {
-            auto BlockID = blocksByString.find(name);
-            if (BlockID == blocksByString.end())
-                return std::nullopt;
-            return GetBlockByID(BlockID->second);
-        }
+                if (item == blocksByNumeric.end())
+                {
+                    return std::nullopt;
+                }
+                return item->second;
+            }
 
-    private:
-        std::unordered_map<uint16_t, Block> blocksByNumeric;
-        std::unordered_map<std::string, uint16_t> blocksByString;
-    };
-}
+            const std::optional<std::reference_wrapper<const Block>> GetBlockByName(std::string name)
+            {
+                auto BlockID = blocksByString.find(name);
+                if (BlockID == blocksByString.end())
+                    return std::nullopt;
+                return GetBlockByID(BlockID->second);
+            }
+
+        private:
+            std::unordered_map<uint16_t, Block> blocksByNumeric;
+            std::unordered_map<std::string, uint16_t> blocksByString;
+        };
+    }

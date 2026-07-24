@@ -21,6 +21,7 @@ namespace lve
 
         std::string name;
         std::string modelName;
+        bool isSolid = true;
         // AABB collision boxes for each rotation
         std::vector<BoxVolume> boundingBoxes;
         // Render options struct? contains things like is transparent, ect

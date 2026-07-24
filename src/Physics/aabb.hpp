@@ -4,7 +4,10 @@
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Transform.hpp"
 #include "World/Area.hpp"
+#include "World/Blocks/BlockRegistry.hpp"
+#include "World/Blocks/Block.hpp"
 #include "Util/lve_util.hpp"
+#include "Util/Types.hpp"
 
 namespace lve
 {
@@ -53,6 +56,26 @@ namespace lve
             return false;
         }
 
+        static bool SphereIntersection(const AABBComponent &ComponentA, const vec3 TransformA, const AABBComponent &ComponentB, const vec3 TransformB)
+        {
+            float radii = ComponentA.radius + ComponentB.radius;
+            vec3 delta = TransformB - TransformA;
+
+            float deltaLength = delta.length();
+
+            if (deltaLength < radii)
+            {
+                float penetration = radii - deltaLength;
+                vec3 normal = glm::normalize(delta);
+                vec3 localA = normal * ComponentA.radius;
+                vec3 localB = normal * ComponentB.radius;
+
+                return true;
+            }
+
+            return false;
+        }
+
         static bool CheckTerrainOverlap(const Transform &transform, const AABBComponent &aabbComponent, Area &area)
         {
             glm::vec3 minPos = transform.position - aabbComponent.halfExtents;
@@ -64,9 +87,36 @@ namespace lve
                 for (int y = minBlock.y; y <= maxBlock.y; ++y)
                     for (int z = minBlock.z; z <= maxBlock.z; ++z)
                     {
-                        if (area.isBlockSolid(glm::ivec3(x, y, z)))
+                        glm::vec3 blockPos(x, y, z);
+                        auto optionalBlock = BlockRegistry::Get().GetBlockByID(area.getBlockID(blockPos));
+                        Block block;
+                        if (optionalBlock)
                         {
-                            return true;
+                            block = optionalBlock.value().get();
+                            if (block.isSolid)
+                            {
+                                if (block.boundingBoxes.empty())
+                                {
+                                    vec3 blockMin = vec3{x, y, z};
+                                    vec3 blockMax = vec3{x + 1, y + 1, z + 1};
+                                    if ((minPos.x <= blockMax.x && maxPos.x >= blockMin.x) &&
+                                        (minPos.y <= blockMax.y && maxPos.y >= blockMin.y) &&
+                                        (minPos.z <= blockMax.z && maxPos.z >= blockMin.z))
+                                        return true;
+                                }
+                                else
+                                {
+                                    for (const BoxVolume &volume : block.boundingBoxes)
+                                    {
+                                        vec3 blockMin = vec3{x, y, z} + volume.offset - volume.boxSize / vec3{2};
+                                        vec3 blockMax = vec3{x, y, z} + volume.offset + volume.boxSize / vec3{2};
+                                        if ((minPos.x <= blockMax.x && maxPos.x >= blockMin.x) &&
+                                            (minPos.y <= blockMax.y && maxPos.y >= blockMin.y) &&
+                                            (minPos.z <= blockMax.z && maxPos.z >= blockMin.z))
+                                            return true;
+                                    }
+                                }
+                            }
                         }
                     }
             return false;
@@ -74,7 +124,7 @@ namespace lve
 
         static float MoveAxis(const Transform &transform, const AABBComponent &aabb, float movement, int axis, Area &area)
         {
-            constexpr float EPSILON = 0.05f;
+            constexpr float e = 0.0005f;
 
             glm::vec3 testPos = transform.position;
             testPos[axis] += movement;
@@ -91,9 +141,7 @@ namespace lve
             float lo = 0.f;
             float hi = movement;
 
-            // loop 6 times for some precision on collision
-            // move forward or backward depending on if its a collision or not
-            for (int i = 0; i < 6; ++i)
+            for (int i = 0; i < 12; ++i)
             {
                 float mid = (lo + hi) / 2.f;
                 testPos = transform.position;
@@ -106,8 +154,10 @@ namespace lve
                     lo = mid;
             }
 
-            float allowed = lo - sign * EPSILON;
-            return (glm::abs(allowed) <= EPSILON) ? 0.f : allowed;
+            float allowed = lo - sign * e;
+            if (glm::abs(lo) < e || glm::sign(allowed) != sign)
+                return 0.f;
+            return allowed;
         }
 
         static glm::vec3 Move(const Transform &transform, const AABBComponent &aabb, glm::vec3 movement, Area &area)

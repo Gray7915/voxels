@@ -33,7 +33,7 @@
 #include "ECS/Components/Thrust.hpp"
 #include "ECS/Components/Input.hpp"
 #include "ECS/Components/MovementStats.hpp"
-#include "ECS/Components/ColliderComponent.hpp"
+//#include "ECS/Components/ColliderComponent.hpp"
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Renderable.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
@@ -135,10 +135,7 @@ namespace lve
 
                 auto end = std::chrono::high_resolution_clock::now();
 
-                std::cout
-                    << "Chunk mesh update: "
-                    << std::chrono::duration<double, std::milli>(end - start).count()
-                    << "ms\n";
+                // std::cout<< "Chunk mesh update: "<< std::chrono::duration<double, std::milli>(end - start).count()<< "ms\n";
                 area.tick(lveDevice, camTransform.position, frameIndex, chunkGenSystem);
 
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
@@ -155,8 +152,12 @@ namespace lve
                 vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
 
                 lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
-
+                auto newstart = std::chrono::high_resolution_clock::now();
                 chunkRenderSystem.renderChunks(frameInfo, area.chunks);
+
+                auto newms = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - newstart).count();
+                if (newms > 2.0)
+                    std::cout << "[HITCH] loadChunk took " << newms << "ms\n";
                 // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
                 auto block = BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w);
                 glm::vec3 boxSize{1, 1, 1};
@@ -195,7 +196,7 @@ namespace lve
                 double uiMs = (timestamps[3] - timestamps[2]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
                 //  std::cout << "Chunks: " << area.chunks.size() << " Geometry: " << geometryMs << "\n";
                 // std::cout << "UI Pass time " << uiMs << '\n';
-                std::cout << frameTime << "\n";
+                //std::cout << frameTime << "\n";
             }
 
             static bool colWasPressed = false;

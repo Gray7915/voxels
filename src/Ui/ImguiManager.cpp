@@ -109,6 +109,7 @@ namespace lve
         ImGui::Text("Ray Start Position: x%d, y  %d, z %d", startPos.x, startPos.y, startPos.z);
         ImGui::Text("Ray Direction  x%.2f, y  %.2f, z %.2f", rayDir.x, rayDir.y, rayDir.z);
         ImGui::Text("RayHit Position: x %d, y %d, z %d", rayHit.hitPosition.x, rayHit.hitPosition.y, rayHit.hitPosition.z);
+        ImGui::Text("Block Hit Id %d", rayHit.blockID);
         ImGui::End();
     }
 

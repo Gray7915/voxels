@@ -2,6 +2,7 @@
 #include <memory>
 #include "Physics/BoxVolume.hpp"
 #include "Rendering/Core/lve_model.hpp"
+#include "Util/Direction.hpp"
 
 namespace lve
 {
@@ -9,17 +10,6 @@ namespace lve
     {
         Block,
         Mesh,
-    };
-
-    enum class BlockFace : uint8_t
-    {
-        Up,
-        Down,
-        North,
-        South,
-        East,
-        West,
-        Count
     };
 
     class Block
@@ -38,7 +28,7 @@ namespace lve
         // Render options struct? contains things like is transparent, ect
 
         // mesh / model -> optional only for non blocks (things like chest count as non-block)
-        std::array<std::string, static_cast<size_t>(BlockFace::Count)> faces;
+        std::array<std::string, static_cast<size_t>(6)> faces;
 
         glm::vec3 highlightBoxSize = {1, 1, 1};
 

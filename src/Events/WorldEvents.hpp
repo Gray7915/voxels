@@ -18,8 +18,9 @@ namespace lve
     {
         ivec3 blockPos;
         ivec3 chunkPos;
-        int blockType;
+        BlockId blockType;
         Entity placedBy;
+        int inventoryPos;
     };
 
     struct BlockHarvested

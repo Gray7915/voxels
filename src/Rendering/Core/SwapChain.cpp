@@ -210,7 +210,7 @@ namespace lve
             {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
-        } // lock (A) released here
+        }
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

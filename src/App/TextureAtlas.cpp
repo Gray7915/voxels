@@ -21,7 +21,7 @@ namespace lve
         int currentX = 0;
         int currentY = 0;
         int rowHeight = 0;
-
+        
         for (const auto &entry : std::filesystem::directory_iterator("../Textures"))
         {
             if (entry.path().extension() == ".png")
@@ -60,7 +60,6 @@ namespace lve
                 for (int x = 0; x < texture.width; x++)
                 {
                     int src = (y * texture.width + x) * 4;
-
                     int dst = ((texture.atlasY + y) * atlasWidth + (texture.atlasX + x)) * 4;
 
                     atlasPixels[dst + 0] = texture.pixels[src + 0];
@@ -70,7 +69,6 @@ namespace lve
                 }
             }
             atlasRegions.emplace(texture.name, AtlasRegion{texture.name, texture.atlasX, texture.atlasY, texture.width, texture.height});
-            std::cout << "texture added " << texture.name <<'\n';
         }
 
         for (auto &texture : textures)

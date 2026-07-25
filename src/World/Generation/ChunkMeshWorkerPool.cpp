@@ -26,7 +26,7 @@ namespace lve
 
     static const vec3 CUBE_NORMALS[] = {{0, 0, 1}, {0, 0, -1}, {1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}};
 
-    static const vec2 CUBE_UVS[] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
+    static const vec2 CUBE_UVS[] = {{0, 1}, {1, 1}, {1, 0}, {0, 0}};
 
     ChunkMeshWorkerPool::ChunkMeshWorkerPool(LveDevice &device, size_t threadCount) : device(device)
     {
@@ -46,17 +46,18 @@ namespace lve
 
     void ChunkMeshWorkerPool::workerLoop()
     {
-        myPool = device.createTransientCommandPool();
+        VkCommandPool threadPool = device.createTransientCommandPool();
+
         MeshJob job;
         while (jobQueue.wait_and_pop(job))
         {
-            resultQueue.push(generateMesh(job));
+            resultQueue.push(generateMesh(job, threadPool));
         }
 
-        device.destroyCommandPool(myPool);
+        device.destroyCommandPool(threadPool);
     }
 
-    MeshResult ChunkMeshWorkerPool::generateMesh(MeshJob &job)
+    MeshResult ChunkMeshWorkerPool::generateMesh(MeshJob &job, VkCommandPool pool)
     {
         MeshResult result{};
         result.chunkCoord = job.chunkCoord;
@@ -84,8 +85,14 @@ namespace lve
                 }
             }
         }
-        result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, myPool);
+        auto t0 = std::chrono::high_resolution_clock::now();
+        result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, pool);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        float ms = std::chrono::duration<float, std::milli>(t1 - t0).count();
         return result;
+
+        // if (ms > 0.5f)
+        // std::cout << "model make spike: " << ms << "ms\n";
     }
 
     void ChunkMeshWorkerPool::emitBlock(MeshJob &job, MeshResult &result, ivec3 pos, u32 &emittedFaces)
@@ -261,10 +268,10 @@ namespace lve
         if (!block)
         {
             std::cerr << "Missing block ID: " << blockType << '\n';
-            return {0,0};
+            return {0, 0};
         }
 
-        std::string requstTexture = BlockRegistry::Get().GetBlockByID(blockType)->get().name;
+        std::string requstTexture = BlockRegistry::Get().GetBlockByID(blockType)->get().faces.at(face);
         // std::cout << requstTexture << '\n';
 
         const auto &region = TextureAtlas::Get().atlasRegions.find(requstTexture);

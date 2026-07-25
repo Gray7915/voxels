@@ -26,7 +26,7 @@
             "z": 1.0
         },
         "textures": {
-            "up": "grass",
+            "up": "grass-top",
             "side": "grass-side",
             "down": "dirt"
         },

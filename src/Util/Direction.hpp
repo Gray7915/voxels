@@ -7,7 +7,7 @@
 
 namespace Math
 {
-    enum class Direction
+    enum class Direction : u8
     {
         NORTH,
         SOUTH,

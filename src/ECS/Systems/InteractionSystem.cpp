@@ -78,12 +78,7 @@ namespace lve
                 if (stack)
                 {
                     id = stack->getItem()->itemId;
-                    stack->setStackCount(stack->getStackCount() - 1);
-                    coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, 4, entity});
-                    if (stack->getStackCount() == 0)
-                    {
-                        inventory.inventoryStacks[input.hotbarSlot].reset();
-                    }
+                    coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, id, entity, input.hotbarSlot});
                 }
             }
         }

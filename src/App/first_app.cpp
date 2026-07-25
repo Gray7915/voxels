@@ -111,7 +111,12 @@ namespace lve
             systems.inputSystem->Update(&lveWindow);
             systems.movementSystem->Update(frameTime);
             systems.physicsSystem->Update(frameTime);
+            auto t0 = std::chrono::high_resolution_clock::now();
             systems.collisionSystem->Update(frameTime, area);
+            auto t1 = std::chrono::high_resolution_clock::now();
+            float ms = std::chrono::duration<float, std::milli>(t1 - t0).count();
+            // if (ms > 1.0f)
+            // std::cout << "movement spike: " << ms << "ms\n";
             systems.interactionSystem->Update(frameTime, lveWindow, lveDevice, area);
             systems.inventorySystem->Update(area);
 
@@ -156,8 +161,8 @@ namespace lve
                 chunkRenderSystem.renderChunks(frameInfo, area.chunks);
 
                 auto newms = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - newstart).count();
-                if (newms > 2.0)
-                    std::cout << "[HITCH] loadChunk took " << newms << "ms\n";
+                // if (newms > 2.0)
+                // std::cout << "[HITCH] loadChunk took " << newms << "ms\n";
                 // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
                 auto block = BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w);
                 glm::vec3 boxSize{1, 1, 1};

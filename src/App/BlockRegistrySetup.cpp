@@ -3,6 +3,7 @@
 #include "App/BlockRegistrySetup.hpp"
 #include "Physics/BoxVolume.hpp"
 #include "Util/Types.hpp"
+#include "Util/Direction.hpp"
 
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -40,45 +41,45 @@ namespace lve
                 {
                     std::string tex = texture;
 
-                    block.faces[(size_t)BlockFace::Up] = tex;
-                    block.faces[(size_t)BlockFace::Down] = tex;
-                    block.faces[(size_t)BlockFace::North] = tex;
-                    block.faces[(size_t)BlockFace::South] = tex;
-                    block.faces[(size_t)BlockFace::East] = tex;
-                    block.faces[(size_t)BlockFace::West] = tex;
+                    block.faces[(size_t)Math::Direction::UP] = tex;
+                    block.faces[(size_t)Math::Direction::DOWN] = tex;
+                    block.faces[(size_t)Math::Direction::NORTH] = tex;
+                    block.faces[(size_t)Math::Direction::SOUTH] = tex;
+                    block.faces[(size_t)Math::Direction::EAST] = tex;
+                    block.faces[(size_t)Math::Direction::WEST] = tex;
                 }
 
                 if (face == "side")
                 {
                     std::string tex = texture;
 
-                    block.faces[(size_t)BlockFace::North] = tex;
-                    block.faces[(size_t)BlockFace::South] = tex;
-                    block.faces[(size_t)BlockFace::East] = tex;
-                    block.faces[(size_t)BlockFace::West] = tex;
+                    block.faces[(size_t)Math::Direction::NORTH] = tex;
+                    block.faces[(size_t)Math::Direction::SOUTH] = tex;
+                    block.faces[(size_t)Math::Direction::EAST] = tex;
+                    block.faces[(size_t)Math::Direction::WEST] = tex;
                 }
 
                 if (face == "north")
                 {
                     std::string tex = texture;
-                    block.faces[(size_t)BlockFace::North] = tex;
+                    block.faces[(size_t)Math::Direction::NORTH] = tex;
                 }
 
                 if (face == "up")
                 {
                     std::string tex = texture;
-                    block.faces[(size_t)BlockFace::Up] = tex;
+                    block.faces[(size_t)Math::Direction::UP] = tex;
                 }
 
                 if (face == "down")
                 {
                     std::string tex = texture;
-                    block.faces[(size_t)BlockFace::Up] = tex;
+                    block.faces[(size_t)Math::Direction::DOWN] = tex;
                 }
             }
 
             blockRegistry.Register(block);
         }
-        blockRegistry.Register({.id = uint16_t(4), .name = "fenceTexture", .modelName = "../models/fence.obj", .isSolid = true, .boundingBoxes = {BoxVolume{.boxSize = glm::vec3(0.25, 1, 0.25), .offset{0.5, 0, 0.5}}}, .highlightBoxSize = {0.25, 1, 0.25}, .hardness = 0, .renderType = RenderType::Mesh, .model = LveModel::createModelFromFile(device, "models/fence.obj")});
+        blockRegistry.Register({.id = uint16_t(4), .name = "oak_planks", .modelName = "../models/fence.obj", .isSolid = true, .boundingBoxes = {BoxVolume{.boxSize = glm::vec3(0.25, 1, 0.25), .offset{0.5, 0, 0.5}}}, .highlightBoxSize = {0.25, 1, 0.25}, .hardness = 0, .renderType = RenderType::Mesh, .model = LveModel::createModelFromFile(device, "models/fence.obj")});
     }
 }

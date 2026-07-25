@@ -65,7 +65,7 @@ namespace lve
         {
             builder.indices.push_back(indicie);
         }
-        return std::make_unique<LveModel>(device, builder, device.createTransientCommandPool());
+        return std::make_unique<LveModel>(device, builder, pool);
     }
 
     void LveModel::createVertexBuffers(const std::vector<Vertex> &vertices, VkCommandPool pool)

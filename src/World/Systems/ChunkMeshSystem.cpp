@@ -5,7 +5,7 @@
 #include "Util/Direction.hpp"
 #include "Util/Types.hpp"
 
-    namespace lve
+namespace lve
 {
     ChunkMeshSystem::ChunkMeshSystem(Area &worldArea, LveDevice &device) : area{worldArea}, device{device}
     {
@@ -16,7 +16,7 @@
     void ChunkMeshSystem::Update(LveDevice &device, int frameIndex)
     {
         auto &neighbors = area.AllChunks();
-
+        auto t0 = std::chrono::high_resolution_clock::now();
         for (auto &[coord, chunk] : neighbors)
         {
             if (chunk->chunkState == ChunkState::Generated || chunk->chunkState == ChunkState::Dirty)
@@ -68,6 +68,10 @@
             chunk->indicies = result.indices.size();
             chunk->verticies = result.verticies.size();
         }
+        auto t1 = std::chrono::high_resolution_clock::now();
+        float ms = std::chrono::duration<float, std::milli>(t1 - t0).count();
+        //if (ms > 0.5f)
+            //std::cout << "rebuild spike: " << ms << "ms\n";
     }
 
     void ChunkMeshSystem::tryQueueForMeshing(ivec3 coord, Chunk &chunk, LveDevice &device, NeighborVoxelInfo neighborVoxelInfo)

@@ -29,7 +29,7 @@ struct InputComponent
     bool leftMouseClicked = false;
     bool middleMouseClicked = false;
     bool rightMouseClicked = false;
-    
+
     bool escapePressed;
 
     bool onePressed;
@@ -46,4 +46,6 @@ struct InputComponent
     std::chrono::steady_clock::time_point leftMouseWasClicked;
     std::chrono::steady_clock::time_point middleMouseWasClicked;
     std::chrono::steady_clock::time_point rightMouseWasClicked;
+
+    int hotbarSlot = 0;
 };

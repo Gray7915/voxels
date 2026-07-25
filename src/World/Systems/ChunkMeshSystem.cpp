@@ -16,7 +16,7 @@ namespace lve
     void ChunkMeshSystem::Update(LveDevice &device, int frameIndex)
     {
         auto &neighbors = area.AllChunks();
-
+        auto t0 = std::chrono::high_resolution_clock::now();
         for (auto &[coord, chunk] : neighbors)
         {
             if (chunk->chunkState == ChunkState::Generated || chunk->chunkState == ChunkState::Dirty)
@@ -67,18 +67,11 @@ namespace lve
             chunk->chunkState = ChunkState::Uploaded;
             chunk->indicies = result.indices.size();
             chunk->verticies = result.verticies.size();
-
-            // Only on first generation for border AO
-            if (result.isFirstMesh)
-            {
-                for (ivec3 direction : Math::AllHorizontalDirections)
-                {
-                    Chunk *neighbor = area.getChunk(result.chunkCoord + direction);
-                    if (neighbor && neighbor->chunkState == ChunkState::Uploaded)
-                        neighbor->chunkState = ChunkState::Dirty;
-                }
-            }
         }
+        auto t1 = std::chrono::high_resolution_clock::now();
+        float ms = std::chrono::duration<float, std::milli>(t1 - t0).count();
+        //if (ms > 0.5f)
+            //std::cout << "rebuild spike: " << ms << "ms\n";
     }
 
     void ChunkMeshSystem::tryQueueForMeshing(ivec3 coord, Chunk &chunk, LveDevice &device, NeighborVoxelInfo neighborVoxelInfo)

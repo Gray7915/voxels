@@ -123,7 +123,7 @@ namespace lve
 
     void LveTexture::transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
     {
-        VkCommandBuffer commandBuffer = lveDevice.beginSingleTimeCommands();
+        VkCommandBuffer commandBuffer = lveDevice.beginSingleTimeCommands(lveDevice.getCommandPool());
 
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -166,21 +166,13 @@ namespace lve
             throw std::invalid_argument("unsupported layout transition!");
         }
 
-        vkCmdPipelineBarrier(
-            commandBuffer,
-            sourceStage,
-            destinationStage,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &barrier);
-
-        lveDevice.endSingleTimeCommands(commandBuffer);
+        vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+        lveDevice.endSingleTimeCommands(commandBuffer, lveDevice.getCommandPool());
     }
 
     void LveTexture::copyBufferToImage(VkBuffer buffer)
     {
-        VkCommandBuffer commandBuffer = lveDevice.beginSingleTimeCommands();
+        VkCommandBuffer commandBuffer = lveDevice.beginSingleTimeCommands(lveDevice.getCommandPool());
 
         VkBufferImageCopy region{};
         region.bufferOffset = 0;
@@ -198,15 +190,8 @@ namespace lve
             static_cast<uint32_t>(texHeight),
             1};
 
-        vkCmdCopyBufferToImage(
-            commandBuffer,
-            buffer,
-            image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1,
-            &region);
-
-        lveDevice.endSingleTimeCommands(commandBuffer);
+        vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+        lveDevice.endSingleTimeCommands(commandBuffer, lveDevice.getCommandPool());
     }
 
     void LveTexture::createTextureImageView()

@@ -17,7 +17,7 @@ namespace lve
         const float tanHalfFovy = tan(fovy / 2.f);
         camera.projectionMatrix = glm::mat4{0.0f};
         camera.projectionMatrix[0][0] = 1.f / (aspect * tanHalfFovy);
-        camera.projectionMatrix[1][1] = 1.f / tanHalfFovy;
+        camera.projectionMatrix[1][1] = -1.f / tanHalfFovy; //-1 so neg y is down pos y is up
         camera.projectionMatrix[2][2] = far / (far - near);
         camera.projectionMatrix[2][3] = 1.f;
         camera.projectionMatrix[3][2] = -(far * near) / (far - near);

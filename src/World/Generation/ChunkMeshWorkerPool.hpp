@@ -30,7 +30,7 @@ namespace lve
 
     private:
         void workerLoop();
-        MeshResult generateMesh(MeshJob &job);
+        MeshResult generateMesh(MeshJob &job, VkCommandPool pool);
         void emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces);
         void emitMesh(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces);
         int calculateAO(glm::ivec3 pos, int face, int vertexIndex, MeshJob &job);

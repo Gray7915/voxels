@@ -38,6 +38,9 @@ namespace lve
     {
         createVertexBuffers(builder.vertices, pool);
         createIndexBuffer(builder.indices, pool);
+        modelVerticies = builder.vertices;
+        modelIindices = builder.indices;
+        modelSections = builder.sections;
     }
 
     LveModel::~LveModel()
@@ -48,7 +51,6 @@ namespace lve
     {
         Builder builder{};
         builder.loadModel(ENGINE_DIR + filepath);
-        std::cout << "vertex count: " << builder.vertices.size() << '\n';
         return std::make_unique<LveModel>(device, builder);
     }
 
@@ -63,7 +65,7 @@ namespace lve
         {
             builder.indices.push_back(indicie);
         }
-        return std::make_unique<LveModel>(device, builder, device.createTransientCommandPool());
+        return std::make_unique<LveModel>(device, builder, pool);
     }
 
     void LveModel::createVertexBuffers(const std::vector<Vertex> &vertices, VkCommandPool pool)
@@ -184,10 +186,20 @@ namespace lve
         }
         vertices.clear();
         indices.clear();
+        sections.clear();
 
         std::unordered_map<Vertex, uint32_t> uniqueVerticies{};
         for (const auto &shape : shapes)
         {
+            if (sections.find(shape.name) == sections.end())
+            {
+                sections[shape.name] = ModelSection{};
+                sections[shape.name].name = shape.name;
+            }
+
+            ModelSection &section = sections[shape.name];
+            std::unordered_map<Vertex, uint32_t> sectionUniqueVertices{};
+
             for (const auto &index : shape.mesh.indices)
             {
                 Vertex vertex{};
@@ -199,8 +211,6 @@ namespace lve
                         attrib.vertices[3 * index.vertex_index + 1], // y
                         attrib.vertices[3 * index.vertex_index + 2], // z
                     };
-                   // vertex.position.y = -vertex.position.y;
-                   // vertex.position.z = -vertex.position.z;
 
                     auto colorIndex = 3 * index.vertex_index + 2;
                     vertex.color = {
@@ -217,8 +227,6 @@ namespace lve
                         attrib.normals[3 * index.normal_index + 1], // y
                         attrib.normals[3 * index.normal_index + 2], // z
                     };
-                    // vertex.normal.y = -vertex.normal.y;
-                    // vertex.normal.z = -vertex.normal.z;
                 }
 
                 if (index.texcoord_index >= 0)
@@ -235,6 +243,13 @@ namespace lve
                     vertices.push_back(vertex);
                 }
                 indices.push_back(uniqueVerticies[vertex]);
+
+                if (sectionUniqueVertices.count(vertex) == 0)
+                {
+                    sectionUniqueVertices[vertex] = static_cast<uint32_t>(section.vertices.size());
+                    section.vertices.push_back(vertex);
+                }
+                section.indices.push_back(sectionUniqueVertices[vertex]);
             }
         }
     }

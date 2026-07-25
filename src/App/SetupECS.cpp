@@ -7,7 +7,6 @@
 #include "ECS/Components/Thrust.hpp"
 #include "ECS/Components/Input.hpp"
 #include "ECS/Components/MovementStats.hpp"
-#include "ECS/Components/ColliderComponent.hpp"
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Renderable.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
@@ -56,11 +55,6 @@ namespace lve
             Signature signature;
             signature.set(coordinator.GetComponentType<InputComponent>());
             coordinator.SetSystemSignature<InputSystem>(signature);
-
-            // NOTE: this static/singleton assignment was present in the
-            // original FirstApp::registerECSComponents(). Kept as-is during
-            // the split; worth revisiting separately since it's global
-            // mutable state tied to setup order.
             InputSystem::instance = systems.inputSystem.get();
         }
 
@@ -91,6 +85,7 @@ namespace lve
             signature.set(coordinator.GetComponentType<Transform>());
             signature.set(coordinator.GetComponentType<AABBComponent>());
             signature.set(coordinator.GetComponentType<CameraComponent>());
+            signature.set(coordinator.GetComponentType<InventoryComponent>());
             coordinator.SetSystemSignature<InteractionSystem>(signature);
         }
 

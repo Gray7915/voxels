@@ -70,4 +70,12 @@ namespace lve
             }
         }
     }
+
+    bool LveWindow::getMenuActive(){
+        if(glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED){
+            return false;
+        }else{
+            return true;
+        }
+    }
 }

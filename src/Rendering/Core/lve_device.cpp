@@ -553,18 +553,24 @@ namespace lve
   {
     vkEndCommandBuffer(commandBuffer);
 
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    VkFence fence;
+    vkCreateFence(device_, &fenceInfo, nullptr, &fence);
+
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
     {
-      std::lock_guard<std::mutex> lock(queueMutex_); // still shared, still needed
-      vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-      vkQueueWaitIdle(graphicsQueue_);
+      std::lock_guard<std::mutex> lock(queueMutex_);
+      vkQueueSubmit(graphicsQueue_, 1, &submitInfo, fence);
     }
 
-    vkFreeCommandBuffers(device_, pool, 1, &commandBuffer); // pool is thread-exclusive, no lock needed
+    vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX);
+    vkDestroyFence(device_, fence, nullptr);
+    vkFreeCommandBuffers(device_, pool, 1, &commandBuffer);
   }
 
   void LveDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool pool)

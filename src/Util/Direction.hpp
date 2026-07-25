@@ -7,7 +7,7 @@
 
 namespace Math
 {
-    enum class Direction
+    enum class Direction : u8
     {
         NORTH,
         SOUTH,
@@ -16,6 +16,12 @@ namespace Math
         UP,
         DOWN
     };
+    constexpr std::array<ivec3, 4> HorizontalCardinal = {{
+        {0, 0, 1},
+        {0, 0, -1},
+        {1, 0, 0},
+        {-1, 0, 0},
+    }};
 
     constexpr std::array<ivec3, 6> CardinalDirections = {{
         {0, 0, 1},
@@ -59,11 +65,11 @@ namespace Math
     {
         if (direction == ivec3{1, 0, 0})
             return Direction::NORTH;
-        if (direction == ivec3{0, 0, 1})
-            return Direction::SOUTH;
         if (direction == ivec3{-1, 0, 0})
-            return Direction::WEST;
+            return Direction::SOUTH;
         if (direction == ivec3{0, 0, -1})
+            return Direction::WEST;
+        if (direction == ivec3{0, 0, 1})
             return Direction::EAST;
         if (direction == ivec3{0, 1, 0})
             return Direction::UP;

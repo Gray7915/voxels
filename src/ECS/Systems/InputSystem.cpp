@@ -1,5 +1,6 @@
 #include "ECS/Systems/InputSystem.hpp"
 #include "ECS/Components/Input.hpp"
+#include <iostream>
 
 namespace lve
 {
@@ -25,16 +26,17 @@ namespace lve
 
             input.escape = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS;
 
-            input.onePressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_1) == GLFW_PRESS;
-            input.twoPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_2) == GLFW_PRESS;
-            input.threePressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_3) == GLFW_PRESS;
-            input.fourPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_4) == GLFW_PRESS;
-            input.fivePressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_5) == GLFW_PRESS;
-            input.sixPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_6) == GLFW_PRESS;
-            input.sevenPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_7) == GLFW_PRESS;
-            input.eightPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_8) == GLFW_PRESS;
-            input.ninePressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_9) == GLFW_PRESS;
-            input.zeroPressed = glfwGetKey(window->getGLFWwindow(), GLFW_KEY_0) == GLFW_PRESS;
+            static constexpr std::array<int, 10> hotbarKeys =
+                {GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5,
+                 GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8, GLFW_KEY_9, GLFW_KEY_0};
+
+            for (int i = 0; i < hotbarKeys.size(); i++)
+            {
+                if (glfwGetKey(window->getGLFWwindow(), hotbarKeys[i]) == GLFW_PRESS)
+                {
+                    input.hotbarSlot = i;
+                }
+            }
 
             input.mouseDeltaX = pendingMouseDeltaX;
             input.mouseDeltaY = pendingMouseDeltaY;

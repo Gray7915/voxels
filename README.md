@@ -51,3 +51,4 @@
  - [ ] Can place blocks at head height and get stuck in them
  - [ ] if moving and placing player can be accelerated in the direction rather than either not having the block paced or have the place put on top of it
  - [x] Face culling when they shouldn't be (fences) (fixed i think)
+ - [ ] If using VK_Immediate_mode movement slows significantly 

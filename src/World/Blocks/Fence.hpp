@@ -27,32 +27,32 @@ namespace lve
             for (int i = 0; i < 5; i++)
             {
                 bool set = (voxel.state.segment >> i) & 1;
-                std::cout << "bit " << i << " = " << set << '\n';
+                //std::cout << "bit " << i << " = " << set << '\n';
             }
             switch (direction)
             {
             case Math::Direction::NORTH:
-                std::cout << "north" << (voxel.state.segment & (1 << 0)) << '\n';
+                //std::cout << "north" << (voxel.state.segment & (1 << 0)) << '\n';
                 return voxel.state.segment & (1 << 0);
                 break;
 
             case Math::Direction::SOUTH:
-                std::cout << "south " << (voxel.state.segment & (1 << 1)) << '\n';
+                //std::cout << "south " << (voxel.state.segment & (1 << 1)) << '\n';
                 return voxel.state.segment & (1 << 1);
                 break;
 
             case Math::Direction::EAST:
-                std::cout << "east " << (voxel.state.segment & (1 << 2)) << '\n';
+                //std::cout << "east " << (voxel.state.segment & (1 << 2)) << '\n';
                 return voxel.state.segment & (1 << 2);
                 break;
 
             case Math::Direction::WEST:
-                std::cout << "west " << (voxel.state.segment & (1 << 3)) << '\n';
+                //std::cout << "west " << (voxel.state.segment & (1 << 3)) << '\n';
                 return voxel.state.segment & (1 << 3);
                 break;
 
             case Math::Direction::UP:
-                std::cout << "up " << (voxel.state.segment & (1 << 4)) << '\n';
+                //std::cout << "up " << (voxel.state.segment & (1 << 4)) << '\n';
                 return voxel.state.segment & (1 << 4);
                 break;
             case Math::Direction::DOWN:

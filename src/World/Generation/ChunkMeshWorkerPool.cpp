@@ -3,6 +3,7 @@
 
 #include "World/Generation/ChunkMeshWorkerPool.hpp"
 #include "World/Blocks/BlockRegistry.hpp"
+#include "World/Blocks/Fence.hpp"
 #include "Rendering/Core/lve_device.hpp"
 #include "App/TextureAtlas.hpp"
 
@@ -143,23 +144,56 @@ namespace lve
 
     void ChunkMeshWorkerPool::emitMesh(MeshJob &job, MeshResult &result, ivec3 pos, u32 &emittedFaces)
     {
+
         auto &block = BlockRegistry::Get().GetBlockByID(4);
         if (block)
         {
-            uint32_t baseVertex = static_cast<uint32_t>(result.verticies.size());
-            for (Vertex vert : block->get().model->modelVerticies)
+            for (ivec3 dir : Math::CardinalDirections)
             {
-                vert.position = vert.position + vec3(pos) + vec3(0.5, 0, 0.5);
-                vert.color = {1.f, 1.f, 1.f};
-                vert.ao = 1.f;
-                vert.uv.y = 1.0f - vert.uv.y;
-                vert.uv = getModelAtlasUV(vert.uv, "fenceTexture");
-                result.verticies.push_back(vert);
+                glm::ivec3 n = pos + dir;
+                bool outOfChunk = n.x < 0 || n.x >= VoxelData::WIDTH || n.z < 0 || n.z >= VoxelData::DEPTH || n.y < 0 || n.y >= VoxelData::HEIGHT;
+
+                bool neighborSolid = false;
+
+                if (outOfChunk)
+                {
+                    neighborSolid = getNeighborData(job, n);
+                }
+                else
+                {
+                    neighborSolid = job.voxelData.get(n.x, n.y, n.z) != 0;
+                }
+                bool visible = !neighborSolid;
+
+                if (!visible)
+                {
+                    Voxel voxel = job.voxelData.getVoxel(pos.x, pos.y, pos.z);
+                    Fence::setSegmentBit(voxel, Math::VectorToCardinal(dir), true);
+                    job.voxelData.setVoxelData(pos.x, pos.y, pos.z, voxel);
+                }
             }
 
-            for (auto index : block->get().model->modelIindices)
+            for (auto &modelSection : block->get().model->modelSections)
             {
-                result.indices.push_back(baseVertex + index);
+                if (Fence::isSegmentBitActive(job.voxelData.getVoxel(pos.x, pos.y, pos.z), modelSection.second.dirction))
+                {
+
+                    u32 baseVertex = static_cast<u32>(result.verticies.size());
+                    for (Vertex vert : modelSection.second.vertices)
+                    {
+                        vert.position = vert.position + vec3(pos) + vec3(0.5, 0, 0.5);
+                        vert.color = {1.f, 1.f, 1.f};
+                        vert.ao = 1.f;
+                        vert.uv.y = 1.0f - vert.uv.y;
+                        vert.uv = getModelAtlasUV(vert.uv, "fenceTexture");
+                        result.verticies.push_back(vert);
+                    }
+
+                    for (auto index : modelSection.second.indices)
+                    {
+                        result.indices.push_back(baseVertex + index);
+                    }
+                }
             }
         }
     }
@@ -321,6 +355,31 @@ namespace lve
             return job.neighborVoxelData.get(v.x, v.y, 3) != 0;
 
         return false;
+    }
+
+    Voxel ChunkMeshWorkerPool::getOutOfChunkVoxel(const MeshJob &job, glm::ivec3 v)
+    {
+        // corners — check before edges
+        if (v.x == 16 && v.z == 16)
+            return job.neighborVoxelData.getVoxel(16, v.y, 0);
+        if (v.x == 16 && v.z == -1)
+            return job.neighborVoxelData.getVoxel(16, v.y, 3);
+        if (v.x == -1 && v.z == 16)
+            return job.neighborVoxelData.getVoxel(16, v.y, 1);
+        if (v.x == -1 && v.z == -1)
+            return job.neighborVoxelData.getVoxel(16, v.y, 2);
+
+        // edges
+        if (v.x == 16)
+            return job.neighborVoxelData.getVoxel(v.z, v.y, 0);
+        if (v.z == 16)
+            return job.neighborVoxelData.getVoxel(v.x, v.y, 1);
+        if (v.x == -1)
+            return job.neighborVoxelData.getVoxel(v.z, v.y, 2);
+        if (v.z == -1)
+            return job.neighborVoxelData.getVoxel(v.x, v.y, 3);
+
+        return job.neighborVoxelData.getVoxel(0, 0, 0);
     }
     /*
 

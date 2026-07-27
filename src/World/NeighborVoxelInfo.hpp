@@ -15,7 +15,7 @@ namespace lve
         static constexpr int DEPTH = 4;
         static constexpr int VOLUME = WIDTH * HEIGHT * DEPTH;
 
-        void allocate(BlockID fillValue = 0)
+        void allocate(Voxel fillValue = Voxel{0, {0, 0, 0}})
         {
             blocks.assign(VOLUME, fillValue);
         }
@@ -31,15 +31,25 @@ namespace lve
             assert(y >= 0 && y < HEIGHT);
             assert(z >= 0 && z < DEPTH);
 
-            int i = blocks[index(x, y, z)];
+            int i = blocks[index(x, y, z)].blockID;
             return i;
+        }
+
+        Voxel getVoxel(int x, int y, int z) const
+        {
+            assert(x >= 0 && x < WIDTH);
+            assert(y >= 0 && y < HEIGHT);
+            assert(z >= 0 && z < DEPTH);
+
+            int i = blocks[index(x, y, z)].blockID;
+            return blocks[index(x, y, z)];
         }
 
         void set(int x, int y, int z, BlockID id)
         {
             assert(!blocks.empty());
             assert(index(x, y, z) < blocks.size());
-            blocks[index(x, y, z)] = id;
+            blocks[index(x, y, z)].blockID = id;
         }
 
     private:
@@ -47,6 +57,6 @@ namespace lve
         {
             return x + WIDTH * (z + DEPTH * y);
         }
-        std::vector<BlockID> blocks;
+        std::vector<Voxel> blocks;
     };
 }

@@ -111,25 +111,25 @@ namespace lve
             return RayHit{.hitPosition = glm::vec3(-1.0f), .hitDirection = glm::vec3(0, 0, 0)};
         }
 
-        glm::vec3 intbound(glm::vec3 s, glm::vec3 ds)
+        glm::vec3 intbound(glm::vec3 rayOrigin, glm::vec3 rayDirection)
         {
             glm::vec3 result;
 
-            for (int i = 0; i < 3; i++)
+            for (int axis = 0; axis < 3; axis++)
             {
-                if (ds[i] > 0.0f)
+                if (rayDirection[axis] > 0.0f)
                 {
-                    float next = std::floor(s[i]) + 1.0f;
-                    result[i] = (next - s[i]) / ds[i];
+                    float next = std::floor(rayOrigin[axis]) + 1.0f;
+                    result[axis] = (next - rayOrigin[axis]) / rayDirection[axis];
                 }
-                else if (ds[i] < 0.0f)
+                else if (rayDirection[axis] < 0.0f)
                 {
-                    float next = std::floor(s[i]);
-                    result[i] = (s[i] - next) / -ds[i];
+                    float next = std::floor(rayOrigin[axis]);
+                    result[axis] = (rayOrigin[axis] - next) / -rayDirection[axis];
                 }
                 else
                 {
-                    result[i] = std::numeric_limits<float>::infinity();
+                    result[axis] = std::numeric_limits<float>::infinity();
                 }
             }
 

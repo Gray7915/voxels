@@ -53,6 +53,7 @@ namespace lve
                         }
                     }
                     chunk->chunkState = ChunkState::Dirty;
+                    area.markNeighborChunksDirty(req.chunkPos);
                 }
             }
         }

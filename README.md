@@ -10,6 +10,7 @@
  - Entity Component System
  - Multi threaded generation and meshing
  - Ambient Occlusion
+ - Fences that changes what segments are in use based on their surroundings hooray
 
 ## Roadmap
 ### Engine Architecture
@@ -51,4 +52,5 @@
  - [ ] Can place blocks at head height and get stuck in them
  - [ ] if moving and placing player can be accelerated in the direction rather than either not having the block paced or have the place put on top of it
  - [x] Face culling when they shouldn't be (fences) (fixed i think)
- - [ ] If using VK_Immediate_mode movement slows significantly 
+ - [ ] If using VK_Immediate_mode movement slows significantly
+ - [ ] Hit boxes don't entirely represent the box position. Mostly due to 0.5 to center something (e.g fence) on a block

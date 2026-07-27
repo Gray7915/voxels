@@ -195,6 +195,20 @@ namespace lve
             {
                 sections[shape.name] = ModelSection{};
                 sections[shape.name].name = shape.name;
+                std::cout << shape.name << '\n';
+                size_t pos = shape.name.find_last_of('_');
+                if (pos != std::string::npos)
+                {
+                    std::string direction = shape.name.substr(pos + 1);
+                    if (shape.name.ends_with("_north"))
+                        sections[shape.name].dirction = Math::Direction::NORTH;
+                    else if (shape.name.ends_with("_south"))
+                        sections[shape.name].dirction = Math::Direction::SOUTH;
+                    else if (shape.name.ends_with("_east"))
+                        sections[shape.name].dirction = Math::Direction::EAST;
+                    else if (shape.name.ends_with("_west"))
+                        sections[shape.name].dirction = Math::Direction::WEST;
+                }
             }
 
             ModelSection &section = sections[shape.name];

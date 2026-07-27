@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include "Util/lve_util.hpp"
 #include "Util/Types.hpp"
+#include "Util/Direction.hpp"
 
 #include <memory>
 #include <vector>
@@ -21,6 +22,7 @@ namespace lve
         std::string name;
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
+        Math::Direction dirction = Math::Direction::DOWN;
     };
 
     class LveModel

@@ -78,7 +78,7 @@ namespace lve
                 if (stack)
                 {
                     id = stack->getItem()->itemId;
-                    coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, id, entity, input.hotbarSlot});
+                    coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, 4, entity, input.hotbarSlot});
                 }
             }
         }

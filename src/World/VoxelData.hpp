@@ -51,6 +51,11 @@ namespace lve
             blocks[index(x, y, z)].blockID = id;
         }
 
+        void setVoxelData(int x, int y, int z, Voxel voxel)
+        {
+            blocks[index(x, y, z)] = voxel;
+        }
+
     private:
         static int index(int x, int y, int z)
         {

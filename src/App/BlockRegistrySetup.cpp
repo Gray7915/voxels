@@ -78,8 +78,10 @@ namespace lve
                 }
             }
 
+            block.renderType = Jblock["renderType"];
+            std::cout << " render type" << Jblock["renderType"] << '\n';
             blockRegistry.Register(block);
         }
-        blockRegistry.Register({.id = uint16_t(4), .name = "oak_planks", .modelName = "../models/fence.obj", .isSolid = true, .boundingBoxes = {BoxVolume{.boxSize = glm::vec3(0.25, 1, 0.25), .offset{0.5, 0, 0.5}}}, .highlightBoxSize = {0.25, 1, 0.25}, .hardness = 0, .renderType = RenderType::Mesh, .model = LveModel::createModelFromFile(device, "models/fence.obj")});
+        blockRegistry.Register({.id = uint16_t(4), .name = "oak_planks", .modelName = "../models/newFence_scaled.obj", .isSolid = true, .boundingBoxes = {BoxVolume{.boxSize = glm::vec3(0.25, 1, 0.25), .offset{0.5, 0, 0.5}}}, .highlightBoxSize = {0.25, 1, 0.25}, .hardness = 0, .renderType = RenderType::Mesh, .model = LveModel::createModelFromFile(device, "models/newFence_scaled.obj")});
     }
 }

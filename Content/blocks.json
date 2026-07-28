@@ -12,7 +12,7 @@
         },
         "textures": {},
         "hardness": 0,
-        "renderType": "Block"
+        "renderType": 0
     },
     {
         "name": "grass",
@@ -31,7 +31,7 @@
             "down": "dirt"
         },
         "hardness": 2,
-        "renderType": "Block"
+        "renderType": 2
     },
     {
         "name": "dirt",
@@ -48,7 +48,7 @@
             "all": "dirt"
         },
         "hardness": 1,
-        "renderType": "Block"
+        "renderType": 2
     },
     {
         "name": "stone",
@@ -65,6 +65,6 @@
             "all": "stone"
         },
         "hardness": 1,
-        "renderType": "Block"
+        "renderType": 2
     }
 ]

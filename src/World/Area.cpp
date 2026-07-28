@@ -90,7 +90,7 @@ namespace lve
         glm::ivec3 arrayPos = WorldToChunkArray(worldBlockPos);
         return chunk->voxelData.get(arrayPos.x, arrayPos.y, arrayPos.z);
     }
-    
+
     // Check for non block blocks (fences ect)
     bool Area::isBlockSolid(glm::vec3 worldBlockPos, glm::vec3 rayPos, glm::vec3 rayDirection)
     {
@@ -111,9 +111,13 @@ namespace lve
         {
             return chunk->voxelData.get(arrayPos.x, arrayPos.y, arrayPos.z);
         }
-        else
+        else if (voxel.renderType != RenderType::Invisible)
         {
             return CollisionDetection::rayBoxIntersection(rayPos, rayDirection, worldBlockPos, voxel.highlightBoxSize);
+        }
+        else
+        {
+            return false;
         }
     }
 

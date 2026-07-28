@@ -9,6 +9,8 @@
 
 #include "Util/Direction.hpp"
 #include "Util/Types.hpp"
+#include "Util/Constants.hpp"
+
 namespace lve
 {
     static const size_t UNIQUE_INDICES[] = {0, 1, 2, 5};
@@ -103,24 +105,14 @@ namespace lve
         for (int face = 0; face < 6; face++)
         {
             glm::ivec3 n = pos + Math::DirectionByFaceInt(face);
-            bool outOfChunk = n.x < 0 || n.x >= VoxelData::WIDTH || n.z < 0 || n.z >= VoxelData::DEPTH || n.y < 0 || n.y >= VoxelData::HEIGHT;
 
-            bool neighborSolid = false;
-
-            if (outOfChunk)
+            bool neighborSolid = BlockRegistry::Get().GetBlockByID(getChunkVoxel(job, n).blockID)->get().renderType == RenderType::Block;
+            if (neighborSolid)
             {
-                neighborSolid = getNeighborData(job, n);
-            }
-            else
-            {
-                neighborSolid = job.voxelData.get(n.x, n.y, n.z) != 0 && job.voxelData.get(n.x, n.y, n.z) != 4;
-            }
-
-            bool visible = !neighborSolid;
-
-            if (!visible)
                 continue;
+            }
             emittedFaces++;
+
             const uint32_t baseIndex = static_cast<uint32_t>(result.verticies.size());
             for (int vert = 0; vert < 4; vert++)
             {
@@ -151,47 +143,34 @@ namespace lve
             for (ivec3 dir : Math::CardinalDirections)
             {
                 glm::ivec3 n = pos + dir;
-                bool outOfChunk = n.x < 0 || n.x >= VoxelData::WIDTH || n.z < 0 || n.z >= VoxelData::DEPTH || n.y < 0 || n.y >= VoxelData::HEIGHT;
-
-                bool neighborSolid = false;
-
-                if (outOfChunk)
-                {
-                    neighborSolid = getNeighborData(job, n);
-                }
-                else
-                {
-                    neighborSolid = job.voxelData.get(n.x, n.y, n.z) != 0;
-                }
-                bool visible = !neighborSolid;
-
-                if (!visible)
+                RenderType renderType = BlockRegistry::Get().GetBlockByID(getChunkVoxel(job, n).blockID)->get().renderType;
+                bool neighborSolid = renderType == RenderType::Block || renderType == RenderType::Mesh || renderType == RenderType::Transparent;
+                if (neighborSolid)
                 {
                     Voxel voxel = job.voxelData.getVoxel(pos.x, pos.y, pos.z);
                     Fence::setSegmentBit(voxel, Math::VectorToCardinal(dir), true);
                     job.voxelData.setVoxelData(pos.x, pos.y, pos.z, voxel);
                 }
-            }
 
-            for (auto &modelSection : block->get().model->modelSections)
-            {
-                if (Fence::isSegmentBitActive(job.voxelData.getVoxel(pos.x, pos.y, pos.z), modelSection.second.dirction))
+                for (auto &modelSection : block->get().model->modelSections)
                 {
-
-                    u32 baseVertex = static_cast<u32>(result.verticies.size());
-                    for (Vertex vert : modelSection.second.vertices)
+                    if (Fence::isSegmentBitActive(job.voxelData.getVoxel(pos.x, pos.y, pos.z), modelSection.second.dirction))
                     {
-                        vert.position = vert.position + vec3(pos) + vec3(0.5, 0, 0.5);
-                        vert.color = {1.f, 1.f, 1.f};
-                        vert.ao = 1.f;
-                        vert.uv.y = 1.0f - vert.uv.y;
-                        vert.uv = getModelAtlasUV(vert.uv, "fenceTexture");
-                        result.verticies.push_back(vert);
-                    }
+                        u32 baseVertex = static_cast<u32>(result.verticies.size());
+                        for (Vertex vert : modelSection.second.vertices)
+                        {
+                            vert.position = vert.position + vec3(pos) + vec3(0.5, 0, 0.5);
+                            vert.color = {1.f, 1.f, 1.f};
+                            vert.ao = 1.f;
+                            vert.uv.y = 1.0f - vert.uv.y;
+                            vert.uv = getModelAtlasUV(vert.uv, "fenceTexture");
+                            result.verticies.push_back(vert);
+                        }
 
-                    for (auto index : modelSection.second.indices)
-                    {
-                        result.indices.push_back(baseVertex + index);
+                        for (auto index : modelSection.second.indices)
+                        {
+                            result.indices.push_back(baseVertex + index);
+                        }
                     }
                 }
             }
@@ -257,36 +236,7 @@ namespace lve
     {
         if (voxel.y < 0 || voxel.y >= VoxelData::HEIGHT)
             return 0;
-
-        bool outOfX = voxel.x < 0 || voxel.x >= VoxelData::WIDTH;
-        bool outOfZ = voxel.z < 0 || voxel.z >= VoxelData::DEPTH;
-
-        if (outOfX || outOfZ)
-        {
-            glm::ivec3 clamped = voxel;
-
-            if (outOfX && outOfZ)
-            {
-
-                clamped.x = glm::clamp(voxel.x, 0, VoxelData::WIDTH - 1);
-                clamped.z = glm::clamp(voxel.z, -1, VoxelData::DEPTH);
-
-                if (clamped.z < 0 || clamped.z >= VoxelData::DEPTH)
-                {
-                    clamped.x = glm::clamp(voxel.x, -1, VoxelData::WIDTH);
-                    clamped.z = glm::clamp(voxel.z, 0, VoxelData::DEPTH - 1);
-                }
-            }
-            else
-            {
-                clamped.x = glm::clamp(voxel.x, -1, VoxelData::WIDTH);
-                clamped.z = glm::clamp(voxel.z, -1, VoxelData::DEPTH);
-            }
-
-            return getNeighborData(job, clamped) ? 1 : 0;
-        }
-
-        return job.voxelData.get(voxel.x, voxel.y, voxel.z) != 0 ? 1 : 0;
+        return (BlockRegistry::Get().GetBlockByID(getChunkVoxel(job, voxel).blockID)->get().renderType == RenderType::Block) ? 1 : 0;
     }
 
     glm::vec2 ChunkMeshWorkerPool::getAtlasUV(int face, vec2 uv, int blockType)
@@ -332,33 +282,14 @@ namespace lve
             (region.y + modelUV.y * region.height) / static_cast<float>(atlas.atlasHeight)};
     }
 
-    bool ChunkMeshWorkerPool::getNeighborData(const MeshJob &job, glm::ivec3 v)
+    Voxel ChunkMeshWorkerPool::getChunkVoxel(const MeshJob &job, glm::ivec3 v)
     {
-        // corners — check before edges
-        if (v.x == 16 && v.z == 16)
-            return job.neighborVoxelData.get(16, v.y, 0) != 0;
-        if (v.x == 16 && v.z == -1)
-            return job.neighborVoxelData.get(16, v.y, 3) != 0;
-        if (v.x == -1 && v.z == 16)
-            return job.neighborVoxelData.get(16, v.y, 1) != 0;
-        if (v.x == -1 && v.z == -1)
-            return job.neighborVoxelData.get(16, v.y, 2) != 0;
+        if (v.x >= 0 && v.x < CHUNK_WIDTH && v.y >= 0 && v.y < CHUNK_HEIGHT && v.z >= 0 && v.z < CHUNK_DEPTH)
+        {
+            // std::cout << "get voxel " << v.y << " " << v.y << " " << v.z << '\n';
+            return job.voxelData.getVoxel(v.x, v.y, v.z);
+        }
 
-        // edges
-        if (v.x == 16)
-            return job.neighborVoxelData.get(v.z, v.y, 0) != 0;
-        if (v.z == 16)
-            return job.neighborVoxelData.get(v.x, v.y, 1) != 0;
-        if (v.x == -1)
-            return job.neighborVoxelData.get(v.z, v.y, 2) != 0;
-        if (v.z == -1)
-            return job.neighborVoxelData.get(v.x, v.y, 3) != 0;
-
-        return false;
-    }
-
-    Voxel ChunkMeshWorkerPool::getOutOfChunkVoxel(const MeshJob &job, glm::ivec3 v)
-    {
         // corners — check before edges
         if (v.x == 16 && v.z == 16)
             return job.neighborVoxelData.getVoxel(16, v.y, 0);

@@ -6,8 +6,10 @@
 
 namespace lve
 {
-    enum class RenderType
+    enum class RenderType : u8
     {
+        Invisible,
+        Transparent,
         Block,
         Mesh,
     };

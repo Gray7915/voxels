@@ -44,8 +44,7 @@ namespace lve
         int getSign(glm::ivec3 tangent, glm::ivec3 vertex);
         int getSolid(glm::ivec3 voxel, const MeshJob &job);
 
-        bool getNeighborData(const MeshJob &job, glm::ivec3 chunkVoxel);
-        Voxel getOutOfChunkVoxel(const MeshJob &job, glm::ivec3 chunkVoxel);
+        Voxel getChunkVoxel(const MeshJob &job, glm::ivec3 chunkVoxel);
 
         static constexpr float aoValues[] = {0.1f, 0.34f, 0.65f, 1.f};
         std::vector<std::thread> workers;

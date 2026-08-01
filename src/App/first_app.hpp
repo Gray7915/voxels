@@ -1,36 +1,37 @@
 #pragma once
 
-#include "Rendering/Core/lve_window.hpp"
+#include "Rendering/Core/lve_Texture.hpp"
+#include "Rendering/Core/lve_descriptors.hpp"
 #include "Rendering/Core/lve_device.hpp"
 #include "Rendering/Core/lve_model.hpp"
 #include "Rendering/Core/lve_renderer.hpp"
-#include "Rendering/Core/lve_descriptors.hpp"
-#include "Rendering/Core/lve_Texture.hpp"
+#include "Rendering/Core/lve_window.hpp"
 #include "Rendering/Passes/GeometryPass.hpp"
 
 #include <unordered_map>
 
-#include "Ui/ImguiManager.hpp"
 #include "ECS/Coordinator.hpp"
-#include "ECS/Systems/PhysicsSystem.hpp"
+#include "ECS/EntityFactory.hpp"
 #include "ECS/Systems/CameraSystem.hpp"
-#include "ECS/Systems/InputSystem.hpp"
-#include "ECS/Systems/MovementSystem.hpp"
 #include "ECS/Systems/CollisionSystem.hpp"
+#include "ECS/Systems/InputSystem.hpp"
 #include "ECS/Systems/InteractionSystem.hpp"
+#include "ECS/Systems/MovementSystem.hpp"
+#include "ECS/Systems/PhysicsSystem.hpp"
+#include "Ui/ImguiManager.hpp"
 
 #include "World/Area.hpp"
-#include "World/Systems/ChunkMeshSystem.hpp"
 #include "World/Systems/ChunkGenerationSystem.hpp"
+#include "World/Systems/ChunkMeshSystem.hpp"
 #include "World/Systems/ChunkMutationSystem.hpp"
 
-#include "Util/lve_frame_info.hpp"
-#include "Util/ray.hpp"
 #include "Util/IVec3Hash.h"
+#include "Util/lve_frame_info.hpp"
 #include "Util/lve_util.hpp"
+#include "Util/ray.hpp"
 
-#include "SetupECS.hpp"
 #include "RenderSetup.hpp"
+#include "SetupECS.hpp"
 // std
 
 #include <memory>
@@ -40,9 +41,8 @@
 
 namespace lve
 {
-    class FirstApp
-    {
-    public:
+    class FirstApp {
+      public:
         static constexpr int WIDTH = 800;
         static constexpr int HEIGHT = 600;
 
@@ -54,11 +54,12 @@ namespace lve
 
         void run();
 
-    private:
+      private:
         void createPipelineLayout();
         void createPipeline();
         // void registerECSComponents();
-        // bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3, LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
+        // bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3,
+        // LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
 
         LveWindow lveWindow{WIDTH, HEIGHT, "Hello Vulkan"};
         LveDevice lveDevice{lveWindow};
@@ -74,4 +75,4 @@ namespace lve
 
         VkQueryPool queryPool;
     };
-}
+} // namespace lve

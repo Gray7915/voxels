@@ -1,42 +1,49 @@
 #include "first_app.hpp"
 #include "Rendering/Systems/chunk_render_system.hpp"
 #include "Rendering/Systems/highlight_render_system.hpp"
-#include "Rendering/Systems/ui_render_system.hpp"
 #include "Rendering/Systems/simple_render_system.hpp"
+#include "Rendering/Systems/ui_render_system.hpp"
 
 #include "World/Chunk.hpp"
 
-#include "Rendering/Core/lve_buffer.hpp"
 #include "ECS/Coordinator.hpp"
+#include "Rendering/Core/lve_buffer.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-#include <stdexcept>
-#include <array>
-#include <iostream>
-#include <chrono>
+#include <di.hpp>
+namespace di = boost::di;
+
+#include "Util/Types.hpp"
+
 #include <algorithm>
-#include <optional>
+#include <array>
 #include <cassert>
+#include <chrono>
+#include <iostream>
+#include <optional>
+#include <stdexcept>
 
-#include "SetupECS.hpp"
-#include "App/ItemRegistrySetup.hpp"
 #include "App/BlockRegistrySetup.hpp"
+#include "App/EntityFactorySetup.hpp"
+#include "App/ItemRegistrySetup.hpp"
+#include "SetupECS.hpp"
 
-#include "ECS/Components/Gravity.hpp"
 #include "ECS/Components/Camera.hpp"
-#include "ECS/Components/RigidBody.hpp"
-#include "ECS/Components/Transform.hpp"
-#include "ECS/Components/Thrust.hpp"
+#include "ECS/Components/Gravity.hpp"
 #include "ECS/Components/Input.hpp"
 #include "ECS/Components/MovementStats.hpp"
+#include "ECS/Components/RigidBody.hpp"
+#include "ECS/Components/Thrust.hpp"
+#include "ECS/Components/Transform.hpp"
 // #include "ECS/Components/ColliderComponent.hpp"
 #include "ECS/Components/AABBComponent.hpp"
-#include "ECS/Components/Renderable.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
+#include "ECS/Components/Renderable.hpp"
+#include "ECS/SpawnInfo.hpp"
 
 #include "Inventory/ItemRegistry.hpp"
 #include "World/Blocks/BlockRegistry.hpp"
@@ -45,27 +52,24 @@ namespace lve
 {
     Coordinator coordinator;
     // test
-    FirstApp::FirstApp() : area(lveDevice, glm::vec3(0, 0, 0), chunkGenSystem)
-    {
-    }
+    FirstApp::FirstApp() : area(lveDevice, glm::vec3(0, 0, 0), chunkGenSystem) {}
 
-    FirstApp::~FirstApp()
-    {
-        vkDestroyQueryPool(lveDevice.device(), queryPool, nullptr);
-    }
+    FirstApp::~FirstApp() { vkDestroyQueryPool(lveDevice.device(), queryPool, nullptr); }
 
-    void FirstApp::run()
-    {
+    void FirstApp::run() {
+        auto injector = di::make_injector(di::bind<LveDevice>.to(lveDevice), di::bind<Area>.to(area), di::bind<Coordinator>.to(coordinator), di::bind<LveWindow>.to(lveWindow),
+                                          di::bind<LveRenderer>.to(lveRenderer), di::bind<BlockRegistry>.to(BlockRegistry::Get()), di::bind<ItemRegistry>.to(ItemRegistry::Get()));
+
         coordinator.Init();
         ItemRegistrySetup::SetupItemRegistry(ItemRegistry::Get());
         BlockRegistrySetup::SetupBlockRegistry(BlockRegistry::Get(), lveDevice);
+        EntityFactorySetup::SetupEntityFactory(ECS::EntityFactory::Get(), coordinator);
 
         VkQueryPoolCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
         createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
         createInfo.queryCount = 16;
-        if (vkCreateQueryPool(lveDevice.device(), &createInfo, nullptr, &queryPool) != VK_SUCCESS)
-        {
+        if (vkCreateQueryPool(lveDevice.device(), &createInfo, nullptr, &queryPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create timestamp query pool");
         }
 
@@ -78,29 +82,18 @@ namespace lve
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         std::cout << "setup render systems" << '\n';
 
-        Entity mainCamera = coordinator.CreateEntity();
-        coordinator.AddComponent(mainCamera, Transform{.position = {0, 68, 0}});
-        coordinator.AddComponent(mainCamera, GravityComponent{glm::vec3(0.0f, -15.0f, 0.0f)});
-        coordinator.AddComponent(mainCamera, RigidBodyComponent{.velocity = glm::vec3(0.0f, 0.0f, 0.0f), .acceleration = glm::vec3(0.0f, 0.0f, 0.0f)});
-        coordinator.AddComponent(mainCamera, CameraComponent{});
-        coordinator.AddComponent(mainCamera, InputComponent{});
-        coordinator.AddComponent(mainCamera, MovementStats{.moveSpeed = 6.5f, .jumpForce = 6.1});
-        coordinator.AddComponent(mainCamera, AABBComponent{.halfExtents = glm::vec3(0.4, 0.8, 0.4)});
-        coordinator.AddComponent(mainCamera, InventoryComponent{});
-        std::cout << "create camera entity" << '\n';
+        Entity mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = vec3{0, 68, 0}});
 
         float aspect = lveRenderer.getAspectRatio();
         systems.cameraSystem->Update(aspect);
 
         Entity testEntity = coordinator.CreateEntity();
+        coordinator.AddComponent(testEntity, RenderableComponent{.model = LveModel::createModelFromFile(lveDevice, "models/ferret_scaled2.obj")});
         coordinator.AddComponent(testEntity, Transform{.position = {0, 66, 0}, .scale = {1, 1, 1}});
-        coordinator.AddComponent(testEntity, RenderableComponent{.model = LveModel::createModelFromFile(lveDevice, "models/flat_vase.obj")});
-        //    auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         assert(lveWindow.getGLFWwindow() != nullptr && "window null)");
-        while (!lveWindow.shouldClose())
-        {
+        while (!lveWindow.shouldClose()) {
             glfwPollEvents();
 
             auto newTime = std::chrono::high_resolution_clock::now();
@@ -111,12 +104,7 @@ namespace lve
             systems.inputSystem->Update(&lveWindow);
             systems.movementSystem->Update(frameTime);
             systems.physicsSystem->Update(frameTime);
-            auto t0 = std::chrono::high_resolution_clock::now();
             systems.collisionSystem->Update(frameTime, area);
-            auto t1 = std::chrono::high_resolution_clock::now();
-            float ms = std::chrono::duration<float, std::milli>(t1 - t0).count();
-            // if (ms > 1.0f)
-            // std::cout << "movement spike: " << ms << "ms\n";
             systems.interactionSystem->Update(frameTime, lveWindow, lveDevice, area);
             systems.inventorySystem->Update(area);
 
@@ -131,8 +119,7 @@ namespace lve
             auto &camCollision = coordinator.GetComponent<AABBComponent>(mainCamera);
             auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
 
-            if (auto commandBuffer = lveRenderer.beginFrame())
-            {
+            if (auto commandBuffer = lveRenderer.beginFrame()) {
                 int frameIndex = lveRenderer.getFrameIndex();
                 auto start = std::chrono::high_resolution_clock::now();
 
@@ -140,10 +127,12 @@ namespace lve
 
                 auto end = std::chrono::high_resolution_clock::now();
 
-                // std::cout<< "Chunk mesh update: "<< std::chrono::duration<double, std::milli>(end - start).count()<< "ms\n";
+                // std::cout<< "Chunk mesh update: "<< std::chrono::duration<double, std::milli>(end - start).count()<<
+                // "ms\n";
                 area.tick(lveDevice, camTransform.position, frameIndex, chunkGenSystem);
 
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
+
                 auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
                 GlobalUbo ubo{};
                 ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
@@ -170,11 +159,17 @@ namespace lve
                     boxSize = block->get().highlightBoxSize;
                 // std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
 
-                highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, boxSize);
+                vec3 rot = camTransform.rotation;
+                vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
+                vec3 rayDir = glm::normalize(forward);
+
                 auto &testTrans = coordinator.GetComponent<Transform>(testEntity);
                 auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
-
                 simpleRenderSystem.renderGameObjects(frameInfo, testTrans.mat4(), testTrans.normalMatrix(), testModel.model);
+
+                // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
+                highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, boxSize, rayDir,
+                                             BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w)->get().highlightShape);
 
                 lveRenderer.geometryPass->end(commandBuffer);
 
@@ -209,8 +204,7 @@ namespace lve
             if (colWasPressed && !colIsPressed)
                 colWasPressed = false;
 
-            if (colIsPressed && !colWasPressed)
-            {
+            if (colIsPressed && !colWasPressed) {
                 camCollision.collisionEnabled = !camCollision.collisionEnabled;
                 // std::cout << "collision enabled / disabled" << '\n';
             }
@@ -224,4 +218,4 @@ namespace lve
         }
         vkDeviceWaitIdle(lveDevice.device());
     };
-}
+} // namespace lve

@@ -78,10 +78,98 @@ namespace lve
                 }
             }
 
-            block.renderType = Jblock["renderType"];
+            block.renderType = parseRenderType(Jblock["renderType"]);
+
+            if (Jblock.contains("behaviour"))
+            {
+                auto &b = Jblock["behaviour"];
+
+                block.behaviour.behaviourType = parseBehaviourType(b["type"]);
+                block.behaviour.bitOffset = b["bitOffset"];
+                block.behaviour.bitMask = b["bitMask"];
+
+                for (auto &field : b["fields"])
+                {
+                    block.behaviour.fields.push_back({field["name"], field["offset"], field["mask"]});
+                }
+            }
+
+            if (Jblock.contains("boundingBoxes"))
+            {
+                for (auto &box : Jblock["boundingBoxes"])
+                {
+                    BoxVolume volume;
+
+                    volume.boxSize = {
+                        box["boxSize"]["x"],
+                        box["boxSize"]["y"],
+                        box["boxSize"]["z"]};
+
+                    volume.offset = {
+                        box["offset"]["x"],
+                        box["offset"]["y"],
+                        box["offset"]["z"]};
+
+                    block.boundingBoxes.push_back(volume);
+                }
+            }
+
+            if (Jblock.contains("highlightShape"))
+            {
+                block.highlightShape.highlightBoxVerticies.clear();
+                block.highlightShape.highlighBoxEdges.clear();
+                const auto &highlightShape = Jblock["highlightShape"];
+
+                for (const auto &vertex : highlightShape["vertices"])
+                {
+                    block.highlightShape.highlightBoxVerticies.emplace_back(vertex["x"], vertex["y"], vertex["z"]);
+                }
+
+                for (const auto &edge : highlightShape["edges"])
+                {
+                    block.highlightShape.highlighBoxEdges.push_back({edge[0], edge[1]});
+                }
+            }
+
+            if (block.renderType == RenderType::Mesh)
+            {
+                block.model = LveModel::createModelFromFile(
+                    device,
+                    block.modelName);
+            }
+
             std::cout << " render type" << Jblock["renderType"] << '\n';
             blockRegistry.Register(block);
         }
-        blockRegistry.Register({.id = uint16_t(4), .name = "oak_planks", .modelName = "../models/newFence_scaled.obj", .isSolid = true, .boundingBoxes = {BoxVolume{.boxSize = glm::vec3(0.25, 1, 0.25), .offset{0.5, 0, 0.5}}}, .highlightBoxSize = {0.25, 1, 0.25}, .hardness = 0, .renderType = RenderType::Mesh, .model = LveModel::createModelFromFile(device, "models/newFence_scaled.obj")});
+        // blockRegistry.Register({.id = uint16_t(4), .name = "oak_planks", .modelName = "../models/newFence.obj", .isSolid = true, .boundingBoxes = {BoxVolume{.boxSize = glm::vec3(0.25, 1, 0.25), .offset{0.5, 0, 0.5}}}, .highlightBoxSize = {0.25, 1, 0.25}, .hardness = 0, .renderType = RenderType::Mesh, .model = LveModel::createModelFromFile(device, "models/newFence.obj")});
+    }
+
+    BlockBehaviourType BlockRegistrySetup::parseBehaviourType(const std::string &str)
+    {
+        if (str == "none")
+            return BlockBehaviourType::NONE;
+        if (str == "staged")
+            return BlockBehaviourType::STAGED;
+        if (str == "connected")
+            return BlockBehaviourType::CONNECTED;
+        if (str == "random_offset")
+            return BlockBehaviourType::RANDOM_OFFSET;
+        if (str == "custom")
+            return BlockBehaviourType::CUSTOM;
+
+        // unknown type in json — fail loud so you know immediately
+        throw std::runtime_error("Unknown behaviour type: " + str);
+    }
+
+    RenderType BlockRegistrySetup::parseRenderType(const std::string &str)
+    {
+        if (str == "invisible")
+            return RenderType::Invisible;
+        if (str == "transparent")
+            return RenderType::Transparent;
+        if (str == "block")
+            return RenderType::Block;
+        if (str == "mesh")
+            return RenderType::Mesh;
     }
 }

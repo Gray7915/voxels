@@ -9,5 +9,7 @@ namespace lve
     {
     public:
         static void SetupBlockRegistry(BlockRegistry &blockRegistry, LveDevice &device);
+        static BlockBehaviourType parseBehaviourType(const std::string &str);
+        static RenderType parseRenderType(const std::string &str);
     };
 }

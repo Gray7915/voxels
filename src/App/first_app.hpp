@@ -66,12 +66,8 @@ namespace lve
         LveRenderer lveRenderer{lveWindow, lveDevice};
         ImguiManager imguiManager{lveDevice, lveWindow, lveRenderer};
 
-        Area area;
+        Area area{lveDevice, 2};
         // glm::ivec4 hoveredID;
-
-        ChunkGenerationSystem chunkGenSystem{area};
-        ChunkMeshSystem chunkMeshSystem{area, lveDevice};
-        ChunkMutationSystem chunkMutationSystem{};
 
         VkQueryPool queryPool;
     };

@@ -1,9 +1,10 @@
 #include "first_app.hpp"
+#include "Rendering/Scene/MainMenu.hpp"
+#include "Rendering/Scene/SceneManager.hpp"
 #include "Rendering/Systems/chunk_render_system.hpp"
 #include "Rendering/Systems/highlight_render_system.hpp"
 #include "Rendering/Systems/simple_render_system.hpp"
 #include "Rendering/Systems/ui_render_system.hpp"
-
 #include "World/Chunk.hpp"
 
 #include "ECS/Coordinator.hpp"
@@ -52,7 +53,7 @@ namespace lve
 {
     Coordinator coordinator;
     // test
-    FirstApp::FirstApp() : area(lveDevice, glm::vec3(0, 0, 0), chunkGenSystem) {}
+    FirstApp::FirstApp() {}
 
     FirstApp::~FirstApp() { vkDestroyQueryPool(lveDevice.device(), queryPool, nullptr); }
 
@@ -73,9 +74,11 @@ namespace lve
             throw std::runtime_error("failed to create timestamp query pool");
         }
 
-        auto systems = registerECSComponents(coordinator);
+        lve::ECSSystems systems = registerECSComponents(coordinator);
         TextureAtlas::Get().createAtlas(); // This must run before the render setup. if it doesn't sadness will happen
-        auto renderSetup = setupRender(lveDevice);
+
+        RenderSetup renderSetup = setupRender(lveDevice);
+
         std::cout << "setup systems" << '\n';
         HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         ChunkRenderSystem chunkRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
@@ -93,6 +96,11 @@ namespace lve
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         assert(lveWindow.getGLFWwindow() != nullptr && "window null)");
+
+        Rendering::SceneManager sceneManager;
+        sceneManager.switchTo(std::make_unique<Rendering::MenuScene>(sceneManager, lveDevice, lveWindow, imguiManager, lveRenderer, renderSetup, coordinator, systems));
+        sceneManager.applyPendingSwitch();
+
         while (!lveWindow.shouldClose()) {
             glfwPollEvents();
 
@@ -100,18 +108,8 @@ namespace lve
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
             // std::cout << "Set time in loop" << '\n';
-
-            systems.inputSystem->Update(&lveWindow);
-            systems.movementSystem->Update(frameTime);
-            systems.physicsSystem->Update(frameTime);
-            systems.collisionSystem->Update(frameTime, area);
-            systems.interactionSystem->Update(frameTime, lveWindow, lveDevice, area);
-            systems.inventorySystem->Update(area);
-
-            chunkMutationSystem.Update(area);
-            chunkGenSystem.update();
-            coordinator.eventBus.blockBreakRequest.clear();
-            coordinator.eventBus.blockPlaceRequested.clear();
+            // coordinator.eventBus.blockBreakRequest.clear();
+            // coordinator.eventBus.blockPlaceRequested.clear();
 
             aspect = lveRenderer.getAspectRatio();
             systems.cameraSystem->Update(aspect);
@@ -119,19 +117,21 @@ namespace lve
             auto &camCollision = coordinator.GetComponent<AABBComponent>(mainCamera);
             auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
 
+            sceneManager.applyPendingSwitch();
+            sceneManager.current()->update(frameTime);
+
             if (auto commandBuffer = lveRenderer.beginFrame()) {
                 int frameIndex = lveRenderer.getFrameIndex();
+
                 auto start = std::chrono::high_resolution_clock::now();
-
-                chunkMeshSystem.Update(lveDevice, frameIndex);
-
                 auto end = std::chrono::high_resolution_clock::now();
 
                 // std::cout<< "Chunk mesh update: "<< std::chrono::duration<double, std::milli>(end - start).count()<<
                 // "ms\n";
-                area.tick(lveDevice, camTransform.position, frameIndex, chunkGenSystem);
+                area.tick(lveDevice, camTransform.position, frameIndex);
 
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
+                sceneManager.current()->render(frameInfo);
 
                 auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
                 GlobalUbo ubo{};
@@ -140,7 +140,7 @@ namespace lve
                 ubo.cameraPosition = glm::ivec4(camTransform.position, 1);
                 renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 renderSetup.uboBuffers[frameIndex]->flush();
-
+                /*
                 vkCmdResetQueryPool(commandBuffer, queryPool, 0, 8);
 
                 vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
@@ -186,14 +186,16 @@ namespace lve
                 lveRenderer.UiRenderPass->end(commandBuffer);
 
                 vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 3);
+*/
                 lveRenderer.endFrame();
 
                 uint64_t timestamps[4];
 
-                vkGetQueryPoolResults(lveDevice.device(), queryPool, 0, 4, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+                // vkGetQueryPoolResults(lveDevice.device(), queryPool, 0, 4, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
 
-                double geometryMs = (timestamps[1] - timestamps[0]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
-                double uiMs = (timestamps[3] - timestamps[2]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
+                // double geometryMs = (timestamps[1] - timestamps[0]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
+                // double uiMs = (timestamps[3] - timestamps[2]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
+
                 //  std::cout << "Chunks: " << area.chunks.size() << " Geometry: " << geometryMs << "\n";
                 // std::cout << "UI Pass time " << uiMs << '\n';
                 // std::cout << frameTime << "\n";

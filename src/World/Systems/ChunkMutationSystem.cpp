@@ -1,19 +1,19 @@
 #include "ChunkMutationSystem.hpp"
-#include "ECS/Coordinator.hpp"
+#include "World/Area.hpp"  // ← moved up: defines Area
+#include "World/Chunk.hpp" // ← moved up: defines Chunk::CHUNK_SIZE for math.hpp
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
-#include "World/Area.hpp"
+#include "ECS/Coordinator.hpp"
+#include "Physics/aabb.hpp" // ← now Area is complete when this is parsed
+#include "Util/math.hpp"    // ← now Chunk is defined when this is parsed
 #include "World/Generation/ChunkState.hpp"
-#include "Util/math.hpp"
 
 namespace lve
 {
     extern Coordinator coordinator;
 
-    void ChunkMutationSystem::Update(Area &area)
-    {
-        for (auto &e : coordinator.eventBus.blockBreakRequest.read())
-        {
+    void ChunkMutationSystem::Update(Area &area) {
+        for (auto &e : coordinator.eventBus.blockBreakRequest.read()) {
             Chunk *chunk = area.getChunk(e.chunkPos);
 
             if (!chunk || !chunk->voxelData.isGenerated())
@@ -24,8 +24,7 @@ namespace lve
             area.markNeighborChunksDirty(e.chunkPos);
         }
 
-        for (auto &req : coordinator.eventBus.blockPlaceRequested.read())
-        {
+        for (auto &req : coordinator.eventBus.blockPlaceRequested.read()) {
             glm::ivec3 blockCoord = req.blockPos;
             glm::ivec3 chunkPos = req.chunkPos;
 
@@ -37,18 +36,14 @@ namespace lve
             auto &aabb = coordinator.GetComponent<AABBComponent>(req.placedBy);
             auto &transform = coordinator.GetComponent<Transform>(req.placedBy);
 
-            if (!CollisionDetection::CheckBlockPlacement(transform, aabb, req.blockPos))
-            {
-                if (chunk->voxelData.get(blockCoord.x, blockCoord.y, blockCoord.z) == 0)
-                {
+            if (!CollisionDetection::CheckBlockPlacement(transform, aabb, req.blockPos)) {
+                if (chunk->voxelData.get(blockCoord.x, blockCoord.y, blockCoord.z) == 0) {
                     chunk->voxelData.set(blockCoord.x, blockCoord.y, blockCoord.z, req.blockType);
                     auto &inventory = coordinator.GetComponent<InventoryComponent>(req.placedBy);
                     auto &stack = inventory.inventoryStacks.at(req.inventoryPos);
-                    if (stack)
-                    {
+                    if (stack) {
                         stack->setStackCount(stack->getStackCount() - 1);
-                        if (stack->getStackCount() == 0)
-                        {
+                        if (stack->getStackCount() == 0) {
                             inventory.inventoryStacks[req.inventoryPos].reset();
                         }
                     }
@@ -58,4 +53,4 @@ namespace lve
             }
         }
     }
-}
+} // namespace lve

@@ -3,14 +3,12 @@
 #include "stb_perlin.h"
 namespace lve
 {
-    float Octave::sample(glm::vec2 i) const
-    {
+    float Octave::sample(glm::vec2 i, u64 seed) const {
         float value = 0.0f;
         float amplitude = 1.0f;
         float frequency = 1.0f;
 
-        for (size_t j = 0; j < n; j++)
-        {
+        for (size_t j = 0; j < n; j++) {
             float sx = (i.x * frequency) + (seed + j) * 12.9898f;
             float sy = (i.y * frequency) + (seed + j) * 78.233f;
 
@@ -23,8 +21,5 @@ namespace lve
         return value;
     }
 
-    float Combined::sample(glm::vec2 i) const
-    {
-        return n->sample(glm::vec2(i.x + m->sample(i), i.y));
-    }
-}
+    float Combined::sample(glm::vec2 i, u64 seed) const { return n->sample(glm::vec2(i.x + m->sample(i, seed), i.y), seed); }
+} // namespace lve

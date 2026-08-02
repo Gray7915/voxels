@@ -1,15 +1,15 @@
 #include "InteractionSystem.hpp"
 
-#include "ECS/Components/Transform.hpp"
-#include "ECS/Components/Input.hpp"
 #include "ECS/Components/AABBComponent.hpp"
+#include "ECS/Components/Input.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
+#include "ECS/Components/Transform.hpp"
 
 #include "World/Area.hpp"
 
-#include "Util/ray.hpp"
-#include "Util/lve_util.hpp"
 #include "Util/Types.hpp"
+#include "Util/lve_util.hpp"
+#include "Util/ray.hpp"
 
 #include "Physics/aabb.hpp"
 
@@ -19,10 +19,8 @@ namespace lve
 {
     extern Coordinator coordinator;
 
-    void InteractionSystem::Update(float deltaTime, LveWindow &lveWindow, LveDevice &lveDevice, Area &area)
-    {
-        for (auto const &entity : mEntities)
-        {
+    void InteractionSystem::Update(float deltaTime, LveWindow &lveWindow, LveDevice &lveDevice, Area &area) {
+        for (auto const &entity : mEntities) {
             auto &transform = coordinator.GetComponent<Transform>(entity);
             auto &camera = coordinator.GetComponent<CameraComponent>(entity);
             auto &inventory = coordinator.GetComponent<InventoryComponent>(entity);
@@ -33,8 +31,7 @@ namespace lve
             if (escapeWasPressed && !escapeIsPressed)
                 escapeWasPressed = false;
 
-            if (escapeIsPressed && !escapeWasPressed)
-            {
+            if (escapeIsPressed && !escapeWasPressed) {
                 escapeWasPressed = true;
                 lveWindow.setMouseActive();
             }
@@ -49,12 +46,12 @@ namespace lve
             hoveredID = {rayHit.hitPosition, rayHit.blockID};
 
             static bool pWasPressed = false;
-            bool pIsPressed = glfwGetMouseButton(lveWindow.getGLFWwindow(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS;
+            bool pIsPressed = glfwGetMouseButton(lveWindow.getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
             if (pWasPressed && !pIsPressed)
                 pWasPressed = false;
 
-            if (pIsPressed && !pWasPressed && rayHit.hitPosition != ivec3(-1.0f) && lveWindow.getMenuActive())
-            {
+            if (pIsPressed && !pWasPressed && rayHit.hitPosition != ivec3(-1.0f) && lveWindow.getMenuActive()) {
+                std::cout << "mouse left clicked" << '\n';
                 pWasPressed = true;
                 ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
                 ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
@@ -66,21 +63,19 @@ namespace lve
             if (rightWasPressed && !rightIsPressed)
                 rightWasPressed = false;
 
-            if (rightIsPressed && !rightWasPressed && rayHit.hitPosition != ivec3(-1.0f) && lveWindow.getMenuActive())
-            {
+            if (rightIsPressed && !rightWasPressed && rayHit.hitPosition != ivec3(-1.0f) && lveWindow.getMenuActive()) {
                 rightWasPressed = true;
                 ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
                 ivec3 blockCoord = WorldToChunkArray(blockPos);
                 ivec3 chunkPosition = WorldToChunkId(blockPos);
-
+                std::cout << "mouse right clicked" << '\n';
                 auto &stack = inventory.inventoryStacks.at(input.hotbarSlot);
                 BlockId id = 0;
-                if (stack)
-                {
+                if (stack) {
                     id = stack->getItem()->itemId;
                     coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, 4, entity, input.hotbarSlot});
                 }
             }
         }
     }
-}
+} // namespace lve

@@ -53,5 +53,7 @@ namespace lve
         std::atomic<bool> running{true};
         LveDevice &device;
         VkCommandPool myPool;
+
+        
     };
 }

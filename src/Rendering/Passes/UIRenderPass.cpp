@@ -4,15 +4,13 @@
 
 namespace lve
 {
-    UIRenderPass::UIRenderPass(LveDevice &device, SwapChain &swapChain) : device{device}, swapChain{swapChain}
-    {
+    UIRenderPass::UIRenderPass(LveDevice &device, SwapChain &swapChain, Mode mode) : device{device}, swapChain{swapChain}, mode{mode} {
         createRenderPass();
         createDepthResources();
         createFrameBuffers();
     }
 
-    void UIRenderPass::createRenderPass()
-    {
+    void UIRenderPass::createRenderPass() {
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format = device.findDepthFormat();
         depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -30,11 +28,15 @@ namespace lve
         VkAttachmentDescription colorAttachment = {};
         colorAttachment.format = swapChain.getSwapChainImageFormat();
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        if (mode == Mode::Overlay) {
+            colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+            colorAttachment.initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        } else {
+            colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        }
         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorAttachmentRef = {};
@@ -50,13 +52,10 @@ namespace lve
         VkSubpassDependency dependency = {};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.srcAccessMask = 0;
-        dependency.srcStageMask =
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.dstSubpass = 0;
-        dependency.dstStageMask =
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        dependency.dstAccessMask =
-            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
         std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
         VkRenderPassCreateInfo renderPassInfo = {};
@@ -68,22 +67,19 @@ namespace lve
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &dependency;
 
-        if (vkCreateRenderPass(device.device(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
-        {
+        if (vkCreateRenderPass(device.device(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
         }
     }
 
-    void UIRenderPass::createDepthResources()
-    {
+    void UIRenderPass::createDepthResources() {
         VkFormat depthFormat = device.findDepthFormat();
         VkExtent2D swapChainExtent = swapChain.getSwapChainExtent();
         depthImages.resize(swapChain.imageCount());
         depthImageMemorys.resize(swapChain.imageCount());
         depthImageViews.resize(swapChain.imageCount());
 
-        for (int i = 0; i < depthImages.size(); i++)
-        {
+        for (int i = 0; i < depthImages.size(); i++) {
             VkImageCreateInfo imageInfo{};
             imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
             imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -100,11 +96,7 @@ namespace lve
             imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             imageInfo.flags = 0;
 
-            device.createImageWithInfo(
-                imageInfo,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                depthImages[i],
-                depthImageMemorys[i]);
+            device.createImageWithInfo(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImages[i], depthImageMemorys[i]);
 
             VkImageViewCreateInfo viewInfo{};
             viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -117,8 +109,7 @@ namespace lve
             viewInfo.subresourceRange.baseArrayLayer = 0;
             viewInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(device.device(), &viewInfo, nullptr, &depthImageViews[i]) != VK_SUCCESS)
-            {
+            if (vkCreateImageView(device.device(), &viewInfo, nullptr, &depthImageViews[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create texture image view!");
             }
         }
@@ -173,11 +164,9 @@ namespace lve
       }
           */
 
-    void UIRenderPass::createFrameBuffers()
-    {
+    void UIRenderPass::createFrameBuffers() {
         Framebuffers.resize(swapChain.imageCount());
-        for (size_t i = 0; i < swapChain.imageCount(); i++)
-        {
+        for (size_t i = 0; i < swapChain.imageCount(); i++) {
             std::array<VkImageView, 2> attachments = {swapChain.getImageView(i), depthImageViews[i]};
 
             VkExtent2D swapChainExtent = swapChain.getSwapChainExtent();
@@ -190,19 +179,13 @@ namespace lve
             framebufferInfo.height = swapChainExtent.height;
             framebufferInfo.layers = 1;
 
-            if (vkCreateFramebuffer(
-                    device.device(),
-                    &framebufferInfo,
-                    nullptr,
-                    &Framebuffers[i]) != VK_SUCCESS)
-            {
+            if (vkCreateFramebuffer(device.device(), &framebufferInfo, nullptr, &Framebuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create framebuffer!");
             }
         }
     }
 
-    void UIRenderPass::begin(VkCommandBuffer cmd, int frameIndex)
-    {
+    void UIRenderPass::begin(VkCommandBuffer cmd, int frameIndex) {
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = renderPass;
@@ -239,8 +222,5 @@ namespace lve
         vkCmdSetScissor(cmd, 0, 1, &scissor);
     }
 
-    void UIRenderPass::end(VkCommandBuffer cmd)
-    {
-        vkCmdEndRenderPass(cmd);
-    }
-}
+    void UIRenderPass::end(VkCommandBuffer cmd) { vkCmdEndRenderPass(cmd); }
+} // namespace lve

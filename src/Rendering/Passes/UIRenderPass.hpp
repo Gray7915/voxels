@@ -1,19 +1,20 @@
 #pragma once
-#include "Rendering/Core/lve_device.hpp"
 #include "Rendering/Core/SwapChain.hpp"
+#include "Rendering/Core/lve_device.hpp"
 
 namespace lve
 {
-    class UIRenderPass
-    {
-    public:
-        UIRenderPass(LveDevice &device, SwapChain &swapChain);
+    enum class Mode { Overlay, Standalone };
+
+    class UIRenderPass {
+      public:
+        UIRenderPass(LveDevice &device, SwapChain &swapChain, Mode mode);
         VkRenderPass getRenderPass() { return renderPass; };
 
         void begin(VkCommandBuffer cmd, int frameIndex);
         void end(VkCommandBuffer cmd);
 
-    private:
+      private:
         LveDevice &device;
         SwapChain &swapChain;
         VkRenderPass renderPass;
@@ -34,5 +35,7 @@ namespace lve
 
         void createFrameBuffers();
         VkFormat findDepthFormat(LveDevice device);
+
+        Mode mode;
     };
-}
+} // namespace lve

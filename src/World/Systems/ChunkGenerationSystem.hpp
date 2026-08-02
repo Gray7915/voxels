@@ -5,17 +5,16 @@
 namespace lve
 {
     class Area;
-    class ChunkGenerationSystem
-    {
-    public:
+    class ChunkGenerationSystem {
+      public:
         ChunkGenerationSystem(Area &area);
         ~ChunkGenerationSystem();
 
         void update();
         void requestGeneration(glm::ivec3 coord);
 
-    private:
+      private:
         Area &area;
         ChunkGenWorkerPool genPool;
     };
-}
+} // namespace lve

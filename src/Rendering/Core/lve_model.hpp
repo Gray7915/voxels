@@ -22,7 +22,7 @@ namespace lve
         std::string name;
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
-        Math::Direction dirction = Math::Direction::DOWN;
+        Math::Direction dirction = Math::Direction::CENTER;
     };
 
     class LveModel

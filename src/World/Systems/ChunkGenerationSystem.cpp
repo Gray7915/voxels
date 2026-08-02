@@ -1,20 +1,15 @@
 #include "World/Systems/ChunkGenerationSystem.hpp"
+#include "Util/Types.hpp"
 #include "World/Area.hpp"
-
 namespace lve
 {
-    ChunkGenerationSystem::ChunkGenerationSystem(Area &area) : area{area}
-    {
-    }
+    ChunkGenerationSystem::ChunkGenerationSystem(Area &area) : area{area} {}
 
     ChunkGenerationSystem::~ChunkGenerationSystem() = default;
 
-    void ChunkGenerationSystem::update()
-    {
-        for (auto &[coord, chunk] : area.AllChunks())
-        {
-            if (chunk->chunkState == ChunkState::Unloaded)
-            {
+    void ChunkGenerationSystem::update() {
+        for (auto &[coord, chunk] : area.AllChunks()) {
+            if (chunk->chunkState == ChunkState::Unloaded) {
                 chunk->chunkState = ChunkState::QueuedForGeneration;
                 requestGeneration(chunk->offset);
             }
@@ -22,8 +17,7 @@ namespace lve
 
         GenResult result;
         int budget = 4;
-        while (budget-- > 0 && genPool.tryGetResult(result))
-        {
+        while (budget-- > 0 && genPool.tryGetResult(result)) {
             Chunk *chunk = area.getChunk(result.chunkCoord);
             if (!chunk)
                 continue;
@@ -34,8 +28,5 @@ namespace lve
         }
     }
 
-    void ChunkGenerationSystem::requestGeneration(glm::ivec3 coord)
-    {
-        genPool.submit({coord});
-    }
-}
+    void ChunkGenerationSystem::requestGeneration(ivec3 coord) { genPool.submit({coord, area.getWorldSeed()}); }
+} // namespace lve

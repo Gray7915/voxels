@@ -12,7 +12,7 @@
         },
         "textures": {},
         "hardness": 0,
-        "renderType": 0
+        "renderType": "invisible"
     },
     {
         "name": "grass",
@@ -31,7 +31,7 @@
             "down": "dirt"
         },
         "hardness": 2,
-        "renderType": 2
+        "renderType": "block"
     },
     {
         "name": "dirt",
@@ -48,7 +48,7 @@
             "all": "dirt"
         },
         "hardness": 1,
-        "renderType": 2
+        "renderType": "block"
     },
     {
         "name": "stone",
@@ -65,6 +65,128 @@
             "all": "stone"
         },
         "hardness": 1,
-        "renderType": 2
+        "renderType": "block"
+    },
+    {
+        "name": "fence",
+        "id": 4,
+        "model": "models/newFence.obj",
+        "isSolid": true,
+        "boundingBoxes": [
+            {
+                "boxSize": {
+                    "x": 0.25,
+                    "y": 1.0,
+                    "z": 0.25
+                },
+                "offset": {
+                    "x": 0.5,
+                    "y": 0.0,
+                    "z": 0.5
+                }
+            }
+        ],
+        "highlightBoxSize": {
+            "x": 0.25,
+            "y": 1.0,
+            "z": 0.25
+        },
+        "highlightShape": {
+            "vertices": [
+                {
+                    "x": 0.65625,
+                    "y": 1.0,
+                    "z": 0.65625
+                },
+                {
+                    "x": 0.65625,
+                    "y": 1.0,
+                    "z": 0.34375
+                },
+                {
+                    "x": 0.65625,
+                    "y": 0.0,
+                    "z": 0.65625
+                },
+                {
+                    "x": 0.65625,
+                    "y": 0.0,
+                    "z": 0.34375
+                },
+                {
+                    "x": 0.34375,
+                    "y": 1.0,
+                    "z": 0.65625
+                },
+                {
+                    "x": 0.34375,
+                    "y": 1.0,
+                    "z": 0.34375
+                },
+                {
+                    "x": 0.34375,
+                    "y": 0.0,
+                    "z": 0.65625
+                },
+                {
+                    "x": 0.34375,
+                    "y": 0.0,
+                    "z": 0.34375
+                }
+            ],
+            "edges": [
+                [
+                    0,
+                    1
+                ],
+                [
+                    1,
+                    3
+                ],
+                [
+                    3,
+                    2
+                ],
+                [
+                    2,
+                    0
+                ],
+                [
+                    4,
+                    5
+                ],
+                [
+                    5,
+                    7
+                ],
+                [
+                    7,
+                    6
+                ],
+                [
+                    6,
+                    4
+                ],
+                [
+                    0,
+                    4
+                ],
+                [
+                    1,
+                    5
+                ],
+                [
+                    2,
+                    6
+                ],
+                [
+                    3,
+                    7
+                ]
+            ]
+        },
+        "textures": {},
+        "hardness": 0,
+        "renderType": "mesh"
     }
 ]

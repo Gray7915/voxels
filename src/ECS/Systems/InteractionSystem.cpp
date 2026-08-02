@@ -51,7 +51,6 @@ namespace lve
                 pWasPressed = false;
 
             if (pIsPressed && !pWasPressed && rayHit.hitPosition != ivec3(-1.0f) && lveWindow.getMenuActive()) {
-                std::cout << "mouse left clicked" << '\n';
                 pWasPressed = true;
                 ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
                 ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
@@ -68,7 +67,6 @@ namespace lve
                 ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
                 ivec3 blockCoord = WorldToChunkArray(blockPos);
                 ivec3 chunkPosition = WorldToChunkId(blockPos);
-                std::cout << "mouse right clicked" << '\n';
                 auto &stack = inventory.inventoryStacks.at(input.hotbarSlot);
                 BlockId id = 0;
                 if (stack) {

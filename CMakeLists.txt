@@ -75,6 +75,12 @@ if(NOT NLOHMANN_PATH)
   set(NLOHMANN_PATH external/nlohmann/)
 endif()
 
+if(NOT DI_PATH)
+    message(STATUS "NLOHMANN_PATH not specified, using external/di")
+    set(DI_PATH external/di)
+endif()
+
+
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 set(IMGUI_SOURCES
@@ -112,6 +118,7 @@ if (WIN32)
     ${GLFW_INCLUDE_DIRS}
     ${GLM_PATH}
     ${NLOHMANN_PATH}
+    ${DI_PATH}
     )
  
   target_link_directories(${PROJECT_NAME} PUBLIC
@@ -129,6 +136,7 @@ elseif (UNIX)
       ${IMGUI_PATH}
       ${GLFW_INCLUDE_DIRS}
       ${GLM_PATH}
+      ${DI_PATH}
     )
     target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
 endif()

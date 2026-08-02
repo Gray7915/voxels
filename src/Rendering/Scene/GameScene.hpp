@@ -56,7 +56,7 @@ namespace Rendering
             systems.inventorySystem->Update(*area);
 
             hoveredID = systems.interactionSystem->hoveredID;
-            area->updateArea();
+            area->updateArea(); // gen and mutation systems updated
             coordinator.eventBus.blockBreakRequest.clear();
             coordinator.eventBus.blockPlaceRequested.clear();
         }
@@ -65,7 +65,7 @@ namespace Rendering
             auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
             auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
 
-            area->tick(device, camPosition, frameInfo.frameIndex);
+            area->tick(device, camPosition, frameInfo.frameIndex); // mesh gets updated here. Can't update above because don't have frame index
 
             // compute ray direction from stored rotation
             glm::vec3 forward = {cos(camRotation.x) * sin(camRotation.y), -sin(camRotation.x), cos(camRotation.x) * cos(camRotation.y)};

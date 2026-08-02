@@ -14,8 +14,13 @@ namespace Math
         EAST,
         WEST,
         UP,
-        DOWN
+        DOWN,
+
+        COUNT,
+
+        CENTER
     };
+
     constexpr std::array<ivec3, 4> HorizontalCardinal = {{
         {0, 0, 1},
         {0, 0, -1},
@@ -75,6 +80,8 @@ namespace Math
             return Direction::UP;
         if (direction == ivec3{0, -1, 0})
             return Direction::DOWN;
+        if (direction == ivec3{0, 0, 0})
+            return Direction::CENTER;
         assert(false && "Invalid direction vector");
         return Direction::NORTH;
     }

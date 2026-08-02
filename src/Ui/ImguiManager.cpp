@@ -6,9 +6,7 @@
 
 namespace lve
 {
-    ImguiManager::ImguiManager(LveDevice &lveDevice, LveWindow &lveWindow, LveRenderer &lveRenderer)
-        : lveDevice{lveDevice}
-    {
+    ImguiManager::ImguiManager(LveDevice &lveDevice, LveWindow &lveWindow, LveRenderer &lveRenderer) : lveDevice{lveDevice} {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
@@ -36,28 +34,25 @@ namespace lve
         ImGui_ImplVulkan_Init(&init_info);
     }
 
-    ImguiManager::~ImguiManager()
-    {
+    ImguiManager::~ImguiManager() {
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
         vkDestroyDescriptorPool(lveDevice.device(), descriptorPool, nullptr);
     }
 
-    void ImguiManager::initDescriptorPool()
-    {
-        VkDescriptorPoolSize pool_sizes[] = {
-            {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-            {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-            {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-            {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-            {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-            {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
+    void ImguiManager::initDescriptorPool() {
+        VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+                                             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+                                             {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+                                             {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+                                             {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+                                             {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+                                             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+                                             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+                                             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+                                             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+                                             {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
 
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -72,21 +67,18 @@ namespace lve
             throw std::runtime_error("Failed to create ImGui descriptor pool");
     }
 
-    void ImguiManager::newFrame()
-    {
+    void ImguiManager::newFrame() {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
 
-    void ImguiManager::render(VkCommandBuffer commandBuffer)
-    {
+    void ImguiManager::render(VkCommandBuffer commandBuffer) {
         ImGui::Render();
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
     }
 
-    void ImguiManager::drawDebugWindow(float frameTime, glm::vec3 pos, const Transform &transform, const CameraComponent &camera, Area &area)
-    {
+    void ImguiManager::drawDebugWindow(float frameTime, glm::vec3 pos, const Transform &transform, const CameraComponent &camera, Area &area) {
         fpsAccumulator += frameTime;
         fpsFrameCount++;
         vec3 rot = transform.rotation;
@@ -113,8 +105,7 @@ namespace lve
         ImGui::End();
     }
 
-    void ImguiManager::drawCrosshair(float windowWidth, float windowHeight)
-    {
+    void ImguiManager::drawCrosshair(float windowWidth, float windowHeight) {
         ImDrawList *drawList = ImGui::GetForegroundDrawList();
 
         float centerX = windowWidth / 2.0f;
@@ -131,8 +122,7 @@ namespace lve
         drawList->AddCircleFilled({centerX, centerY}, dotSize, ImColor(255, 255, 255));
     }
 
-    void ImguiManager::drawQuitMenu(float windowWidth, float windowHeight)
-    {
+    void ImguiManager::drawQuitMenu(float windowWidth, float windowHeight) {
         ImGui::SetNextWindowSize(ImVec2(50, 100), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSizeConstraints(ImVec2(50, 100), ImVec2(FLT_MAX, FLT_MAX));
         ImGui::SetNextWindowPos(ImVec2((windowWidth / 2) - 100, (windowHeight / 2) - 50));
@@ -141,19 +131,16 @@ namespace lve
         ImGui::End();
     }
 
-    void ImguiManager::drawInv(InventoryComponent &component)
-    {
+    void ImguiManager::drawInv(InventoryComponent &component) {
         ImGui::SetNextWindowSize(ImVec2(50, 100), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSizeConstraints(ImVec2(50, 100), ImVec2(FLT_MAX, FLT_MAX));
         ImGui::SetNextWindowPos(ImVec2(100.f, 200.f));
         ImGui::Begin("Inventory");
         ImGui::Text("Slots: %zu", component.inventoryStacks.size());
-        for (int i = 0; i < component.inventoryStacks.size(); i++)
-        {
+        for (int i = 0; i < component.inventoryStacks.size(); i++) {
             auto &stack = component.inventoryStacks[i];
 
-            if (!stack.has_value())
-            {
+            if (!stack.has_value()) {
                 ImGui::Text("Empty");
                 continue;
             }
@@ -163,7 +150,5 @@ namespace lve
         ImGui::End();
     }
 
-    void ImguiManager::activateMouse()
-    {
-    }
-}
+    void ImguiManager::activateMouse() {}
+} // namespace lve

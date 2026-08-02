@@ -8,27 +8,25 @@
 
 #include "Rendering/Core/lve_device.hpp"
 
-#include "World/VoxelData.hpp"
-#include "World/NeighborVoxelInfo.hpp"
 #include "World/Chunk.hpp"
+#include "World/NeighborVoxelInfo.hpp"
+#include "World/VoxelData.hpp"
 
+#include "Util/Types.hpp"
 #include "Util/lve_util.hpp"
-
 namespace lve
 {
-    struct GenJob
-    {
-        glm::ivec3 chunkCoord;
+    struct GenJob {
+        ivec3 chunkCoord;
+        u64 worldSeed;
     };
 
-    struct GenResult
-    {
+    struct GenResult {
         glm::ivec3 chunkCoord;
         VoxelData data;
     };
 
-    struct MeshJob
-    {
+    struct MeshJob {
         glm::ivec3 chunkCoord;
         glm::ivec3 worldOffset;
         VoxelData voxelData;
@@ -37,8 +35,7 @@ namespace lve
         bool isFirstMesh = false;
     };
 
-    struct MeshResult
-    {
+    struct MeshResult {
         glm::ivec3 chunkCoord;
         std::vector<Vertex> verticies;
         std::vector<uint32_t> indices;
@@ -46,12 +43,9 @@ namespace lve
         bool isFirstMesh = false;
     };
 
-    template <typename T>
-    class ThreadSafeQueue
-    {
-    public:
-        void push(T item)
-        {
+    template <typename T> class ThreadSafeQueue {
+      public:
+        void push(T item) {
             {
                 std::lock_guard<std::mutex> lock(mtx);
                 queue.push_back(std::move(item));
@@ -59,8 +53,7 @@ namespace lve
             cv.notify_one();
         }
 
-        bool try_pop(T &out)
-        {
+        bool try_pop(T &out) {
             std::lock_guard<std::mutex> lock(mtx);
             if (queue.empty())
                 return false;
@@ -71,11 +64,11 @@ namespace lve
 
         // Returns false if the queue was shut down and is empty — signals the
         // calling worker thread to exit its loop instead of blocking forever.
-        bool wait_and_pop(T &out)
-        {
+        bool wait_and_pop(T &out) {
             std::unique_lock<std::mutex> lock(mtx);
-            cv.wait(lock, [this]
-                    { return !queue.empty() || shuttingDown; });
+            cv.wait(lock, [this] {
+                return !queue.empty() || shuttingDown;
+            });
             if (queue.empty()) // only true if shuttingDown and nothing left
                 return false;
             out = std::move(queue.front());
@@ -83,8 +76,7 @@ namespace lve
             return true;
         }
 
-        void shutdown()
-        {
+        void shutdown() {
             {
                 std::lock_guard<std::mutex> lock(mtx);
                 shuttingDown = true;
@@ -92,16 +84,15 @@ namespace lve
             cv.notify_all(); // wake every blocked worker so they can check shuttingDown and exit
         }
 
-        void printSize()
-        {
+        void printSize() {
             std::lock_guard<std::mutex> lock(mtx);
             std::cout << "Queue Size " << queue.size() << '\n';
         }
 
-    private:
+      private:
         std::deque<T> queue;
         std::mutex mtx;
         std::condition_variable cv;
         bool shuttingDown = false;
     };
-}
+} // namespace lve

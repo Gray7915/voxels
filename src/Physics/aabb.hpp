@@ -1,33 +1,29 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Transform.hpp"
-#include "World/Area.hpp"
-#include "World/Blocks/BlockRegistry.hpp"
-#include "World/Blocks/Block.hpp"
-#include "Util/lve_util.hpp"
 #include "Util/Types.hpp"
+#include "Util/lve_util.hpp"
+#include "World/Blocks/Block.hpp"
+#include "World/Blocks/BlockRegistry.hpp"
+#include <glm/glm.hpp>
 
 namespace lve
 {
-    class CollisionDetection
-    {
-    public:
-        struct ContactPoint
-        {
+    class Area;
+    class CollisionDetection {
+      public:
+        struct ContactPoint {
             glm::vec3 localA;
             glm::vec3 localB;
             glm::vec3 normal;
             float penetration;
         };
 
-        struct CollisionInfo
-        {
+        struct CollisionInfo {
             ContactPoint point;
 
-            void AddContactPoint(const glm::vec3 &localA, const glm::vec3 &localB, const glm::vec3 &normal, float p)
-            {
+            void AddContactPoint(const glm::vec3 &localA, const glm::vec3 &localB, const glm::vec3 &normal, float p) {
                 point.localA = localA;
                 point.localB = localB;
                 point.normal = normal;
@@ -36,8 +32,7 @@ namespace lve
         };
 
         // TODO: placing a block at head height will place and trap player
-        static bool CheckBlockPlacement(const Transform &transform, const AABBComponent &aabbComponent, glm::ivec3 position)
-        {
+        static bool CheckBlockPlacement(const Transform &transform, const AABBComponent &aabbComponent, glm::ivec3 position) {
             glm::vec3 minPos = transform.position - aabbComponent.halfExtents;
             glm::vec3 maxPos = transform.position + aabbComponent.halfExtents;
 
@@ -46,25 +41,21 @@ namespace lve
 
             for (int x = minBlock.x; x <= maxBlock.x; ++x)
                 for (int y = minBlock.y; y <= maxBlock.y; ++y)
-                    for (int z = minBlock.z; z <= maxBlock.z; ++z)
-                    {
-                        if (glm::ivec3(glm::floor(glm::vec3(x, y, z))) == position)
-                        {
+                    for (int z = minBlock.z; z <= maxBlock.z; ++z) {
+                        if (glm::ivec3(glm::floor(glm::vec3(x, y, z))) == position) {
                             return true;
                         }
                     }
             return false;
         }
 
-        static bool SphereIntersection(const AABBComponent &ComponentA, const vec3 TransformA, const AABBComponent &ComponentB, const vec3 TransformB)
-        {
+        static bool SphereIntersection(const AABBComponent &ComponentA, const vec3 TransformA, const AABBComponent &ComponentB, const vec3 TransformB) {
             float radii = ComponentA.radius + ComponentB.radius;
             vec3 delta = TransformB - TransformA;
 
             float deltaLength = delta.length();
 
-            if (deltaLength < radii)
-            {
+            if (deltaLength < radii) {
                 float penetration = radii - deltaLength;
                 vec3 normal = glm::normalize(delta);
                 vec3 localA = normal * ComponentA.radius;
@@ -76,8 +67,7 @@ namespace lve
             return false;
         }
 
-        static bool CheckTerrainOverlap(const Transform &transform, const AABBComponent &aabbComponent, Area &area)
-        {
+        static bool CheckTerrainOverlap(const Transform &transform, const AABBComponent &aabbComponent, Area &area) {
             glm::vec3 minPos = transform.position - aabbComponent.halfExtents;
             glm::vec3 maxPos = transform.position + aabbComponent.halfExtents;
 
@@ -85,33 +75,23 @@ namespace lve
             glm::ivec3 maxBlock = glm::floor(maxPos);
             for (int x = minBlock.x; x <= maxBlock.x; ++x)
                 for (int y = minBlock.y; y <= maxBlock.y; ++y)
-                    for (int z = minBlock.z; z <= maxBlock.z; ++z)
-                    {
+                    for (int z = minBlock.z; z <= maxBlock.z; ++z) {
                         glm::vec3 blockPos(x, y, z);
                         auto optionalBlock = BlockRegistry::Get().GetBlockByID(area.getBlockID(blockPos));
                         Block block;
-                        if (optionalBlock)
-                        {
+                        if (optionalBlock) {
                             block = optionalBlock.value().get();
-                            if (block.isSolid)
-                            {
-                                if (block.boundingBoxes.empty())
-                                {
+                            if (block.isSolid) {
+                                if (block.boundingBoxes.empty()) {
                                     vec3 blockMin = vec3{x, y, z};
                                     vec3 blockMax = vec3{x + 1, y + 1, z + 1};
-                                    if ((minPos.x <= blockMax.x && maxPos.x >= blockMin.x) &&
-                                        (minPos.y <= blockMax.y && maxPos.y >= blockMin.y) &&
-                                        (minPos.z <= blockMax.z && maxPos.z >= blockMin.z))
+                                    if ((minPos.x <= blockMax.x && maxPos.x >= blockMin.x) && (minPos.y <= blockMax.y && maxPos.y >= blockMin.y) && (minPos.z <= blockMax.z && maxPos.z >= blockMin.z))
                                         return true;
-                                }
-                                else
-                                {
-                                    for (const BoxVolume &volume : block.boundingBoxes)
-                                    {
+                                } else {
+                                    for (const BoxVolume &volume : block.boundingBoxes) {
                                         vec3 blockMin = vec3{x, y, z} + volume.offset - volume.boxSize / vec3{2};
                                         vec3 blockMax = vec3{x, y, z} + volume.offset + volume.boxSize / vec3{2};
-                                        if ((minPos.x <= blockMax.x && maxPos.x >= blockMin.x) &&
-                                            (minPos.y <= blockMax.y && maxPos.y >= blockMin.y) &&
+                                        if ((minPos.x <= blockMax.x && maxPos.x >= blockMin.x) && (minPos.y <= blockMax.y && maxPos.y >= blockMin.y) &&
                                             (minPos.z <= blockMax.z && maxPos.z >= blockMin.z))
                                             return true;
                                     }
@@ -122,8 +102,7 @@ namespace lve
             return false;
         }
 
-        static float MoveAxis(const Transform &transform, const AABBComponent &aabb, float movement, int axis, Area &area)
-        {
+        static float MoveAxis(const Transform &transform, const AABBComponent &aabb, float movement, int axis, Area &area) {
             constexpr float e = 0.0005f;
 
             glm::vec3 testPos = transform.position;
@@ -132,41 +111,37 @@ namespace lve
             Transform testTransform = transform;
             testTransform.position = testPos;
 
-            if (!CheckTerrainOverlap(testTransform, aabb, area))
-            {
+            if (!CheckTerrainOverlap(testTransform, aabb, area)) {
                 return movement;
             }
 
             float sign = glm::sign(movement);
-            float lo = 0.f;
-            float hi = movement;
+            float low = 0.f;
+            float high = movement;
 
-            for (int i = 0; i < 12; ++i)
-            {
-                float mid = (lo + hi) / 2.f;
+            for (int i = 0; i < 12; ++i) {
+                float mid = (low + high) / 2.f;
                 testPos = transform.position;
                 testPos[axis] += mid;
                 testTransform.position = testPos;
 
                 if (CheckTerrainOverlap(testTransform, aabb, area))
-                    hi = mid;
+                    high = mid;
                 else
-                    lo = mid;
+                    low = mid;
             }
 
-            float allowed = lo - sign * e;
-            if (glm::abs(lo) < e || glm::sign(allowed) != sign)
+            float allowed = low - sign * e;
+            if (glm::abs(low) < e || glm::sign(allowed) != sign)
                 return 0.f;
             return allowed;
         }
 
-        static glm::vec3 Move(const Transform &transform, const AABBComponent &aabb, glm::vec3 movement, Area &area)
-        {
+        static glm::vec3 Move(const Transform &transform, const AABBComponent &aabb, glm::vec3 movement, Area &area) {
             glm::vec3 result{0.f};
             Transform current = transform;
 
-            for (int i = 0; i < 3; ++i)
-            {
+            for (int i = 0; i < 3; ++i) {
                 float allowed = MoveAxis(current, aabb, movement[i], i, area);
                 current.position[i] += allowed;
                 result[i] = allowed;
@@ -174,8 +149,7 @@ namespace lve
             return result;
         }
 
-        static bool rayBoxIntersection(glm::vec3 rayPos, glm::vec3 rayDir, glm::vec3 boxPos, glm::vec3 boxSize)
-        {
+        static bool rayBoxIntersection(glm::vec3 rayPos, glm::vec3 rayDir, glm::vec3 boxPos, glm::vec3 boxSize) {
 
             boxPos.x += 0.5f;
             boxPos.z += 0.5f;
@@ -197,4 +171,4 @@ namespace lve
             return tFar >= 0.0f && tNear <= tFar;
         }
     };
-}
+} // namespace lve

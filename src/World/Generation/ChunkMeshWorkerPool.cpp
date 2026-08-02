@@ -102,7 +102,7 @@ namespace lve
     {
         int blockType = job.voxelData.get(pos.x, pos.y, pos.z);
 
-        for (int face = 0; face < 6; face++)
+        for (u8 face = 0; face < static_cast<u8>(Math::Direction::COUNT); ++face)
         {
             glm::ivec3 n = pos + Math::DirectionByFaceInt(face);
 
@@ -140,6 +140,8 @@ namespace lve
         auto &block = BlockRegistry::Get().GetBlockByID(4);
         if (block)
         {
+            Voxel voxel = job.voxelData.getVoxel(pos.x, pos.y, pos.z);
+            Fence::setSegmentBit(voxel, Math::VectorToCardinal({0, 0, 0}), true);
             for (ivec3 dir : Math::CardinalDirections)
             {
                 glm::ivec3 n = pos + dir;
@@ -147,14 +149,13 @@ namespace lve
                 bool neighborSolid = renderType == RenderType::Block || renderType == RenderType::Mesh || renderType == RenderType::Transparent;
                 if (neighborSolid)
                 {
-                    Voxel voxel = job.voxelData.getVoxel(pos.x, pos.y, pos.z);
                     Fence::setSegmentBit(voxel, Math::VectorToCardinal(dir), true);
                     job.voxelData.setVoxelData(pos.x, pos.y, pos.z, voxel);
                 }
 
                 for (auto &modelSection : block->get().model->modelSections)
                 {
-                    if (Fence::isSegmentBitActive(job.voxelData.getVoxel(pos.x, pos.y, pos.z), modelSection.second.dirction))
+                    if (Fence::isSegmentBitActive(job.voxelData.getVoxel(pos.x, pos.y, pos.z), modelSection.second.dirction) || modelSection.second.dirction == Math::Direction::CENTER)
                     {
                         u32 baseVertex = static_cast<u32>(result.verticies.size());
                         for (Vertex vert : modelSection.second.vertices)

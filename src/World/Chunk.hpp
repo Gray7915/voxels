@@ -11,9 +11,8 @@
 
 namespace lve
 {
-    class Chunk
-    {
-    public:
+    class Chunk {
+      public:
         Chunk(LveDevice &lveDevice, glm::vec3 offset);
         ~Chunk();
         static const int width = 16;
@@ -34,33 +33,25 @@ namespace lve
         glm::mat4 mat4();
         glm::mat3 normalMatrix();
 
-        enum BlockType : uint8_t
-        {
-            Air,
-            Solid
-        };
+        enum BlockType : uint8_t { Air, Solid };
 
-        struct Transform
-        {
+        struct Transform {
             glm::mat4 mat4();
             glm::mat3 normalMatrix();
         };
 
-        void setVoxelData(VoxelData data)
-        {
-            this->voxelData = data;
-        };
+        void setVoxelData(VoxelData data) { this->voxelData = data; };
 
-        void applyMesh(std::unique_ptr<LveModel> model, int currentFrameIndex, LveDevice &device)
-        {
-            if (chunkModel)
-            {
+        void applyMesh(std::unique_ptr<LveModel> model, int currentFrameIndex, LveDevice &device) {
+            if (chunkModel) {
                 auto oldModel = std::shared_ptr<LveModel>(std::move(chunkModel));
-                device.queueDeletion([model = oldModel]() {}, currentFrameIndex);
+                device.queueDeletion([model = oldModel]() {
+                }, currentFrameIndex);
             }
 
             chunkModel = std::move(model);
+            // chunkState = ChunkState::Ready;
         }
         std::shared_ptr<LveModel> chunkModel{};
     };
-}
+} // namespace lve

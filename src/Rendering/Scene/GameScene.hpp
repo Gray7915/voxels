@@ -34,8 +34,6 @@ namespace Rendering
             highlightRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             simpleRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             area = std::make_unique<lve::Area>(context.device, seed);
-
-            mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = vec3{0, 68, 0}, .scale{1, 1, 1}});
         }
 
         void onExit() override {
@@ -43,16 +41,16 @@ namespace Rendering
         }
 
         void update(float deltaTime) override {
-            lastFrameTime = deltaTime;
-            auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
-            camPosition = camTransform.position;
-            camRotation = camTransform.rotation;
-
             area->updateArea();
 
             if (state == GameSceneState::Loading) {
                 return;
             }
+
+            lastFrameTime = deltaTime;
+            auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
+            camPosition = camTransform.position;
+            camRotation = camTransform.rotation;
 
             context.systems.inputSystem->Update(&context.window);
             context.systems.movementSystem->Update(deltaTime);
@@ -67,20 +65,23 @@ namespace Rendering
         }
 
         void render(lve::FrameInfo &frameInfo) override {
-            auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
-            auto &camera = context.coordinator.GetComponent<CameraComponent>(mainCamera);
-
             area->tick(context.device, camPosition, frameInfo.frameIndex);
-
             if (state == GameSceneState::Loading) {
                 if (chunksReady() >= minimumChunksToLoad) {
                     state = GameSceneState::Playing;
                     context.window.setMouseActive();
+
+                    vec3 spawnPos = findSpawnPosition({0, 0});
+                    camPosition = spawnPos;
+                    mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = spawnPos, .scale{1, 1, 1}});
                 } else {
-                    renderLoadingScreen(frameInfo, camera);
+                    renderLoadingScreen(frameInfo);
                     return;
                 }
             }
+
+            auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
+            auto &camera = context.coordinator.GetComponent<CameraComponent>(mainCamera);
 
             context.renderer.geometryPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
             chunkRenderSystem->renderChunks(frameInfo, area->chunks);
@@ -99,7 +100,7 @@ namespace Rendering
 
             lve::GlobalUbo ubo{};
             ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
-            ubo.cameraPosition = glm::ivec4(camTransform.position, 1);
+            ubo.cameraPosition = ivec4(camTransform.position, 1);
             context.renderSetup.uboBuffers[frameInfo.frameIndex]->writeToBuffer(&ubo);
             context.renderSetup.uboBuffers[frameInfo.frameIndex]->flush();
         }
@@ -108,6 +109,13 @@ namespace Rendering
         static constexpr int minimumChunksToLoad = 9;
 
         int chunksReady() {
+            auto spawnChunk = area->chunks.find(ivec3{0, 0, 0});
+            if (spawnChunk != area->chunks.end()) {
+                if (!spawnChunk->second->voxelData.isGenerated()) {
+                    return 0;
+                }
+            }
+
             int count = 0;
             for (auto &[coord, chunk] : area->chunks)
                 if (chunk && chunk->chunkState == lve::ChunkState::Uploaded && chunk->chunkModel != nullptr)
@@ -115,13 +123,16 @@ namespace Rendering
             return count;
         }
 
-        void renderLoadingScreen(lve::FrameInfo &frameInfo, CameraComponent &camera) {
-            lve::GlobalUbo ubo{};
-            ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
-            ubo.cameraPosition = glm::ivec4(camPosition, 1);
-            context.renderSetup.uboBuffers[frameInfo.frameIndex]->writeToBuffer(&ubo);
-            context.renderSetup.uboBuffers[frameInfo.frameIndex]->flush();
+        vec3 findSpawnPosition(vec2 xzPos) {
+            for (int y = 127; y >= 0; y--) {
+                if (area->isBlockSolid({xzPos.x, y, xzPos.y})) {
+                    return vec3{xzPos.x + 0.5f, y + 2, xzPos.y + 0.5f};
+                }
+            }
+            return vec3{xzPos.x, 68, xzPos.y};
+        }
 
+        void renderLoadingScreen(lve::FrameInfo &frameInfo) {
             context.renderer.StandaloneUIRenderPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
             context.imgui.newFrame();
 
@@ -156,9 +167,9 @@ namespace Rendering
         std::optional<lve::HighlightRenderSystem> highlightRenderSystem;
         std::optional<lve::SimpleRenderSystem> simpleRenderSystem;
 
-        glm::ivec4 hoveredID{0};
-        glm::vec3 camPosition{0};
-        glm::vec3 camRotation{0};
+        ivec4 hoveredID{0};
+        vec3 camPosition{0};
+        vec3 camRotation{0};
         float lastFrameTime{0};
 
         GameSceneState state = GameSceneState::Loading;

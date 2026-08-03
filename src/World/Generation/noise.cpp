@@ -1,9 +1,11 @@
 #include "noise.hpp"
 #define STB_PERLIN_IMPLEMENTATION
 #include "stb_perlin.h"
+#include <iostream>
 namespace lve
 {
     float Octave::sample(glm::vec2 i, u64 worldSeed) const {
+        // std::cout << "seed in noise sample " << worldSeed << '\n';
         float value = 0.0f;
         float amplitude = 1.0f;
         float frequency = 1.0f;

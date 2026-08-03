@@ -11,7 +11,7 @@ namespace lve
         for (auto &[coord, chunk] : area.AllChunks()) {
             if (chunk->chunkState == ChunkState::Unloaded) {
                 chunk->chunkState = ChunkState::QueuedForGeneration;
-                requestGeneration(chunk->offset);
+                requestGeneration(coord);
             }
         }
 
@@ -28,5 +28,8 @@ namespace lve
         }
     }
 
-    void ChunkGenerationSystem::requestGeneration(ivec3 coord) { genPool.submit({coord, area.getWorldSeed()}); }
+    void ChunkGenerationSystem::requestGeneration(ivec3 coord) {
+        genPool.submit({coord, area.getWorldSeed()});
+        // std::cout << "world seed in request gen " << area.getWorldSeed() << '\n';
+    }
 } // namespace lve

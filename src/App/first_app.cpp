@@ -85,20 +85,21 @@ namespace lve
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         std::cout << "setup render systems" << '\n';
 
-        Entity mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = vec3{0, 68, 0}});
+        // Entity mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = vec3{0, 68, 0}});
 
         float aspect = lveRenderer.getAspectRatio();
         systems.cameraSystem->Update(aspect);
 
-        Entity testEntity = coordinator.CreateEntity();
-        coordinator.AddComponent(testEntity, RenderableComponent{.model = LveModel::createModelFromFile(lveDevice, "models/ferret_scaled2.obj")});
-        coordinator.AddComponent(testEntity, Transform{.position = {0, 66, 0}, .scale = {1, 1, 1}});
+        // Entity testEntity = coordinator.CreateEntity();
+        // coordinator.AddComponent(testEntity, RenderableComponent{.model = LveModel::createModelFromFile(lveDevice, "models/ferret_scaled2.obj")});
+        // coordinator.AddComponent(testEntity, Transform{.position = {0, 66, 0}, .scale = {1, 1, 1}});
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         assert(lveWindow.getGLFWwindow() != nullptr && "window null)");
+        AppContext context{.device = lveDevice, .window = lveWindow, .renderer = lveRenderer, .imgui = imguiManager, .renderSetup = renderSetup, .coordinator = coordinator, .systems = systems};
 
         Rendering::SceneManager sceneManager;
-        sceneManager.switchTo(std::make_unique<Rendering::MenuScene>(sceneManager, lveDevice, lveWindow, imguiManager, lveRenderer, renderSetup, coordinator, systems));
+        sceneManager.switchTo(std::make_unique<Rendering::MenuScene>(context, sceneManager));
         sceneManager.applyPendingSwitch();
 
         while (!lveWindow.shouldClose()) {
@@ -114,9 +115,6 @@ namespace lve
             aspect = lveRenderer.getAspectRatio();
             systems.cameraSystem->Update(aspect);
 
-            auto &camCollision = coordinator.GetComponent<AABBComponent>(mainCamera);
-            auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
-
             sceneManager.applyPendingSwitch();
             sceneManager.current()->update(frameTime);
 
@@ -128,65 +126,58 @@ namespace lve
 
                 // std::cout<< "Chunk mesh update: "<< std::chrono::duration<double, std::milli>(end - start).count()<<
                 // "ms\n";
-                area.tick(lveDevice, camTransform.position, frameIndex);
-
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
                 sceneManager.current()->render(frameInfo);
-
-                auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
-                GlobalUbo ubo{};
-                ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
-                // ubo.lightPosition = camTransform.position;
-                ubo.cameraPosition = glm::ivec4(camTransform.position, 1);
-                renderSetup.uboBuffers[frameIndex]->writeToBuffer(&ubo);
-                renderSetup.uboBuffers[frameIndex]->flush();
                 /*
-                vkCmdResetQueryPool(commandBuffer, queryPool, 0, 8);
+                            auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
 
-                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
 
-                lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
-                auto newstart = std::chrono::high_resolution_clock::now();
-                chunkRenderSystem.renderChunks(frameInfo, area.chunks);
+                            vkCmdResetQueryPool(commandBuffer, queryPool, 0, 8);
 
-                auto newms = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - newstart).count();
-                // if (newms > 2.0)
-                // std::cout << "[HITCH] loadChunk took " << newms << "ms\n";
-                // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
-                auto block = BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w);
-                glm::vec3 boxSize{1, 1, 1};
-                if (block)
-                    boxSize = block->get().highlightBoxSize;
-                // std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
+                            vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
 
-                vec3 rot = camTransform.rotation;
-                vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
-                vec3 rayDir = glm::normalize(forward);
+                            lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
+                            auto newstart = std::chrono::high_resolution_clock::now();
+                            chunkRenderSystem.renderChunks(frameInfo, area.chunks);
 
-                auto &testTrans = coordinator.GetComponent<Transform>(testEntity);
-                auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
-                simpleRenderSystem.renderGameObjects(frameInfo, testTrans.mat4(), testTrans.normalMatrix(), testModel.model);
+                            auto newms = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - newstart).count();
+                            // if (newms > 2.0)
+                            // std::cout << "[HITCH] loadChunk took " << newms << "ms\n";
+                            // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
+                            auto block = BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w);
+                            glm::vec3 boxSize{1, 1, 1};
+                            if (block)
+                                boxSize = block->get().highlightBoxSize;
+                            // std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
 
-                // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
-                highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, boxSize, rayDir,
-                                             BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w)->get().highlightShape);
+                            vec3 rot = camTransform.rotation;
+                            vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
+                            vec3 rayDir = glm::normalize(forward);
 
-                lveRenderer.geometryPass->end(commandBuffer);
+                            auto &testTrans = coordinator.GetComponent<Transform>(testEntity);
+                            auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
+                            simpleRenderSystem.renderGameObjects(frameInfo, testTrans.mat4(), testTrans.normalMatrix(), testModel.model);
 
-                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 1);
-                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 2);
+                            // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
+                            highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, boxSize, rayDir,
+                                                         BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w)->get().highlightShape);
 
-                lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
-                imguiManager.newFrame();
-                imguiManager.drawDebugWindow(frameTime, camTransform.position, camTransform, coordinator.GetComponent<CameraComponent>(mainCamera), area);
-                imguiManager.drawCrosshair(lveWindow.getExtent().width, lveWindow.getExtent().height);
-                imguiManager.drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
-                // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
-                imguiManager.render(commandBuffer);
-                lveRenderer.UiRenderPass->end(commandBuffer);
+                            lveRenderer.geometryPass->end(commandBuffer);
 
-                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 3);
-*/
+                            vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 1);
+                            vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 2);
+
+                            lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
+                            imguiManager.newFrame();
+                            imguiManager.drawDebugWindow(frameTime, camTransform.position, camTransform, coordinator.GetComponent<CameraComponent>(mainCamera), area);
+                            imguiManager.drawCrosshair(lveWindow.getExtent().width, lveWindow.getExtent().height);
+                            imguiManager.drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
+                            // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
+                            imguiManager.render(commandBuffer);
+                            lveRenderer.UiRenderPass->end(commandBuffer);
+
+                            vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 3);
+            */
                 lveRenderer.endFrame();
 
                 uint64_t timestamps[4];
@@ -201,22 +192,13 @@ namespace lve
                 // std::cout << frameTime << "\n";
             }
 
-            static bool colWasPressed = false;
-            bool colIsPressed = glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_P) == GLFW_PRESS;
-            if (colWasPressed && !colIsPressed)
-                colWasPressed = false;
-
-            if (colIsPressed && !colWasPressed) {
-                camCollision.collisionEnabled = !camCollision.collisionEnabled;
-                // std::cout << "collision enabled / disabled" << '\n';
-            }
             /*
 
-                        if (glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
-                        {
-                            lveWindow.setMouseActive();
-                        }
-            */
+                if (glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
+                {
+                    lveWindow.setMouseActive();
+                }
+    */
         }
         vkDeviceWaitIdle(lveDevice.device());
     };

@@ -16,9 +16,9 @@ namespace lve
         size_t n;
         float o;
         Octave() : Octave(0, 4, 0.5f) {}
-        Octave(uint64_t seed, size_t n, float o) : seed(seed), n(n), o(o) {}
+        Octave(uint64_t worldSeed, size_t n, float o) : seed(worldSeed), n(n), o(o) {}
 
-        float sample(glm::vec2 i, u64 seed) const override;
+        float sample(glm::vec2 i, u64 worldSeed) const override;
     };
 
     struct Combined : Noise {

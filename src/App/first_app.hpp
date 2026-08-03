@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "App/TextureAtlas.hpp"
+#include "Util/AppContext.hpp"
 
 namespace lve
 {

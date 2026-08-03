@@ -1,11 +1,11 @@
 #include "ChunkMutationSystem.hpp"
-#include "World/Area.hpp"  // ← moved up: defines Area
-#include "World/Chunk.hpp" // ← moved up: defines Chunk::CHUNK_SIZE for math.hpp
+#include "World/Area.hpp"
+#include "World/Chunk.hpp"
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
 #include "ECS/Coordinator.hpp"
-#include "Physics/aabb.hpp" // ← now Area is complete when this is parsed
-#include "Util/math.hpp"    // ← now Chunk is defined when this is parsed
+#include "Physics/aabb.hpp"
+#include "Util/math.hpp"
 #include "World/Generation/ChunkState.hpp"
 
 namespace lve

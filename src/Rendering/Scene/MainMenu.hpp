@@ -10,24 +10,24 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
+#include "Util/AppContext.hpp"
+
 namespace Rendering
 {
     class MenuScene : public Scene {
       public:
-        MenuScene(SceneManager &sceneManager, lve::LveDevice &device, lve::LveWindow &window, lve::ImguiManager &imgui, lve::LveRenderer &renderer, lve::RenderSetup &renderSetup,
-                  lve::Coordinator &coordinator, lve::ECSSystems &systems)
-            : sceneManager(sceneManager), device(device), imgui(imgui), renderer(renderer), renderSetup(renderSetup), coordinator(coordinator), window(window), systems(systems) {}
+        MenuScene(AppContext &context, SceneManager &sceneManager) : sceneManager(sceneManager), context(context) {}
         void onEnter() override {
             seedInput = 12345;
-            window.setMouseActive();
+            context.window.setMouseActive();
         }
         void update(float deltaTime) override {
             // no logic needed for menu
         }
         void render(lve::FrameInfo &frameInfo) override {
             // no geometry pass — just UI
-            renderer.StandaloneUIRenderPass->begin(frameInfo.commandBuffer, renderer.getImageIndex());
-            imgui.newFrame();
+            context.renderer.StandaloneUIRenderPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
+            context.imgui.newFrame();
 
             ImGui::SetNextWindowSize(ImVec2(300, 150), ImGuiCond_Always);
             ImGui::SetNextWindowPos(ImVec2(400, 300), ImGuiCond_Always);
@@ -36,25 +36,18 @@ namespace Rendering
             ImGui::InputInt("##seed", &seedInput);
 
             if (ImGui::Button("Generate World", ImVec2(-1, 0))) {
-                // build the game scene and hand it the seed
-                window.setMouseActive();
-                sceneManager.switchTo(std::make_unique<GameScene>(sceneManager, device, imgui, seedInput, window, renderer, coordinator, renderSetup, systems));
+                sceneManager.switchTo(std::make_unique<GameScene>(context, sceneManager, seedInput));
             }
 
             ImGui::End();
-            imgui.render(frameInfo.commandBuffer);
-            renderer.StandaloneUIRenderPass->end(frameInfo.commandBuffer);
+            context.imgui.render(frameInfo.commandBuffer);
+            context.renderer.StandaloneUIRenderPass->end(frameInfo.commandBuffer);
         }
 
       private:
+        AppContext &context;
+
         SceneManager &sceneManager;
-        lve::RenderSetup &renderSetup;
-        lve::LveDevice &device;
-        lve::ImguiManager &imgui;
-        lve::LveRenderer &renderer;
-        lve::LveWindow &window;
-        lve::Coordinator &coordinator;
-        lve::ECSSystems &systems;
         int seedInput = 12345;
     };
 } // namespace Rendering

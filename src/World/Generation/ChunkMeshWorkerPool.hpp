@@ -8,9 +8,8 @@
 
 namespace lve
 {
-    class ChunkMeshWorkerPool
-    {
-    public:
+    class ChunkMeshWorkerPool {
+      public:
         explicit ChunkMeshWorkerPool(LveDevice &device, size_t threadCount = std::thread::hardware_concurrency());
 
         ~ChunkMeshWorkerPool();
@@ -18,21 +17,16 @@ namespace lve
         void submit(MeshJob job) { jobQueue.push(std::move(job)); }
         bool tryGetResult(MeshResult &out) { return resultQueue.try_pop(out); }
 
-        void printJobQueueSize()
-        {
-            jobQueue.printSize();
-        }
+        void printJobQueueSize() { jobQueue.printSize(); }
 
-        void printResultQueue()
-        {
-            resultQueue.printSize();
-        }
+        void printResultQueue() { resultQueue.printSize(); }
 
-    private:
+      private:
         void workerLoop();
         MeshResult generateMesh(MeshJob &job, VkCommandPool pool);
-        void emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces);
-        void emitMesh(MeshJob &job, MeshResult &result, glm::ivec3 pos, uint32_t &emittedFaces);
+        void emitVoxel(MeshJob &job, MeshResult &result, ivec3 pos);
+        void emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos);
+        void emitConnectedBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos);
         int calculateAO(glm::ivec3 pos, int face, int vertexIndex, MeshJob &job);
         static glm::ivec3 getDirection(int i);
         static glm::vec2 getAtlasUV(int face, glm::vec2 uv, int blockType);
@@ -53,7 +47,5 @@ namespace lve
         std::atomic<bool> running{true};
         LveDevice &device;
         VkCommandPool myPool;
-
-        
     };
-}
+} // namespace lve

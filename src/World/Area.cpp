@@ -14,7 +14,7 @@ namespace lve
 {
     Area::~Area() = default;
 
-    Area::Area(LveDevice &lveDevice, u64 seed) : device(lveDevice), chunkGenSystem(*this), chunkMeshSystem(*this, device), chunkMutationSystem() {}
+    Area::Area(LveDevice &lveDevice, u64 seed) : device(lveDevice), chunkGenSystem(*this), chunkMeshSystem(*this, device), chunkMutationSystem() { std::cout << "seed " << seed << '\n'; }
 
     void Area::updateArea() {
         chunkGenSystem.update();

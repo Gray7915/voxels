@@ -18,7 +18,7 @@ namespace Rendering
       public:
         MenuScene(AppContext &context, SceneManager &sceneManager) : sceneManager(sceneManager), context(context) {}
         void onEnter() override {
-            seedInput = 12345;
+            seedInput = 19;
             context.window.setMouseActive();
         }
         void update(float deltaTime) override {
@@ -36,6 +36,7 @@ namespace Rendering
             ImGui::InputInt("##seed", &seedInput);
 
             if (ImGui::Button("Generate World", ImVec2(-1, 0))) {
+                // std::cout << "seed entered in main menu " << seedInput << '\n';
                 sceneManager.switchTo(std::make_unique<GameScene>(context, sceneManager, seedInput));
             }
 
@@ -48,6 +49,6 @@ namespace Rendering
         AppContext &context;
 
         SceneManager &sceneManager;
-        int seedInput = 12345;
+        int seedInput = 19;
     };
 } // namespace Rendering

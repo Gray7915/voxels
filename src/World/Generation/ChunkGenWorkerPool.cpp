@@ -38,7 +38,7 @@ namespace lve
         for (int x = 0; x < VoxelData::WIDTH; x++) {
             for (int z = 0; z < VoxelData::DEPTH; z++) {
                 glm::vec2 worldPos = glm::vec2(x + worldOrigin.x, z + worldOrigin.y);
-
+                // std::cout << "seed before call to sample " << job.worldSeed << '\n';
                 float heightValue = noise.sample(worldPos * 0.009f, job.worldSeed);
                 heightValue = (heightValue + 1.0f) * 0.5f;
 

@@ -59,7 +59,10 @@ namespace lve
 
     void LveModel::createVertexBuffers(const std::vector<Vertex> &vertices, VkCommandPool pool) {
         vertexCount = static_cast<uint32_t>(vertices.size());
-        assert(vertexCount >= 3 && "vertex count must be at least 3");
+        if (vertexCount < 3) {
+            std::cerr << "Warning: createVertexBuffers called with fewer than 3 vertices\n";
+            return;
+        }
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
         uint32_t vertexSize = sizeof(vertices[0]);
 

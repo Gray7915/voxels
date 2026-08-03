@@ -187,6 +187,10 @@
         },
         "textures": {},
         "hardness": 0,
-        "renderType": "mesh"
+        "renderType": "mesh",
+
+        "behaviour": {
+            "type": "connected"
+        }
     }
 ]

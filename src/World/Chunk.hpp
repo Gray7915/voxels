@@ -48,9 +48,8 @@ namespace lve
                 device.queueDeletion([model = oldModel]() {
                 }, currentFrameIndex);
             }
-
             chunkModel = std::move(model);
-            // chunkState = ChunkState::Ready;
+            chunkState = ChunkState::Uploaded;
         }
         std::shared_ptr<LveModel> chunkModel{};
     };

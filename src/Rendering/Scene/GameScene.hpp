@@ -11,30 +11,31 @@
 #include "Rendering/Systems/ui_render_system.hpp"
 #include "Ui/ImguiManager.hpp"
 #include "Util/lve_frame_info.hpp"
+#include "Util/AppContext.hpp"
 #include "World/Area.hpp"
 #include "World/Generation/ChunkState.hpp"
 
 #include "ECS/EntityFactory.hpp"
 #include "ECS/SpawnInfo.hpp"
 
+#include "imgui.h"
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
+
 namespace Rendering
 {
+    enum class GameSceneState { Loading, Playing };
     class GameScene : public Scene {
       public:
-        GameScene(SceneManager &sceneManager, lve::LveDevice &device, lve::ImguiManager &imgui, int seed, lve::LveWindow &window, lve::LveRenderer &renderer, lve::Coordinator &coordinator,
-                  lve::RenderSetup &renderSetup, lve::ECSSystems &systems)
-            : sceneManager(sceneManager), device(device), imgui(imgui), seed(seed), window(window), renderer(renderer), renderSetup(renderSetup), coordinator(coordinator), systems(systems) {}
+        GameScene(AppContext &context, SceneManager &sceneManager, int seed) : context(context), sceneManager(sceneManager), seed(seed) {}
 
         void onEnter() override {
-            chunkRenderSystem.emplace(device, renderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout());
-            highlightRenderSystem.emplace(device, renderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout());
-            simpleRenderSystem.emplace(device, renderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout());
-            // all the setup that currently happens before your game loop
-            area = std::make_unique<lve::Area>(device, seed);
-            // area->setSeed(seed);
+            chunkRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
+            highlightRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
+            simpleRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
+            area = std::make_unique<lve::Area>(context.device, seed);
 
-            mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = vec3{0, 68, 0}});
-            // ... rest of entity setup
+            mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = vec3{0, 68, 0}, .scale{1, 1, 1}});
         }
 
         void onExit() override {
@@ -43,79 +44,113 @@ namespace Rendering
 
         void update(float deltaTime) override {
             lastFrameTime = deltaTime;
-            auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
-            auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
+            auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
             camPosition = camTransform.position;
             camRotation = camTransform.rotation;
 
-            systems.inputSystem->Update(&window);
-            systems.movementSystem->Update(deltaTime);
-            systems.physicsSystem->Update(deltaTime);
-            systems.collisionSystem->Update(deltaTime, *area);
-            systems.interactionSystem->Update(deltaTime, window, device, *area);
-            systems.inventorySystem->Update(*area);
+            area->updateArea();
 
-            hoveredID = systems.interactionSystem->hoveredID;
-            area->updateArea(); // gen and mutation systems updated
-            coordinator.eventBus.blockBreakRequest.clear();
-            coordinator.eventBus.blockPlaceRequested.clear();
+            if (state == GameSceneState::Loading) {
+                return;
+            }
+
+            context.systems.inputSystem->Update(&context.window);
+            context.systems.movementSystem->Update(deltaTime);
+            context.systems.physicsSystem->Update(deltaTime);
+            context.systems.collisionSystem->Update(deltaTime, *area);
+            context.systems.interactionSystem->Update(deltaTime, context.window, context.device, *area);
+            context.systems.inventorySystem->Update(*area);
+
+            hoveredID = context.systems.interactionSystem->hoveredID;
+            context.coordinator.eventBus.blockBreakRequest.clear();
+            context.coordinator.eventBus.blockPlaceRequested.clear();
         }
 
         void render(lve::FrameInfo &frameInfo) override {
-            auto &camTransform = coordinator.GetComponent<Transform>(mainCamera);
-            auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
+            auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
+            auto &camera = context.coordinator.GetComponent<CameraComponent>(mainCamera);
 
-            area->tick(device, camPosition, frameInfo.frameIndex); // mesh gets updated here. Can't update above because don't have frame index
+            area->tick(context.device, camPosition, frameInfo.frameIndex);
 
-            // compute ray direction from stored rotation
-            glm::vec3 forward = {cos(camRotation.x) * sin(camRotation.y), -sin(camRotation.x), cos(camRotation.x) * cos(camRotation.y)};
-            glm::vec3 rayDir = glm::normalize(forward);
+            if (state == GameSceneState::Loading) {
+                if (chunksReady() >= minimumChunksToLoad) {
+                    state = GameSceneState::Playing;
+                    context.window.setMouseActive();
+                } else {
+                    renderLoadingScreen(frameInfo, camera);
+                    return;
+                }
+            }
 
-            auto block = lve::BlockRegistry::Get().GetBlockByID(hoveredID.w);
-            glm::vec3 boxSize{1, 1, 1};
-            if (block)
-                boxSize = block->get().highlightBoxSize;
-
-            // geometry pass
-            renderer.geometryPass->begin(frameInfo.commandBuffer, renderer.getImageIndex());
-            if (anyChunkReady()) {
-                chunkRenderSystem->renderChunks(frameInfo, area->chunks);
+            context.renderer.geometryPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
+            chunkRenderSystem->renderChunks(frameInfo, area->chunks);
+            if (hoveredID.w != 0) {
+                auto block = lve::BlockRegistry::Get().GetBlockByID(hoveredID.w);
+                vec3 boxSize{1, 1, 1};
+                if (block)
+                    boxSize = block->get().highlightBoxSize;
+                vec3 forward = {cos(camRotation.x) * sin(camRotation.y), -sin(camRotation.x), cos(camRotation.x) * cos(camRotation.y)};
+                vec3 rayDir = glm::normalize(forward);
                 highlightRenderSystem->render(frameInfo, hoveredID.w, hoveredID, boxSize, rayDir);
             }
-            renderer.geometryPass->end(frameInfo.commandBuffer);
+            context.renderer.geometryPass->end(frameInfo.commandBuffer);
 
-            // ui pass
-            renderer.UiRenderPass->begin(frameInfo.commandBuffer, renderer.getImageIndex());
-            imgui.newFrame();
-            imgui.drawDebugWindow(lastFrameTime, camPosition, camTransform, camera, *area);
-            imgui.drawCrosshair(window.getExtent().width, window.getExtent().height);
-            imgui.drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
-            imgui.render(frameInfo.commandBuffer);
-            renderer.UiRenderPass->end(frameInfo.commandBuffer);
+            renderUI(frameInfo, camTransform, camera);
+
+            lve::GlobalUbo ubo{};
+            ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
+            ubo.cameraPosition = glm::ivec4(camTransform.position, 1);
+            context.renderSetup.uboBuffers[frameInfo.frameIndex]->writeToBuffer(&ubo);
+            context.renderSetup.uboBuffers[frameInfo.frameIndex]->flush();
         }
 
       private:
-        bool anyChunkReady() {
-            for (auto &[coord, chunk] : area->chunks) {
-                if (chunk->chunkState == lve::ChunkState::Uploaded && chunk->chunkModel != nullptr)
-                    return true;
-            }
-            return false;
+        static constexpr int minimumChunksToLoad = 9;
+
+        int chunksReady() {
+            int count = 0;
+            for (auto &[coord, chunk] : area->chunks)
+                if (chunk && chunk->chunkState == lve::ChunkState::Uploaded && chunk->chunkModel != nullptr)
+                    count++;
+            return count;
         }
+
+        void renderLoadingScreen(lve::FrameInfo &frameInfo, CameraComponent &camera) {
+            lve::GlobalUbo ubo{};
+            ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
+            ubo.cameraPosition = glm::ivec4(camPosition, 1);
+            context.renderSetup.uboBuffers[frameInfo.frameIndex]->writeToBuffer(&ubo);
+            context.renderSetup.uboBuffers[frameInfo.frameIndex]->flush();
+
+            context.renderer.StandaloneUIRenderPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
+            context.imgui.newFrame();
+
+            ImGui::SetNextWindowSize(ImVec2(300, 80), ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2(400, 300), ImGuiCond_Always);
+            ImGui::Begin("##loading", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground);
+            ImGui::Text("Generating world... %d / %d", chunksReady(), minimumChunksToLoad);
+            ImGui::End();
+
+            context.imgui.render(frameInfo.commandBuffer);
+            context.renderer.StandaloneUIRenderPass->end(frameInfo.commandBuffer);
+        }
+
+        void renderUI(lve::FrameInfo &frameInfo, Transform &camTransform, CameraComponent &camera) {
+            context.renderer.UiRenderPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
+            context.imgui.newFrame();
+            context.imgui.drawDebugWindow(lastFrameTime, camPosition, camTransform, camera, *area);
+            context.imgui.drawCrosshair(context.window.getExtent().width, context.window.getExtent().height);
+            context.imgui.drawInv(context.coordinator.GetComponent<InventoryComponent>(mainCamera));
+            context.imgui.render(frameInfo.commandBuffer);
+            context.renderer.UiRenderPass->end(frameInfo.commandBuffer);
+        }
+
+        AppContext &context;
         SceneManager &sceneManager;
-        lve::LveDevice &device;
-        lve::ImguiManager &imgui;
-        lve::LveWindow &window;
-        lve::LveRenderer &renderer;
-        lve::RenderSetup &renderSetup;
         int seed;
 
         std::unique_ptr<lve::Area> area;
         Entity mainCamera;
-
-        lve::Coordinator &coordinator;
-
-        lve::ECSSystems &systems;
 
         std::optional<lve::ChunkRenderSystem> chunkRenderSystem;
         std::optional<lve::HighlightRenderSystem> highlightRenderSystem;
@@ -125,6 +160,7 @@ namespace Rendering
         glm::vec3 camPosition{0};
         glm::vec3 camRotation{0};
         float lastFrameTime{0};
-        // render systems, ECS systems etc.
+
+        GameSceneState state = GameSceneState::Loading;
     };
 } // namespace Rendering

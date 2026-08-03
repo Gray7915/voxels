@@ -68,6 +68,7 @@ namespace lve
         // std::cout << "after desc sets" << '\n';
 
         for (auto &[key, obj] : chunks) {
+
             SimplePushConstantData push{};
             push.modelMatrix = obj->mat4();
             push.normalMatrix = obj->normalMatrix();

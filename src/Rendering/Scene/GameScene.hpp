@@ -136,8 +136,13 @@ namespace Rendering
             context.renderer.StandaloneUIRenderPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
             context.imgui.newFrame();
 
-            ImGui::SetNextWindowSize(ImVec2(300, 80), ImGuiCond_Always);
-            ImGui::SetNextWindowPos(ImVec2(400, 300), ImGuiCond_Always);
+            ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+            ImVec2 windowSize(300.0f, 80.0f);
+
+            ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2((displaySize.x - windowSize.x) * 0.5f, (displaySize.y - windowSize.y) * 0.5f), ImGuiCond_Always);
+
             ImGui::Begin("##loading", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground);
             ImGui::Text("Generating world... %d / %d", chunksReady(), minimumChunksToLoad);
             ImGui::End();

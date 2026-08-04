@@ -7,9 +7,8 @@
 
 namespace lve
 {
-    class LveTexture
-    {
-    public:
+    class LveTexture {
+      public:
         VkImage image;
         VkDeviceMemory imageMemory;
         VkImageView imageView;
@@ -18,15 +17,15 @@ namespace lve
 
         int texWidth;
         int texHeight;
-        int texChannels;
-        uint32_t mipLevels;
+        int texChannels = 0;
+        uint32_t mipLevels = 1;
         VkFormat format;
 
         std::string filepath;
 
         // load from disk
-        LveTexture(LveDevice &device, const std::string &filepath);
-
+        LveTexture(LveDevice &device, const std::string &filepath, VkFormat textureFormat = VK_FORMAT_R8G8B8A8_SRGB);
+        LveTexture(LveDevice &device, const unsigned char *pixels, int width, int height, VkFormat textureFormat = VK_FORMAT_R8G8B8A8_SRGB);
         // load from memory
         // LveTexture(LveDevice &device, const unsigned char *pixels, uint32_t width, uint32_t height);
         ~LveTexture();
@@ -46,7 +45,7 @@ namespace lve
 
         void createTextureImageWithPixels();
 
-    private:
+      private:
         void loadTextureData();
         void createTextureImage();
         void createTextureImageView();

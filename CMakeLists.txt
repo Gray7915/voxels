@@ -4,6 +4,13 @@ message(STATUS "Local .env.cmake: ${LOCAL_ENV}")
 cmake_minimum_required(VERSION 3.11.0)
  
 set(NAME voxels)
+
+# vcpkg toolchain — must be before project()
+if(DEFINED ENV{VCPKG_ROOT})
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+elseif(EXISTS "C:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+    set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+endif()
  
 message(STATUS "using ${CMAKE_GENERATOR}")
 if (CMAKE_GENERATOR STREQUAL "MinGW Makefiles")
@@ -16,14 +23,36 @@ if (CMAKE_GENERATOR STREQUAL "MinGW Makefiles")
 endif()
  
 project(${NAME} VERSION 0.0.1)
- 
+
+# FetchContent for RmlUi
+include(FetchContent)
+
+FetchContent_Declare(
+    RmlUi
+    GIT_REPOSITORY https://github.com/mikke89/RmlUi.git
+    GIT_TAG 6.2
+)
+
+if(WIN32)
+    set(RMLUI_BACKEND "Win32_VK" CACHE STRING "" FORCE)
+else()
+    set(RMLUI_BACKEND "X11_GL2" CACHE STRING "" FORCE)
+endif()
+set(BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(RmlUi)
+
+get_property(all_targets DIRECTORY ${rmlui_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+message(STATUS "RmlUi targets: ${all_targets}")
+
 # 1. Set VULKAN_SDK_PATH in .env.cmake to target specific vulkan version
 if (WIN32 AND DEFINED VULKAN_SDK_PATH)
-  set(Vulkan_INCLUDE_DIRS "${VULKAN_SDK_PATH}/Include") # 1.1 Make sure this include path is correct
-  set(Vulkan_LIBRARIES "${VULKAN_SDK_PATH}/Lib") # 1.2 Make sure lib path is correct
+  set(Vulkan_INCLUDE_DIRS "${VULKAN_SDK_PATH}/Include")
+  set(Vulkan_LIBRARIES "${VULKAN_SDK_PATH}/Lib")
   set(Vulkan_FOUND "True")
 else()
-  find_package(Vulkan REQUIRED) # throws error if could not find Vulkan
+  find_package(Vulkan REQUIRED)
   message(STATUS "Found Vulkan: $ENV{VULKAN_SDK}")
 endif()
 if (NOT Vulkan_FOUND)
@@ -32,19 +61,15 @@ else()
     message(STATUS "Using vulkan lib at: ${Vulkan_LIBRARIES}")
 endif()
  
- 
 # 2. Set GLFW_PATH in .env.cmake to target specific glfw
 if (DEFINED GLFW_PATH)
     message(STATUS "Using GLFW path specified in .env")
-
     set(GLFW_INCLUDE_DIRS "${GLFW_PATH}/include")
-
     if (WIN32)
         set(GLFW_LIB "${GLFW_PATH}/lib")
     else()
         set(GLFW_LIB "${GLFW_PATH}/lib")
     endif()
-
 else()
     find_package(glfw3 3.3 REQUIRED)
     set(GLFW_LIB glfw)
@@ -59,14 +84,13 @@ endif()
  
 include_directories(external)
  
-# If TINYOBJ_PATH not specified in .env.cmake, try fetching from git repo
 if (NOT TINYOBJ_PATH)
   message(STATUS "TINYOBJ_PATH not specified in .env.cmake, using external/tinyobjloader")
   set(TINYOBJ_PATH external/tinyobjloader)
 endif()
 
 if(NOT IMGUI_PATH)
-  message(STATUS "IMGUI not specified in .env.cmake, using external/tinyobjloader")
+  message(STATUS "IMGUI not specified in .env.cmake, using external/imgui")
   set(IMGUI_PATH external/imgui/)
 endif()
 
@@ -76,10 +100,14 @@ if(NOT NLOHMANN_PATH)
 endif()
 
 if(NOT DI_PATH)
-    message(STATUS "NLOHMANN_PATH not specified, using external/di")
+    message(STATUS "DI_PATH not specified, using external/di")
     set(DI_PATH external/di)
 endif()
 
+find_package(Freetype CONFIG REQUIRED)
+if(TARGET Freetype::Freetype)
+    message(STATUS "Found Freetype via vcpkg")
+endif()
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
@@ -126,7 +154,8 @@ if (WIN32)
     ${GLFW_LIB}
   )
  
-  target_link_libraries(${PROJECT_NAME} glfw3 vulkan-1)
+  target_link_libraries(${PROJECT_NAME} glfw3 vulkan-1 rmlui Freetype::Freetype)
+
 elseif (UNIX)
     message(STATUS "CREATING BUILD FOR UNIX")
     target_include_directories(${PROJECT_NAME} PUBLIC
@@ -138,9 +167,8 @@ elseif (UNIX)
       ${GLM_PATH}
       ${DI_PATH}
     )
-    target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES} rmlui Freetype::Freetype)
 endif()
- 
  
 ############## Build SHADERS #######################
 
@@ -162,16 +190,13 @@ file(GLOB_RECURSE GLSL_SOURCE_FILES
 
 foreach(GLSL ${GLSL_SOURCE_FILES})
   get_filename_component(FILE_NAME ${GLSL} NAME)
-
   set(SPIRV "${PROJECT_SOURCE_DIR}/shaders/${FILE_NAME}.spv")
-
   add_custom_command(
     OUTPUT ${SPIRV}
     COMMAND ${GLSL_VALIDATOR} ${GLSL} -o ${SPIRV}
     DEPENDS ${GLSL}
     COMMENT "Compiling shader ${FILE_NAME}"
   )
-
   list(APPEND SPIRV_BINARY_FILES ${SPIRV})
 endforeach()
 

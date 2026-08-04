@@ -11,34 +11,57 @@
 
 namespace lve
 {
-    LveTexture::LveTexture(LveDevice &device, const std::string &filepath) : lveDevice(device)
-    {
+    LveTexture::LveTexture(LveDevice &device, const std::string &filepath, VkFormat textureFormat) : lveDevice(device), format(textureFormat) {
         createTextureImageWithPixels();
 
         createTextureImageView();
         createTextureSampler();
     }
 
-    LveTexture::~LveTexture()
-    {
+    LveTexture::LveTexture(LveDevice &device, const unsigned char *pixels, int width, int height, VkFormat textureFormat) : lveDevice(device), format(textureFormat) {
+        texWidth = width;
+        texHeight = height;
+        imageSize = width * height * 4;
+
+        LveBuffer stagingBuffer{lveDevice, imageSize, 1, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
+        stagingBuffer.map();
+        stagingBuffer.writeToBuffer((void *)pixels, imageSize);
+        stagingBuffer.unmap();
+
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.extent = {(uint32_t)width, (uint32_t)height, 1};
+        imageInfo.mipLevels = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.format = format;
+        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        lveDevice.createImageWithInfo(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, imageMemory);
+        transitionImageLayout(format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        copyBufferToImage(stagingBuffer.getBuffer());
+        transitionImageLayout(format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        createTextureImageView();
+        createTextureSampler();
+    }
+
+    LveTexture::~LveTexture() {
         vkDestroySampler(lveDevice.device(), sampler, nullptr);
         vkDestroyImageView(lveDevice.device(), imageView, nullptr);
         vkDestroyImage(lveDevice.device(), image, nullptr);
         vkFreeMemory(lveDevice.device(), imageMemory, nullptr);
     }
 
-    VkSampler LveTexture::getSampler() const
-    {
-        return sampler;
-    }
+    VkSampler LveTexture::getSampler() const { return sampler; }
 
-    VkImageView LveTexture::getImageView() const
-    {
-        return imageView;
-    }
+    VkImageView LveTexture::getImageView() const { return imageView; }
 
-    void LveTexture::createTextureImageWithPixels()
-    {
+    void LveTexture::createTextureImageWithPixels() {
         auto &atlas = TextureAtlas::Get();
 
         stbi_uc *pixels = atlas.atlasPixels;
@@ -46,8 +69,7 @@ namespace lve
         texHeight = atlas.atlasHeight;
         imageSize = texWidth * texHeight * 4;
 
-        if (!pixels)
-        {
+        if (!pixels) {
             throw std::runtime_error("failed to load atlas pixels!");
         }
 
@@ -57,9 +79,6 @@ namespace lve
         stagingBuffer.unmap();
 
         // no stbi_image_free — atlas owns the buffer and frees it in its destructor
-
-        format = VK_FORMAT_R8G8B8A8_SRGB;
-
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -82,12 +101,10 @@ namespace lve
         transitionImageLayout(format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
-    void LveTexture::createTextureImage()
-    {
+    void LveTexture::createTextureImage() {
         stbi_uc *pixels = stbi_load("../Textures/dirt.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         imageSize = texWidth * texHeight * 4;
-        if (!pixels)
-        {
+        if (!pixels) {
             throw std::runtime_error("failed to load texture image! " + filepath + " filep");
         }
 
@@ -97,7 +114,6 @@ namespace lve
         stagingBuffer.unmap();
 
         stbi_image_free(pixels);
-        format = VK_FORMAT_R8G8B8A8_SRGB;
 
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -121,8 +137,7 @@ namespace lve
         transitionImageLayout(format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
-    void LveTexture::transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
-    {
+    void LveTexture::transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
         VkCommandBuffer commandBuffer = lveDevice.beginSingleTimeCommands(lveDevice.getCommandPool());
 
         VkImageMemoryBarrier barrier{};
@@ -143,26 +158,19 @@ namespace lve
         VkPipelineStageFlags sourceStage;
         VkPipelineStageFlags destinationStage;
 
-        if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-            newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-        {
+        if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
             barrier.srcAccessMask = 0;
             barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
             sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        }
-        else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-                 newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-        {
+        } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
             barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
             barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
             sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-        else
-        {
+        } else {
             throw std::invalid_argument("unsupported layout transition!");
         }
 
@@ -170,8 +178,7 @@ namespace lve
         lveDevice.endSingleTimeCommands(commandBuffer, lveDevice.getCommandPool());
     }
 
-    void LveTexture::copyBufferToImage(VkBuffer buffer)
-    {
+    void LveTexture::copyBufferToImage(VkBuffer buffer) {
         VkCommandBuffer commandBuffer = lveDevice.beginSingleTimeCommands(lveDevice.getCommandPool());
 
         VkBufferImageCopy region{};
@@ -185,22 +192,15 @@ namespace lve
         region.imageSubresource.layerCount = 1;
 
         region.imageOffset = {0, 0, 0};
-        region.imageExtent = {
-            static_cast<uint32_t>(texWidth),
-            static_cast<uint32_t>(texHeight),
-            1};
+        region.imageExtent = {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1};
 
         vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
         lveDevice.endSingleTimeCommands(commandBuffer, lveDevice.getCommandPool());
     }
 
-    void LveTexture::createTextureImageView()
-    {
-        imageView = lveDevice.createImageView(image, VK_FORMAT_R8G8B8A8_SRGB);
-    }
+    void LveTexture::createTextureImageView() { imageView = lveDevice.createImageView(image, format); }
 
-    void LveTexture::createTextureSampler()
-    {
+    void LveTexture::createTextureSampler() {
         VkPhysicalDeviceProperties properties{};
         vkGetPhysicalDeviceProperties(lveDevice.hardwareDevice(), &properties);
 
@@ -228,9 +228,8 @@ namespace lve
         samplerInfo.minLod = 0.0f;
         samplerInfo.maxLod = 0.0f;
 
-        if (vkCreateSampler(lveDevice.device(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
-        {
+        if (vkCreateSampler(lveDevice.device(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture sampler!");
         }
     }
-}
+} // namespace lve

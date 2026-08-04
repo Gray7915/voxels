@@ -13,9 +13,8 @@
 
 namespace lve
 {
-    class SimpleRenderSystem
-    {
-    public:
+    class SimpleRenderSystem {
+      public:
         SimpleRenderSystem(LveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
         ~SimpleRenderSystem();
 
@@ -24,7 +23,7 @@ namespace lve
 
         void renderGameObjects(FrameInfo &frameInfo, glm::mat4 modelMatrix, glm::mat3 normalMatrix, std::shared_ptr<lve::LveModel> model);
 
-    private:
+      private:
         void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
         void createPipeline(VkRenderPass renderPass);
         void createDescriptorSetLayout();
@@ -35,4 +34,4 @@ namespace lve
         std::unique_ptr<LvePipeline> lvePipeline;
         VkDescriptorSetLayout textureSetLayout;
     };
-}
+} // namespace lve

@@ -31,14 +31,15 @@ namespace lve
 
     static const vec2 CUBE_UVS[] = {{0, 1}, {1, 1}, {1, 0}, {0, 0}};
 
-    ChunkMeshWorkerPool::ChunkMeshWorkerPool(LveDevice &device, size_t threadCount) : device(device) {
+    ChunkMeshWorkerPool::ChunkMeshWorkerPool(LveDevice &device, size_t threadCount) : device(device)
+    {
         for (size_t i = 0; i < threadCount; i++)
-            workers.emplace_back([this] {
-                workerLoop();
-            });
+            workers.emplace_back([this]
+                                 { workerLoop(); });
     }
 
-    ChunkMeshWorkerPool::~ChunkMeshWorkerPool() {
+    ChunkMeshWorkerPool::~ChunkMeshWorkerPool()
+    {
         running = false;
         jobQueue.shutdown();
         for (auto &t : workers)
@@ -46,44 +47,55 @@ namespace lve
                 t.join();
     }
 
-    void ChunkMeshWorkerPool::workerLoop() {
+    void ChunkMeshWorkerPool::workerLoop()
+    {
         VkCommandPool threadPool = device.createTransientCommandPool();
 
         MeshJob job;
-        while (jobQueue.wait_and_pop(job)) {
+        while (jobQueue.wait_and_pop(job))
+        {
             resultQueue.push(generateMesh(job, threadPool));
         }
 
         device.destroyCommandPool(threadPool);
     }
 
-    MeshResult ChunkMeshWorkerPool::generateMesh(MeshJob &job, VkCommandPool pool) {
+    MeshResult ChunkMeshWorkerPool::generateMesh(MeshJob &job, VkCommandPool pool)
+    {
         MeshResult result{};
         result.chunkCoord = job.chunkCoord;
 
-        for (int x = 0; x < VoxelData::WIDTH; x++) {
-            for (int z = 0; z < VoxelData::DEPTH; z++) {
-                for (int y = 0; y < VoxelData::HEIGHT; y++) {
-                    if (job.voxelData.get(x, y, z) != 0) {
+        for (int x = 0; x < VoxelData::WIDTH; x++)
+        {
+            for (int z = 0; z < VoxelData::DEPTH; z++)
+            {
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
+                {
+                    if (job.voxelData.get(x, y, z) != 0)
+                    {
                         emitVoxel(job, result, ivec3{x, y, z});
                     }
                 }
             }
         }
 
-        if (result.verticies.size() < 3) {
+        if (result.verticies.size() < 3)
+        {
             result.model = nullptr;
             return result;
         }
-        result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, pool);
+
+        //        result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, pool);
         return result;
     }
 
-    void ChunkMeshWorkerPool::emitVoxel(MeshJob &job, MeshResult &result, ivec3 pos) {
+    void ChunkMeshWorkerPool::emitVoxel(MeshJob &job, MeshResult &result, ivec3 pos)
+    {
         // std::cout << "voxel emitted" << '\n';
         int BlockID = job.voxelData.get(pos.x, pos.y, pos.z);
-        auto &blockDef = BlockRegistry::Get().GetBlockByID(BlockID)->get();
-        switch (blockDef.behaviour.behaviourType) {
+        auto blockDef = BlockRegistry::Get().GetBlockByID(BlockID);
+        switch (blockDef->behaviour.behaviourType)
+        {
         case BlockBehaviourType::NONE:
             emitBlock(job, result, pos);
             break;
@@ -93,19 +105,23 @@ namespace lve
         }
     }
 
-    void ChunkMeshWorkerPool::emitBlock(MeshJob &job, MeshResult &result, ivec3 pos) {
+    void ChunkMeshWorkerPool::emitBlock(MeshJob &job, MeshResult &result, ivec3 pos)
+    {
         int blockType = job.voxelData.get(pos.x, pos.y, pos.z);
 
-        for (u8 face = 0; face < static_cast<u8>(Math::Direction::COUNT); ++face) {
+        for (u8 face = 0; face < static_cast<u8>(Math::Direction::COUNT); ++face)
+        {
             glm::ivec3 n = pos + Math::DirectionByFaceInt(face);
 
-            bool neighborSolid = BlockRegistry::Get().GetBlockByID(getChunkVoxel(job, n).blockID)->get().renderType == RenderType::Block;
-            if (neighborSolid) {
+            bool neighborSolid = BlockRegistry::Get().GetBlockByID(getChunkVoxel(job, n).blockID)->renderType == RenderType::Block;
+            if (neighborSolid)
+            {
                 continue;
             }
 
             const uint32_t baseIndex = static_cast<uint32_t>(result.verticies.size());
-            for (int vert = 0; vert < 4; vert++) {
+            for (int vert = 0; vert < 4; vert++)
+            {
                 size_t cubeVertex = CUBE_INDICES[face * 6 + UNIQUE_INDICES[vert]];
 
                 Vertex vertex{};
@@ -124,25 +140,32 @@ namespace lve
         }
     }
 
-    void ChunkMeshWorkerPool::emitConnectedBlock(MeshJob &job, MeshResult &result, ivec3 pos) {
+    void ChunkMeshWorkerPool::emitConnectedBlock(MeshJob &job, MeshResult &result, ivec3 pos)
+    {
 
-        auto &block = BlockRegistry::Get().GetBlockByID(4);
-        if (block) {
+        auto block = BlockRegistry::Get().GetBlockByID(4);
+        if (block)
+        {
             Voxel voxel = job.voxelData.getVoxel(pos.x, pos.y, pos.z);
             Fence::setSegmentBit(voxel, Math::VectorToCardinal({0, 0, 0}), true);
-            for (ivec3 dir : Math::CardinalDirections) {
+            for (ivec3 dir : Math::CardinalDirections)
+            {
                 glm::ivec3 n = pos + dir;
-                RenderType renderType = BlockRegistry::Get().GetBlockByID(getChunkVoxel(job, n).blockID)->get().renderType;
+                RenderType renderType = BlockRegistry::Get().GetBlockByID(getChunkVoxel(job, n).blockID)->renderType;
                 bool neighborSolid = renderType == RenderType::Block || renderType == RenderType::Mesh || renderType == RenderType::Transparent;
-                if (neighborSolid) {
+                if (neighborSolid)
+                {
                     Fence::setSegmentBit(voxel, Math::VectorToCardinal(dir), true);
                     job.voxelData.setVoxelData(pos.x, pos.y, pos.z, voxel);
                 }
 
-                for (auto &modelSection : block->get().model->modelSections) {
-                    if (Fence::isSegmentBitActive(job.voxelData.getVoxel(pos.x, pos.y, pos.z), modelSection.second.dirction) || modelSection.second.dirction == Math::Direction::CENTER) {
+                for (auto &modelSection : block->model->modelSections)
+                {
+                    if (Fence::isSegmentBitActive(job.voxelData.getVoxel(pos.x, pos.y, pos.z), modelSection.second.dirction) || modelSection.second.dirction == Math::Direction::CENTER)
+                    {
                         u32 baseVertex = static_cast<u32>(result.verticies.size());
-                        for (Vertex vert : modelSection.second.vertices) {
+                        for (Vertex vert : modelSection.second.vertices)
+                        {
                             vert.position = vert.position + vec3(pos) + vec3(0.5, 0, 0.5);
                             vert.color = {1.f, 1.f, 1.f};
                             vert.ao = 1.f;
@@ -151,7 +174,8 @@ namespace lve
                             result.verticies.push_back(vert);
                         }
 
-                        for (auto index : modelSection.second.indices) {
+                        for (auto index : modelSection.second.indices)
+                        {
                             result.indices.push_back(baseVertex + index);
                         }
                     }
@@ -160,7 +184,8 @@ namespace lve
         }
     }
 
-    int ChunkMeshWorkerPool::getSign(ivec3 tangent, ivec3 vertex) {
+    int ChunkMeshWorkerPool::getSign(ivec3 tangent, ivec3 vertex)
+    {
         if (tangent.x != 0)
             return vertex.x ? 1 : -1;
 
@@ -170,7 +195,8 @@ namespace lve
         return vertex.z ? 1 : -1;
     }
 
-    glm::ivec3 ChunkMeshWorkerPool::getFaceTangent1(int face) {
+    glm::ivec3 ChunkMeshWorkerPool::getFaceTangent1(int face)
+    {
         if (face <= 1 || face >= 4)
             return {1, 0, 0};
         if (face >= 2 && face <= 3)
@@ -178,7 +204,8 @@ namespace lve
         return {};
     }
 
-    glm::ivec3 ChunkMeshWorkerPool::getFaceTangent2(int face) {
+    glm::ivec3 ChunkMeshWorkerPool::getFaceTangent2(int face)
+    {
         if (face <= 3)
             return {0, 1, 0};
         if (face <= 5)
@@ -186,7 +213,8 @@ namespace lve
         return {};
     }
 
-    int ChunkMeshWorkerPool::calculateAO(ivec3 pos, int face, int cubeVertex, MeshJob &job) {
+    int ChunkMeshWorkerPool::calculateAO(ivec3 pos, int face, int cubeVertex, MeshJob &job)
+    {
         ivec3 localVertex = ivec3(CUBE_VERTICES[cubeVertex]);
 
         ivec3 tangent1 = getFaceTangent1(face);
@@ -211,13 +239,15 @@ namespace lve
         return 3 - (block1 + block2 + blockCorner);
     }
 
-    int ChunkMeshWorkerPool::getSolid(ivec3 voxel, const MeshJob &job) {
+    int ChunkMeshWorkerPool::getSolid(ivec3 voxel, const MeshJob &job)
+    {
         if (voxel.y < 0 || voxel.y >= VoxelData::HEIGHT)
             return 0;
-        return (BlockRegistry::Get().GetBlockByID(getChunkVoxel(job, voxel).blockID)->get().renderType == RenderType::Block) ? 1 : 0;
+        return (BlockRegistry::Get().GetBlockByID(getChunkVoxel(job, voxel).blockID)->renderType == RenderType::Block) ? 1 : 0;
     }
 
-    glm::vec2 ChunkMeshWorkerPool::getAtlasUV(int face, vec2 uv, int blockType) {
+    glm::vec2 ChunkMeshWorkerPool::getAtlasUV(int face, vec2 uv, int blockType)
+    {
         /*
         For models need to change this
         Probably have the texture put into the atlas at us the regular model uvs combined with
@@ -226,16 +256,18 @@ namespace lve
         */
         auto block = BlockRegistry::Get().GetBlockByID(blockType);
 
-        if (!block) {
+        if (!block)
+        {
             std::cerr << "Missing block ID: " << blockType << '\n';
             return {0, 0};
         }
 
-        std::string requstTexture = BlockRegistry::Get().GetBlockByID(blockType)->get().faces.at(face);
+        std::string requstTexture = BlockRegistry::Get().GetBlockByID(blockType)->faces.at(face);
         // std::cout << requstTexture << '\n';
 
         const auto &region = TextureAtlas::Get().atlasRegions.find(requstTexture);
-        if (region != TextureAtlas::Get().atlasRegions.end()) {
+        if (region != TextureAtlas::Get().atlasRegions.end())
+        {
             const auto &atlas = TextureAtlas::Get();
 
             float u = (region->second.x + uv.x * region->second.width) / static_cast<float>(atlas.atlasWidth);
@@ -247,15 +279,18 @@ namespace lve
         return uv;
     }
 
-    glm::vec2 ChunkMeshWorkerPool::getModelAtlasUV(vec2 modelUV, const std::string &textureName) {
+    glm::vec2 ChunkMeshWorkerPool::getModelAtlasUV(vec2 modelUV, const std::string &textureName)
+    {
         const auto &atlas = TextureAtlas::Get();
         const auto it = atlas.atlasRegions.find(textureName);
         const auto &region = it->second;
         return {(region.x + modelUV.x * region.width) / static_cast<float>(atlas.atlasWidth), (region.y + modelUV.y * region.height) / static_cast<float>(atlas.atlasHeight)};
     }
 
-    Voxel ChunkMeshWorkerPool::getChunkVoxel(const MeshJob &job, glm::ivec3 v) {
-        if (v.x >= 0 && v.x < CHUNK_WIDTH && v.y >= 0 && v.y < CHUNK_HEIGHT && v.z >= 0 && v.z < CHUNK_DEPTH) {
+    Voxel ChunkMeshWorkerPool::getChunkVoxel(const MeshJob &job, glm::ivec3 v)
+    {
+        if (v.x >= 0 && v.x < CHUNK_WIDTH && v.y >= 0 && v.y < CHUNK_HEIGHT && v.z >= 0 && v.z < CHUNK_DEPTH)
+        {
             // std::cout << "get voxel " << v.y << " " << v.y << " " << v.z << '\n';
             return job.voxelData.getVoxel(v.x, v.y, v.z);
         }

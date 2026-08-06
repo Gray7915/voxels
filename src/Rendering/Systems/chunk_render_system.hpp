@@ -6,7 +6,7 @@
 #include "Util/IVec3Hash.h"
 #include "Util/lve_frame_info.hpp"
 #include "World/Chunk.hpp"
-
+#include "ECS/Coordinator.hpp"
 // std
 #include <memory>
 #include <vector>
@@ -23,7 +23,7 @@ namespace lve
         ChunkRenderSystem(const ChunkRenderSystem &) = delete;
         ChunkRenderSystem &operator=(const ChunkRenderSystem &) = delete;
 
-        void renderChunks(FrameInfo &frameInfo, std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> &chunks);
+        void renderChunks(FrameInfo &frameInfo, std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> &chunks, Coordinator &coordinator, Entity &player);
 
     private:
         void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);

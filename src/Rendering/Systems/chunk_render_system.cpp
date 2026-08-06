@@ -1,6 +1,6 @@
 #include "chunk_render_system.hpp"
 #include "World/Chunk.hpp"
-
+#include "ECS/Components/Camera.hpp"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
@@ -12,19 +12,22 @@
 namespace lve
 {
 
-    struct SimplePushConstantData {
+    struct SimplePushConstantData
+    {
         glm::mat4 modelMatrix{1.f};
         glm::mat4 normalMatrix{1.f};
     };
 
-    ChunkRenderSystem::ChunkRenderSystem(LveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : lveDevice{device} {
+    ChunkRenderSystem::ChunkRenderSystem(LveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : lveDevice{device}
+    {
         createPipelineLayout(globalSetLayout);
         createPipeline(renderPass);
     }
 
     ChunkRenderSystem::~ChunkRenderSystem() { vkDestroyPipelineLayout(lveDevice.device(), pipelineLayout, nullptr); }
 
-    void ChunkRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
+    void ChunkRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
+    {
         VkPushConstantRange pushConstantRange{};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
@@ -38,12 +41,14 @@ namespace lve
         pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-        if (vkCreatePipelineLayout(lveDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(lveDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+        {
             throw std::runtime_error("failed to create pipeline layout!");
         }
     }
 
-    void ChunkRenderSystem::createPipeline(VkRenderPass renderPass) {
+    void ChunkRenderSystem::createPipeline(VkRenderPass renderPass)
+    {
         assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
         PipelineConfigInfo pipelineConfig{};
         LvePipeline::defaultPipelineConfigInfo(pipelineConfig);
@@ -56,7 +61,8 @@ namespace lve
                                                     "shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv", pipelineConfig);
     }
 
-    void ChunkRenderSystem::renderChunks(FrameInfo &frameInfo, std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> &chunks) {
+    void ChunkRenderSystem::renderChunks(FrameInfo &frameInfo, std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> &chunks, Coordinator &coordinator, Entity &player)
+    {
         uint64_t vertices = 0;
         uint64_t indices = 0;
         uint64_t draws = 0;
@@ -66,8 +72,17 @@ namespace lve
         vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0, nullptr);
         // std::cout << " game objects size " << gameObjects.size() << '\n';
         // std::cout << "after desc sets" << '\n';
+        auto &camera = coordinator.GetComponent<CameraComponent>(player);
 
-        for (auto &[key, obj] : chunks) {
+        for (auto &[key, obj] : chunks)
+        {
+            glm::vec3 min = obj->offset;
+            glm::vec3 max = min + glm::vec3(16, 128, 16);
+            if (!camera.frustum.intersectsAABB(min, max))
+            {
+                //std::cout << "chunk culled";
+                continue;
+            }
 
             SimplePushConstantData push{};
             push.modelMatrix = obj->mat4();

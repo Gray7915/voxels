@@ -555,6 +555,7 @@ namespace lve
 
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
     VkFence fence;
     vkCreateFence(device_, &fenceInfo, nullptr, &fence);
 
@@ -565,10 +566,15 @@ namespace lve
 
     {
       std::lock_guard<std::mutex> lock(queueMutex_);
-      vkQueueSubmit(graphicsQueue_, 1, &submitInfo, fence);
+
+      if (vkQueueSubmit(graphicsQueue_, 1, &submitInfo, fence) != VK_SUCCESS)
+      {
+        throw std::runtime_error("single time submit failed");
+      }
+
+      vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX);
     }
 
-    vkWaitForFences(device_, 1, &fence, VK_TRUE, UINT64_MAX);
     vkDestroyFence(device_, fence, nullptr);
     vkFreeCommandBuffers(device_, pool, 1, &commandBuffer);
   }
@@ -672,7 +678,7 @@ namespace lve
         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
   }
 
-  void LveDevice::queueDeletion(std::function<void()> &&deleter, uint32_t frameIndex)
+  void LveDevice::queueDeletion(std::function<void()> &&deleter, u64 frameIndex)
   {
     std::lock_guard<std::mutex> lock(deletionQueueMutex_);
     deletionQueue_.push_back({std::move(deleter), frameIndex});
@@ -680,10 +686,13 @@ namespace lve
 
   void LveDevice::flushDeletionQueue(uint32_t currentFrame)
   {
+    int budget = 4;
     std::lock_guard<std::mutex> lock(deletionQueueMutex_);
-    while (!deletionQueue_.empty() &&
-           deletionQueue_.front().frameQueued != currentFrame)
+    while (!deletionQueue_.empty() && budget-- > 0)
     {
+      uint64_t frameQueued = deletionQueue_.front().frameQueued;
+      if (currentFrame - frameQueued < 3)
+        break;
       deletionQueue_.front().deleter();
       deletionQueue_.pop_front();
     }

@@ -1,53 +1,45 @@
-    #pragma once
+#pragma once
 
-    #include <utility>
-    #include <iostream>
-    #include <optional>
-    #include <functional>
-    #include <unordered_map>
-    #include <string>
+#include <array>
+#include <string>
+#include "World/Blocks/Block.hpp"
+#include "Util/Types.hpp"
 
-    #include "World/Blocks/Block.hpp"
-
-    namespace lve
+namespace lve
+{
+    class BlockRegistry
     {
-        class BlockRegistry
+    public:
+        static constexpr size_t MAX_BLOCKS = 65536;
+
+        static BlockRegistry &Get()
         {
-        public:
-            static BlockRegistry &Get()
-            {
-                static BlockRegistry instance;
-                return instance;
-            }
+            static BlockRegistry instance;
+            return instance;
+        }
 
-            void Register(Block block)
-            {
-                blocksByNumeric.try_emplace(block.id, block);
-                std::cout << " block id added " << block.id << '\n';
-                blocksByString.try_emplace(block.name, block.id);
-            }
+        void Register(Block block)
+        {
+            blocksByID[block.id] = block;
+            blocksByName[block.name] = block.id;
+        }
 
-            const std::optional<std::reference_wrapper<const Block>> GetBlockByID(uint16_t id)
-            {
-                auto item = blocksByNumeric.find(id);
+        inline const Block *GetBlockByID(uint16_t id) const
+        {
+            return &blocksByID[id];
+        }
 
-                if (item == blocksByNumeric.end())
-                {
-                    return std::nullopt;
-                }
-                return item->second;
-            }
+        uint16_t GetBlockIDByName(const std::string &name) const
+        {
+            auto it = blocksByName.find(name);
+            if (it == blocksByName.end())
+                return 0;
 
-            const std::optional<std::reference_wrapper<const Block>> GetBlockByName(std::string name)
-            {
-                auto BlockID = blocksByString.find(name);
-                if (BlockID == blocksByString.end())
-                    return std::nullopt;
-                return GetBlockByID(BlockID->second);
-            }
+            return it->second;
+        }
 
-        private:
-            std::unordered_map<uint16_t, Block> blocksByNumeric;
-            std::unordered_map<std::string, uint16_t> blocksByString;
-        };
-    }
+    private:
+        std::array<Block, MAX_BLOCKS> blocksByID{};
+        std::unordered_map<std::string, u16> blocksByName;
+    };
+}

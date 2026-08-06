@@ -4,6 +4,7 @@
 #include "Ui/ImguiManager.hpp"
 #include "App/RenderSetup.hpp"
 #include "App/SetupECS.hpp"
+#include "Rendering/Core/ChunkStagingPool.hpp"
 
 struct AppContext {
     lve::LveDevice &device;
@@ -13,4 +14,5 @@ struct AppContext {
     lve::RenderSetup &renderSetup;
     lve::Coordinator &coordinator;
     lve::ECSSystems &systems;
+    ChunkStagingPool &stagingPool;
 };

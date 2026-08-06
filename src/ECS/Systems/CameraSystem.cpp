@@ -12,7 +12,8 @@ namespace lve
 {
     extern Coordinator coordinator;
 
-    void CameraSystem::SetPerspectiveProjection(CameraComponent &camera, float fovy, float aspect, float near, float far) {
+    void CameraSystem::SetPerspectiveProjection(CameraComponent &camera, float fovy, float aspect, float near, float far)
+    {
         assert(glm::abs(aspect - std::numeric_limits<float>::epsilon()) > 0.0f);
         const float tanHalfFovy = tan(fovy / 2.f);
         camera.projectionMatrix = glm::mat4{0.0f};
@@ -23,7 +24,8 @@ namespace lve
         camera.projectionMatrix[3][2] = -(far * near) / (far - near);
     }
 
-    void CameraSystem::SetViewDirection(CameraComponent &camera, glm::vec3 position, glm::vec3 direction, glm::vec3 up) {
+    void CameraSystem::SetViewDirection(CameraComponent &camera, glm::vec3 position, glm::vec3 direction, glm::vec3 up)
+    {
         const glm::vec3 w{glm::normalize(direction)};
         const glm::vec3 u{glm::normalize(glm::cross(w, up))};
         const glm::vec3 v{glm::cross(w, u)};
@@ -44,7 +46,8 @@ namespace lve
 
     void CameraSystem::SetViewTarget(CameraComponent &camera, glm::vec3 position, glm::vec3 target, glm::vec3 up) { SetViewDirection(camera, position, target - position, up); }
 
-    void CameraSystem::setViewXYZ(CameraComponent &camera, glm::vec3 position, glm::vec3 rotation) {
+    void CameraSystem::setViewXYZ(CameraComponent &camera, glm::vec3 position, glm::vec3 rotation)
+    {
         const float c3 = glm::cos(rotation.z), s3 = glm::sin(rotation.z);
         const float c2 = glm::cos(rotation.x), s2 = glm::sin(rotation.x);
         const float c1 = glm::cos(rotation.y), s1 = glm::sin(rotation.y);
@@ -68,14 +71,17 @@ namespace lve
         camera.viewMatrix[3][2] = -glm::dot(w, position);
     }
 
-    void CameraSystem::Update(float aspect) {
-        for (auto const &entity : mEntities) {
+    void CameraSystem::Update(float aspect)
+    {
+        for (auto const &entity : mEntities)
+        {
             auto &transform = coordinator.GetComponent<Transform>(entity);
             auto &camera = coordinator.GetComponent<CameraComponent>(entity);
 
             glm::vec3 cameraRelativePosition = camera.relativePosition + transform.position;
             SetPerspectiveProjection(camera, camera.fovy, aspect, camera.nearPlane, camera.farPlane);
             setViewXYZ(camera, cameraRelativePosition, transform.rotation);
+            camera.frustum.update(camera.projectionMatrix * camera.viewMatrix);
         }
     }
 } // namespace lve

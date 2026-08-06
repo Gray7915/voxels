@@ -77,7 +77,7 @@ namespace lve
         }
         isFrameStarted = true;
 
-        lveDevice.flushDeletionQueue(currentFrameIndex);
+        lveDevice.flushDeletionQueue(lveDevice.getFrameCount());
 
         auto commandBuffer = getCurrentCommandBuffer();
 

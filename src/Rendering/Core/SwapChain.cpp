@@ -256,7 +256,7 @@ namespace lve
                 return mode;
             }
         }
-        std::cout << "Present mode: FIFO (vsync)" << std::endl;
+        //std::cout << "Present mode: FIFO (vsync)" << std::endl;
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 

@@ -6,7 +6,7 @@ namespace lve
 {
     float Octave::sample(vec2 i, s64 worldSeed) const {
         float value = 0.0f;
-        float amplitude = 1.0f;
+        float amplitude = 0.30f;
         float frequency = 1.0f;
 
         for (size_t j = 0; j < n; j++) {

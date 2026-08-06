@@ -36,13 +36,8 @@ namespace lve
             return i;
         }
 
-        Voxel getVoxel(int x, int y, int z) const
+        inline const Voxel &getVoxel(int x, int y, int z) const
         {
-            assert(x >= 0 && x < WIDTH);
-            assert(y >= 0 && y < HEIGHT);
-            assert(z >= 0 && z < DEPTH);
-
-            int i = blocks[index(x, y, z)].blockID;
             return blocks[index(x, y, z)];
         }
 

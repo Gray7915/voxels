@@ -5,7 +5,7 @@
 namespace UI
 {
     InventoryUI::InventoryUI(const Rml::String &title, const Rml::Vector2f &position, Rml::Context *context) {
-        document = context->LoadDocument("../content/ui/Inventory.rml");
+        document = context->LoadDocument("../Content/ui/Inventory.rml");
         if (document) {
             document->Show();
         }

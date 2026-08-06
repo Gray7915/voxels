@@ -33,11 +33,7 @@ FetchContent_Declare(
     GIT_TAG 6.2
 )
 
-if(WIN32)
-    set(RMLUI_BACKEND "Win32_VK" CACHE STRING "" FORCE)
-else()
-    set(RMLUI_BACKEND "X11_GL2" CACHE STRING "" FORCE)
-endif()
+
 set(BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
@@ -104,9 +100,10 @@ if(NOT DI_PATH)
     set(DI_PATH external/di)
 endif()
 
-find_package(Freetype CONFIG REQUIRED)
+find_package(Freetype REQUIRED)
+
 if(TARGET Freetype::Freetype)
-    message(STATUS "Found Freetype via vcpkg")
+    message(STATUS "Found Freetype")
 endif()
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
@@ -171,6 +168,7 @@ elseif (UNIX)
       ${GLFW_INCLUDE_DIRS}
       ${GLM_PATH}
       ${DI_PATH}
+      ${rmlui_SOURCE_DIR}/Backends
     )
     target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES} rmlui Freetype::Freetype)
 endif()

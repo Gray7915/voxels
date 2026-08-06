@@ -38,6 +38,7 @@ namespace lve
 
         LveModel(LveDevice &device, const LveModel::Builder &builder);
         LveModel(LveDevice &device, const LveModel::Builder &builder, VkCommandPool pool);
+        LveModel(LveDevice &device, std::unique_ptr<LveBuffer> vertexBuffer, std::unique_ptr<LveBuffer> indexBuffer);
         LveModel();
         ~LveModel();
 

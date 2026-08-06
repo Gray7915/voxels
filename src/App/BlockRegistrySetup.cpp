@@ -7,20 +7,23 @@
 
 #include <fstream>
 #include <nlohmann/json.hpp>
-
+#include <iostream>
 using json = nlohmann::json;
 
 namespace lve
 {
-    void BlockRegistrySetup::SetupBlockRegistry(BlockRegistry &blockRegistry, LveDevice &device) {
+    void BlockRegistrySetup::SetupBlockRegistry(BlockRegistry &blockRegistry, LveDevice &device)
+    {
         std::ifstream file("../Content/blocks.json");
-        if (!file.is_open()) {
+        if (!file.is_open())
+        {
             std::cerr << "Failed to open blocks.json\n";
             return;
         }
         json blocks;
         file >> blocks;
-        for (const auto &Jblock : blocks) {
+        for (const auto &Jblock : blocks)
+        {
             Block block;
 
             block.id = Jblock["id"];
@@ -32,8 +35,10 @@ namespace lve
             auto &h = Jblock["highlightBoxSize"];
             block.highlightBoxSize = {h["x"], h["y"], h["z"]};
 
-            for (auto &[face, texture] : Jblock["textures"].items()) {
-                if (face == "all") {
+            for (auto &[face, texture] : Jblock["textures"].items())
+            {
+                if (face == "all")
+                {
                     std::string tex = texture;
 
                     block.faces[(size_t)Math::Direction::UP] = tex;
@@ -44,7 +49,8 @@ namespace lve
                     block.faces[(size_t)Math::Direction::WEST] = tex;
                 }
 
-                if (face == "side") {
+                if (face == "side")
+                {
                     std::string tex = texture;
 
                     block.faces[(size_t)Math::Direction::NORTH] = tex;
@@ -53,17 +59,20 @@ namespace lve
                     block.faces[(size_t)Math::Direction::WEST] = tex;
                 }
 
-                if (face == "north") {
+                if (face == "north")
+                {
                     std::string tex = texture;
                     block.faces[(size_t)Math::Direction::NORTH] = tex;
                 }
 
-                if (face == "up") {
+                if (face == "up")
+                {
                     std::string tex = texture;
                     block.faces[(size_t)Math::Direction::UP] = tex;
                 }
 
-                if (face == "down") {
+                if (face == "down")
+                {
                     std::string tex = texture;
                     block.faces[(size_t)Math::Direction::DOWN] = tex;
                 }
@@ -71,7 +80,8 @@ namespace lve
 
             block.renderType = parseRenderType(Jblock["renderType"]);
 
-            if (Jblock.contains("behaviour")) {
+            if (Jblock.contains("behaviour"))
+            {
                 auto &b = Jblock["behaviour"];
 
                 block.behaviour.behaviourType = parseBehaviourType(b["type"]);
@@ -84,8 +94,10 @@ namespace lve
                              }*/
             }
 
-            if (Jblock.contains("boundingBoxes")) {
-                for (auto &box : Jblock["boundingBoxes"]) {
+            if (Jblock.contains("boundingBoxes"))
+            {
+                for (auto &box : Jblock["boundingBoxes"])
+                {
                     BoxVolume volume;
 
                     volume.boxSize = {box["boxSize"]["x"], box["boxSize"]["y"], box["boxSize"]["z"]};
@@ -96,21 +108,25 @@ namespace lve
                 }
             }
 
-            if (Jblock.contains("highlightShape")) {
+            if (Jblock.contains("highlightShape"))
+            {
                 block.highlightShape.highlightBoxVerticies.clear();
                 block.highlightShape.highlighBoxEdges.clear();
                 const auto &highlightShape = Jblock["highlightShape"];
 
-                for (const auto &vertex : highlightShape["vertices"]) {
+                for (const auto &vertex : highlightShape["vertices"])
+                {
                     block.highlightShape.highlightBoxVerticies.emplace_back(vertex["x"], vertex["y"], vertex["z"]);
                 }
 
-                for (const auto &edge : highlightShape["edges"]) {
+                for (const auto &edge : highlightShape["edges"])
+                {
                     block.highlightShape.highlighBoxEdges.push_back({edge[0], edge[1]});
                 }
             }
 
-            if (block.renderType == RenderType::Mesh) {
+            if (block.renderType == RenderType::Mesh)
+            {
                 block.model = LveModel::createModelFromFile(device, block.modelName);
             }
 
@@ -119,7 +135,8 @@ namespace lve
         }
     }
 
-    BlockBehaviourType BlockRegistrySetup::parseBehaviourType(const std::string &str) {
+    BlockBehaviourType BlockRegistrySetup::parseBehaviourType(const std::string &str)
+    {
         if (str == "none")
             return BlockBehaviourType::NONE;
         if (str == "staged")
@@ -135,7 +152,8 @@ namespace lve
         throw std::runtime_error("Unknown behaviour type: " + str);
     }
 
-    RenderType BlockRegistrySetup::parseRenderType(const std::string &str) {
+    RenderType BlockRegistrySetup::parseRenderType(const std::string &str)
+    {
         if (str == "invisible")
             return RenderType::Invisible;
         if (str == "transparent")

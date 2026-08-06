@@ -78,17 +78,16 @@ namespace lve
                     for (int z = minBlock.z; z <= maxBlock.z; ++z) {
                         glm::vec3 blockPos(x, y, z);
                         auto optionalBlock = BlockRegistry::Get().GetBlockByID(area.getBlockID(blockPos));
-                        Block block;
-                        if (optionalBlock) {
-                            block = optionalBlock.value().get();
-                            if (block.isSolid) {
-                                if (block.boundingBoxes.empty()) {
+                        const Block* block = optionalBlock;
+                        if (block) {
+                            if (block->isSolid) {
+                                if (block->boundingBoxes.empty()) {
                                     vec3 blockMin = vec3{x, y, z};
                                     vec3 blockMax = vec3{x + 1, y + 1, z + 1};
                                     if ((minPos.x <= blockMax.x && maxPos.x >= blockMin.x) && (minPos.y <= blockMax.y && maxPos.y >= blockMin.y) && (minPos.z <= blockMax.z && maxPos.z >= blockMin.z))
                                         return true;
                                 } else {
-                                    for (const BoxVolume &volume : block.boundingBoxes) {
+                                    for (const BoxVolume &volume : block->boundingBoxes) {
                                         vec3 blockMin = vec3{x, y, z} + volume.offset - volume.boxSize / vec3{2};
                                         vec3 blockMax = vec3{x, y, z} + volume.offset + volume.boxSize / vec3{2};
                                         if ((minPos.x <= blockMax.x && maxPos.x >= blockMin.x) && (minPos.y <= blockMax.y && maxPos.y >= blockMin.y) &&

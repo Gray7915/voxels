@@ -15,6 +15,6 @@ namespace lve
 
       private:
         Area &area;
-        ChunkGenWorkerPool genPool;
+        ChunkGenWorkerPool genPool{4};
     };
 } // namespace lve

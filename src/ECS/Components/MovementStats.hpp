@@ -4,7 +4,7 @@ struct MovementStats {
     float moveSpeed = 6.5f;
     float fallMoveSpeed = 2.5f; //
     float lookSpeed = 1.5f;
-    float mouseSensitivity = 0.018f;
+    float mouseSensitivity = 0.012f;
     float drag = 0.8;
     float decelleration = 0.5;
 

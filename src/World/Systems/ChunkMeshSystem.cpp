@@ -7,20 +7,25 @@
 
 namespace lve
 {
-    ChunkMeshSystem::ChunkMeshSystem(Area &worldArea, LveDevice &device) : area{worldArea}, device{device} {}
+    ChunkMeshSystem::ChunkMeshSystem(Area &worldArea, LveDevice &device, ChunkStagingPool &stagingPool) : area{worldArea}, device{device}, stagingPool{stagingPool} {}
 
     ChunkMeshSystem::~ChunkMeshSystem() = default;
 
-    void ChunkMeshSystem::Update(LveDevice &device, int frameIndex) {
+    void ChunkMeshSystem::Update(LveDevice &device, int frameIndex)
+    {
         auto &neighbors = area.AllChunks();
         auto t0 = std::chrono::high_resolution_clock::now();
-        for (auto &[coord, chunk] : neighbors) {
-            if (chunk->chunkState == ChunkState::Generated || chunk->chunkState == ChunkState::Dirty) {
+        for (auto &[coord, chunk] : neighbors)
+        {
+            if (chunk->chunkState == ChunkState::Generated || chunk->chunkState == ChunkState::Dirty)
+            {
                 // Wait for any neighbor that exists but isn't generated yet
                 bool neighborsReady = true;
-                for (ivec3 direction : Math::AllHorizontalDirections) {
+                for (ivec3 direction : Math::AllHorizontalDirections)
+                {
                     auto chunkNeighbor = neighbors.find(coord + direction);
-                    if (chunkNeighbor != neighbors.end() && !chunkNeighbor->second->voxelData.isGenerated()) {
+                    if (chunkNeighbor != neighbors.end() && !chunkNeighbor->second->voxelData.isGenerated())
+                    {
                         neighborsReady = false;
                         break;
                     }
@@ -32,11 +37,13 @@ namespace lve
                 NeighborVoxelInfo neighborVoxelInfo;
                 neighborVoxelInfo.allocate();
 
-                for (ivec3 direction : Math::AllHorizontalDirections) {
+                for (ivec3 direction : Math::AllHorizontalDirections)
+                {
                     auto chunkNeighbor = neighbors.find(coord + direction);
                     VoxelData neighborChunkData;
                     neighborChunkData.allocate();
-                    if (chunkNeighbor != neighbors.end() && chunkNeighbor->second->voxelData.isGenerated()) {
+                    if (chunkNeighbor != neighbors.end() && chunkNeighbor->second->voxelData.isGenerated())
+                    {
                         neighborChunkData = chunkNeighbor->second->voxelData;
                     }
                     getNeighborChunkInfo(direction, neighborChunkData, neighborVoxelInfo);
@@ -46,16 +53,24 @@ namespace lve
         }
 
         MeshResult result;
-        int budget = 4;
-        while (budget-- > 0 && meshPool.tryGetResult(result)) {
+        while (meshPool.tryGetResult(result))
+        {
             Chunk *chunk = area.getChunk(result.chunkCoord);
             if (!chunk)
                 continue;
 
-            chunk->applyMesh(std::move(result.model), frameIndex, device);
-            chunk->chunkState = ChunkState::Uploaded;
-            chunk->indicies = result.indices.size();
-            chunk->verticies = result.verticies.size();
+            bool written = stagingPool.writeChunk(result.chunkCoord, result.verticies, result.indices, device);
+
+            if (written)
+            {
+                chunk->chunkState = ChunkState::Uploaded;
+            }
+            else
+            {
+                // Transfer in flight or pool full — put back as dirty so it remeshes next frame
+                chunk->chunkState = ChunkState::Dirty;
+                // Note: result is discarded here, remesh will regenerate it
+            }
         }
         auto t1 = std::chrono::high_resolution_clock::now();
         float ms = std::chrono::duration<float, std::milli>(t1 - t0).count();
@@ -63,7 +78,8 @@ namespace lve
         // std::cout << "rebuild spike: " << ms << "ms\n";
     }
 
-    void ChunkMeshSystem::tryQueueForMeshing(ivec3 coord, Chunk &chunk, LveDevice &device, NeighborVoxelInfo neighborVoxelInfo) {
+    void ChunkMeshSystem::tryQueueForMeshing(ivec3 coord, Chunk &chunk, LveDevice &device, NeighborVoxelInfo neighborVoxelInfo)
+    {
         // std::cout << "try queue for mesh" << '\n';
         MeshJob job;
         job.chunkCoord = coord;
@@ -77,53 +93,81 @@ namespace lve
         meshPool.submit(std::move(job));
     }
 
-    void ChunkMeshSystem::getNeighborChunkInfo(ivec3 chunkDir, VoxelData chunkData, NeighborVoxelInfo &neighborChunkInfo) {
-        if (chunkDir == ivec3{1, 0, 0}) { // up
+    void ChunkMeshSystem::getNeighborChunkInfo(ivec3 chunkDir, VoxelData &chunkData, NeighborVoxelInfo &neighborChunkInfo)
+    {
+        if (chunkDir == ivec3{1, 0, 0})
+        { // up
             // x == 0, loop z and y
-            for (int z = 0; z < VoxelData::DEPTH; z++) {
-                for (int y = 0; y < VoxelData::HEIGHT; y++) {
+            for (int z = 0; z < VoxelData::DEPTH; z++)
+            {
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
+                {
                     neighborChunkInfo.set(z, y, 0, chunkData.get(0, y, z));
                 }
             }
-        } else if (chunkDir == ivec3{1, 0, 1}) { // up right
-                                                 // x == 0, z == 0 loop y
-            for (int y = 0; y < VoxelData::HEIGHT; y++) {
+        }
+        else if (chunkDir == ivec3{1, 0, 1})
+        { // up right
+          // x == 0, z == 0 loop y
+            for (int y = 0; y < VoxelData::HEIGHT; y++)
+            {
                 neighborChunkInfo.set(16, y, 0, chunkData.get(0, y, 0));
             }
-        } else if (chunkDir == ivec3{0, 0, 1}) { // right
+        }
+        else if (chunkDir == ivec3{0, 0, 1})
+        { // right
             // z == 0, loop x and y
-            for (int x = 0; x < VoxelData::DEPTH; x++) {
-                for (int y = 0; y < VoxelData::HEIGHT; y++) {
+            for (int x = 0; x < VoxelData::DEPTH; x++)
+            {
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
+                {
                     neighborChunkInfo.set(x, y, 1, chunkData.get(x, y, 0));
                 }
             }
-        } else if (chunkDir == ivec3{-1, 0, 1}) { // down right
-                                                  // x == 0, z == 0 loop y
-            for (int y = 0; y < VoxelData::HEIGHT; y++) {
+        }
+        else if (chunkDir == ivec3{-1, 0, 1})
+        { // down right
+          // x == 0, z == 0 loop y
+            for (int y = 0; y < VoxelData::HEIGHT; y++)
+            {
                 neighborChunkInfo.set(16, y, 1, chunkData.get(15, y, 0));
             }
-        } else if (chunkDir == ivec3{-1, 0, 0}) { // down
+        }
+        else if (chunkDir == ivec3{-1, 0, 0})
+        { // down
             // x == 15, loop z and y
-            for (int z = 0; z < VoxelData::DEPTH; z++) {
-                for (int y = 0; y < VoxelData::HEIGHT; y++) {
+            for (int z = 0; z < VoxelData::DEPTH; z++)
+            {
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
+                {
                     neighborChunkInfo.set(z, y, 2, chunkData.get(15, y, z));
                 }
             }
-        } else if (chunkDir == ivec3{-1, 0, -1}) { // down left
-                                                   // x == 15, z == 15 loop y
-            for (int y = 0; y < VoxelData::HEIGHT; y++) {
+        }
+        else if (chunkDir == ivec3{-1, 0, -1})
+        { // down left
+          // x == 15, z == 15 loop y
+            for (int y = 0; y < VoxelData::HEIGHT; y++)
+            {
                 neighborChunkInfo.set(16, y, 2, chunkData.get(15, y, 15));
             }
-        } else if (chunkDir == ivec3{0, 0, -1}) { // left
+        }
+        else if (chunkDir == ivec3{0, 0, -1})
+        { // left
             // x == 15, loop z and y
-            for (int x = 0; x < VoxelData::DEPTH; x++) {
-                for (int y = 0; y < VoxelData::HEIGHT; y++) {
+            for (int x = 0; x < VoxelData::DEPTH; x++)
+            {
+                for (int y = 0; y < VoxelData::HEIGHT; y++)
+                {
                     neighborChunkInfo.set(x, y, 3, chunkData.get(x, y, 15));
                 }
             }
-        } else if (chunkDir == ivec3{1, 0, -1}) { // up left
-                                                  // x == 15, z == 15 loop y
-            for (int y = 0; y < VoxelData::HEIGHT; y++) {
+        }
+        else if (chunkDir == ivec3{1, 0, -1})
+        { // up left
+          // x == 15, z == 15 loop y
+            for (int y = 0; y < VoxelData::HEIGHT; y++)
+            {
                 neighborChunkInfo.set(16, y, 3, chunkData.get(0, y, 15));
             }
         }

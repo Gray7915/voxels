@@ -9,16 +9,20 @@
 #include <deque>
 #include <mutex>
 
+#include "Util/Types.hpp"
+
 namespace lve
 {
 
-    struct SwapChainSupportDetails {
+    struct SwapChainSupportDetails
+    {
         VkSurfaceCapabilitiesKHR capabilities;
         std::vector<VkSurfaceFormatKHR> formats;
         std::vector<VkPresentModeKHR> presentModes;
     };
 
-    struct QueueFamilyIndices {
+    struct QueueFamilyIndices
+    {
         uint32_t graphicsFamily;
         uint32_t presentFamily;
         bool graphicsFamilyHasValue = false;
@@ -26,8 +30,9 @@ namespace lve
         bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
     };
 
-    class LveDevice {
-      public:
+    class LveDevice
+    {
+    public:
 #ifdef NDEBUG
         const bool enableValidationLayers = false;
 #else
@@ -78,14 +83,18 @@ namespace lve
         VkPhysicalDeviceProperties properties;
         VkImageView createImageView(VkImage image, VkFormat format);
 
-        void queueDeletion(std::function<void()> &&deleter, uint32_t frameIndex);
+        void queueDeletion(std::function<void()> &&deleter, u64 frameIndex);
         void flushDeletionQueue(uint32_t currentFrame);
         std::mutex &getQueueMutex() { return queueMutex_; }
 
         float getTimestampPeriod() const { return properties.limits.timestampPeriod; }
 
-      private:
-        void createInstance();
+        u64 getFrameCount() { return frameCount; }
+        void setFrameCount(u64 frameCount) { frameCount = frameCount; }
+
+    private:
+        void
+        createInstance();
         void setupDebugMessenger();
         void createSurface();
         void pickPhysicalDevice();
@@ -117,15 +126,18 @@ namespace lve
         const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
         const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-        struct DeletionEntry {
+        struct DeletionEntry
+        {
             std::function<void()> deleter;
-            uint32_t frameQueued;
+            u64 frameQueued;
         };
 
         std::deque<DeletionEntry> deletionQueue_;
         std::mutex deletionQueueMutex_;
         std::mutex queueMutex_;
         // static constexpr int MAX_FRAMES_IN_FLIGHT = SwapChain::MAX_FRAMES_IN_FLIGHT;
+
+        u64 frameCount = 0;
     };
 
 } // namespace lve

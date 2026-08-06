@@ -116,7 +116,7 @@ namespace lve
     void HighlightRenderSystem::render(FrameInfo &frameInfo, int blockID, ivec3 blockPos, vec3 boxSize, vec3 &cameraDirection) {
         if (blockID == 0)
             return;
-        cubeModel = createOutlineModel(lveDevice, boxSize, cameraDirection, BlockRegistry::Get().GetBlockByID(blockID)->get().highlightShape, 0.005);
+        cubeModel = createOutlineModel(lveDevice, boxSize, cameraDirection, BlockRegistry::Get().GetBlockByID(blockID)->highlightShape, 0.005);
 
         lvePipeline->bind(frameInfo.commandBuffer);
         vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0, nullptr);

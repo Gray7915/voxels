@@ -32,7 +32,6 @@
 
     padding: 30dp;
 
-    decorator: tiled-box("ui/panel.png");
     box-sizing: border-box;
 }
 

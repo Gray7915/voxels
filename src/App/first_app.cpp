@@ -57,8 +57,7 @@ namespace lve
 
     FirstApp::~FirstApp() { vkDestroyQueryPool(lveDevice.device(), queryPool, nullptr); }
 
-    void FirstApp::run()
-    {
+    void FirstApp::run() {
         auto injector = di::make_injector(di::bind<LveDevice>.to(lveDevice), di::bind<Coordinator>.to(coordinator), di::bind<LveWindow>.to(lveWindow), di::bind<LveRenderer>.to(lveRenderer),
                                           di::bind<BlockRegistry>.to(BlockRegistry::Get()), di::bind<ItemRegistry>.to(ItemRegistry::Get()));
 
@@ -71,8 +70,7 @@ namespace lve
         createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
         createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
         createInfo.queryCount = 16;
-        if (vkCreateQueryPool(lveDevice.device(), &createInfo, nullptr, &queryPool) != VK_SUCCESS)
-        {
+        if (vkCreateQueryPool(lveDevice.device(), &createInfo, nullptr, &queryPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create timestamp query pool");
         }
 
@@ -92,13 +90,19 @@ namespace lve
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         assert(lveWindow.getGLFWwindow() != nullptr && "window null)");
-        AppContext context{.device = lveDevice, .window = lveWindow, .renderer = lveRenderer, .imgui = imguiManager, .renderSetup = renderSetup, .coordinator = coordinator, .systems = systems, .stagingPool = stagingPool};
+        AppContext context{.device = lveDevice,
+                           .window = lveWindow,
+                           .renderer = lveRenderer,
+                           .imgui = imguiManager,
+                           .renderSetup = renderSetup,
+                           .coordinator = coordinator,
+                           .systems = systems,
+                           .stagingPool = stagingPool};
         Rendering::SceneManager sceneManager;
         sceneManager.switchTo(std::make_unique<Rendering::MenuScene>(context, sceneManager));
         sceneManager.applyPendingSwitch();
 
-        while (!lveWindow.shouldClose())
-        {
+        while (!lveWindow.shouldClose()) {
             glfwPollEvents();
 
             auto newTime = std::chrono::high_resolution_clock::now();
@@ -114,8 +118,7 @@ namespace lve
             sceneManager.applyPendingSwitch();
             sceneManager.current()->update(frameTime);
 
-            if (auto commandBuffer = lveRenderer.beginFrame())
-            {
+            if (auto commandBuffer = lveRenderer.beginFrame()) {
                 int frameIndex = lveRenderer.getFrameIndex();
 
                 auto start = std::chrono::high_resolution_clock::now();
@@ -125,7 +128,10 @@ namespace lve
                 // "ms\n";
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, renderSetup.globalDescriptorSets[frameIndex]};
                 sceneManager.current()->render(frameInfo);
+                // std::cout << "frame in first app before set " << lveDevice.getFrameCount() << '\n';
                 lveDevice.setFrameCount(lveDevice.getFrameCount() + 1);
+                // std::cout << "frame in first app after set " << lveDevice.getFrameCount() << '\n';
+
                 /*
                             auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
 

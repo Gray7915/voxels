@@ -31,18 +31,12 @@
 #include "Ui/InventoryUI.hpp"
 namespace Rendering
 {
-    enum class GameSceneState
-    {
-        Loading,
-        Playing
-    };
-    class GameScene : public Scene
-    {
-    public:
+    enum class GameSceneState { Loading, Playing };
+    class GameScene : public Scene {
+      public:
         GameScene(AppContext &context, SceneManager &sceneManager, u64 seed) : context(context), sceneManager(sceneManager), seed(seed) {}
 
-        void onEnter() override
-        {
+        void onEnter() override {
             chunkRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             highlightRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             simpleRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
@@ -63,10 +57,8 @@ namespace Rendering
             inventoryUI->AddItem("Mk III L.A.S.E.R.");
         }
 
-        void onExit() override
-        {
-            if (rmlContext)
-            {
+        void onExit() override {
+            if (rmlContext) {
                 rmlContext->UnloadAllDocuments();
                 Rml::RemoveContext(rmlContext->GetName());
                 rmlContext = nullptr;
@@ -74,41 +66,35 @@ namespace Rendering
 
             Rml::Shutdown();
 
-            if (pendingUpload.has_value())
-            {
+            if (pendingUpload.has_value()) {
                 vkWaitForFences(context.device.device(), 1, &pendingUpload->fence, VK_TRUE, UINT64_MAX);
-                vkFreeCommandBuffers(context.device.device(),
-                                     context.device.getCommandPool(), 1, &pendingUpload->cmd);
+                vkFreeCommandBuffers(context.device.device(), context.device.getCommandPool(), 1, &pendingUpload->cmd);
                 vkDestroyFence(context.device.device(), pendingUpload->fence, nullptr);
                 pendingUpload.reset();
             }
         }
 
-        void update(float deltaTime) override
-        {
+        void update(float deltaTime) override {
 
             lastFrameTime = deltaTime;
-
-            if (glfwGetKey(context.window.getGLFWwindow(), GLFW_KEY_R) == GLFW_PRESS)
-            {
+            // std::cout << "frame " << context.device.getFrameCount() << '\n';
+            if (glfwGetKey(context.window.getGLFWwindow(), GLFW_KEY_R) == GLFW_PRESS) {
                 inventoryUI->SetSelected("Mk III L.A.S.E.R.");
             }
 
-            if (rmlContext)
-            {
+            if (rmlContext) {
                 rmlContext->Update();
             }
 
             context.systems.inputSystem->Update(&context.window);
-            context.systems.movementSystem->Update(deltaTime);
+            context.systems.movementSystem->Update(deltaTime, context.device.getFrameCount());
             context.systems.physicsSystem->Update(deltaTime);
             context.systems.collisionSystem->Update(deltaTime, *area);
             context.systems.interactionSystem->Update(deltaTime, context.window, context.device, *area, context.coordinator);
             context.systems.inventorySystem->Update(*area);
 
             area->updateArea();
-            if (state == GameSceneState::Loading)
-            {
+            if (state == GameSceneState::Loading) {
                 return;
             }
             auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
@@ -121,25 +107,17 @@ namespace Rendering
             context.coordinator.eventBus.blockPlaceRequested.clear();
         }
 
-        void render(lve::FrameInfo &frameInfo) override
-        {
+        void render(lve::FrameInfo &frameInfo) override {
             area->tick(context.device, camPosition, frameInfo.frameIndex);
-
             // Check if previous upload is done
-            if (pendingUpload.has_value())
-            {
+            if (pendingUpload.has_value()) {
                 VkResult status = vkGetFenceStatus(context.device.device(), pendingUpload->fence);
-                if (status == VK_SUCCESS)
-                {
-                    for (auto &slot : pendingUpload->slots)
-                    {
+                if (status == VK_SUCCESS) {
+                    for (auto &slot : pendingUpload->slots) {
                         lve::Chunk *chunk = area->getChunk(slot.chunkCoord);
                         if (!chunk)
                             continue;
-                        auto model = std::make_unique<lve::LveModel>(
-                            context.device,
-                            std::move(slot.vertexDst),
-                            std::move(slot.indexDst));
+                        auto model = std::make_unique<lve::LveModel>(context.device, std::move(slot.vertexDst), std::move(slot.indexDst));
                         chunk->applyMesh(std::move(model), frameInfo.frameIndex, context.device);
                     }
                     vkFreeCommandBuffers(context.device.device(), // <-- missing
@@ -152,14 +130,12 @@ namespace Rendering
             }
 
             // Submit new upload batch if nothing in flight
-            if (!pendingUpload.has_value())
-            {
+            if (!pendingUpload.has_value()) {
                 VkCommandBuffer transferCmd = context.device.beginSingleTimeCommands(context.device.getCommandPool());
                 auto slots = context.stagingPool.recordCopies(transferCmd);
                 vkEndCommandBuffer(transferCmd);
 
-                if (!slots.empty())
-                {
+                if (!slots.empty()) {
                     VkFenceCreateInfo fenceInfo{};
                     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
                     VkFence fence;
@@ -176,25 +152,19 @@ namespace Rendering
                     }
 
                     pendingUpload = PendingUpload{fence, transferCmd, std::move(slots)};
-                }
-                else
-                {
+                } else {
                     vkFreeCommandBuffers(context.device.device(), context.device.getCommandPool(), 1, &transferCmd);
                 }
             }
 
-            if (state == GameSceneState::Loading)
-            {
-                if (chunksReady() >= minimumChunksToLoad)
-                {
+            if (state == GameSceneState::Loading) {
+                if (chunksReady() >= minimumChunksToLoad) {
                     state = GameSceneState::Playing;
                     context.window.setMouseActive();
                     vec3 spawnPos = findSpawnPosition({0, 0});
                     camPosition = spawnPos;
                     mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = spawnPos, .scale{1, 1, 1}});
-                }
-                else
-                {
+                } else {
                     renderLoadingScreen(frameInfo);
                     return;
                 }
@@ -206,8 +176,7 @@ namespace Rendering
             // Rendering — completely unaffected by upload state
             context.renderer.geometryPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
             chunkRenderSystem->renderChunks(frameInfo, area->chunks, context.coordinator, mainCamera);
-            if (hoveredID.w != 0)
-            {
+            if (hoveredID.w != 0) {
                 auto block = lve::BlockRegistry::Get().GetBlockByID(hoveredID.w);
                 vec3 boxSize{1, 1, 1};
                 if (block)
@@ -228,25 +197,21 @@ namespace Rendering
             RenderStats::Get().reset();
         }
 
-    private:
+      private:
         static constexpr int minimumChunksToLoad = 9;
 
-        int chunksReady()
-        {
+        int chunksReady() {
             auto spawnChunk = area->chunks.find(ivec3{0, 0, 0});
-            if (spawnChunk != area->chunks.end())
-            {
+            if (spawnChunk != area->chunks.end()) {
                 // std::cout << "spawn chunk not loaded" << '\n';
-                if (!spawnChunk->second->voxelData.isGenerated())
-                {
+                if (!spawnChunk->second->voxelData.isGenerated()) {
                     return 0;
                 }
             }
 
             int count = 0;
             // std::cout << "chunks ready " << count << '\n';
-            for (auto &[coord, chunk] : area->chunks)
-            {
+            for (auto &[coord, chunk] : area->chunks) {
                 if (chunk && chunk->chunkState == lve::ChunkState::Uploaded && chunk->chunkModel != nullptr)
                     count++;
                 // if (chunk->chunkModel == nullptr)
@@ -255,20 +220,16 @@ namespace Rendering
             return count;
         }
 
-        vec3 findSpawnPosition(vec2 xzPos)
-        {
-            for (int y = 127; y >= 0; y--)
-            {
-                if (area->isBlockSolid({xzPos.x, y, xzPos.y}))
-                {
+        vec3 findSpawnPosition(vec2 xzPos) {
+            for (int y = 127; y >= 0; y--) {
+                if (area->isBlockSolid({xzPos.x, y, xzPos.y})) {
                     return vec3{xzPos.x + 0.5f, y + 2, xzPos.y + 0.5f};
                 }
             }
             return vec3{xzPos.x, 68, xzPos.y};
         }
 
-        void renderLoadingScreen(lve::FrameInfo &frameInfo)
-        {
+        void renderLoadingScreen(lve::FrameInfo &frameInfo) {
             context.renderer.StandaloneUIRenderPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
             context.imgui.newFrame();
 
@@ -287,13 +248,11 @@ namespace Rendering
             context.renderer.StandaloneUIRenderPass->end(frameInfo.commandBuffer);
         }
 
-        void renderUI(lve::FrameInfo &frameInfo, Transform &camTransform, CameraComponent &camera)
-        {
+        void renderUI(lve::FrameInfo &frameInfo, Transform &camTransform, CameraComponent &camera) {
             context.renderer.UiRenderPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
             rmlRenderSystem->render(frameInfo.commandBuffer);
 
-            if (rmlContext)
-            {
+            if (rmlContext) {
                 renderInterface->setFrameIndex(context.device.getFrameCount());
                 rmlContext->Render();
             }
@@ -331,12 +290,13 @@ namespace Rendering
 
         GameSceneState state = GameSceneState::Loading;
 
-        struct PendingUpload
-        {
+        struct PendingUpload {
             VkFence fence;
             VkCommandBuffer cmd;
             std::vector<ChunkStagingPool::Slot> slots;
         };
         std::optional<PendingUpload> pendingUpload;
+
+        int prevFrame = -1;
     };
 } // namespace Rendering

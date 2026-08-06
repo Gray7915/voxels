@@ -14,15 +14,13 @@
 namespace lve
 {
 
-    struct SwapChainSupportDetails
-    {
+    struct SwapChainSupportDetails {
         VkSurfaceCapabilitiesKHR capabilities;
         std::vector<VkSurfaceFormatKHR> formats;
         std::vector<VkPresentModeKHR> presentModes;
     };
 
-    struct QueueFamilyIndices
-    {
+    struct QueueFamilyIndices {
         uint32_t graphicsFamily;
         uint32_t presentFamily;
         bool graphicsFamilyHasValue = false;
@@ -30,9 +28,8 @@ namespace lve
         bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
     };
 
-    class LveDevice
-    {
-    public:
+    class LveDevice {
+      public:
 #ifdef NDEBUG
         const bool enableValidationLayers = false;
 #else
@@ -90,11 +87,10 @@ namespace lve
         float getTimestampPeriod() const { return properties.limits.timestampPeriod; }
 
         u64 getFrameCount() { return frameCount; }
-        void setFrameCount(u64 frameCount) { frameCount = frameCount; }
+        void setFrameCount(u64 newFrameCount) { frameCount = newFrameCount; }
 
-    private:
-        void
-        createInstance();
+      private:
+        void createInstance();
         void setupDebugMessenger();
         void createSurface();
         void pickPhysicalDevice();
@@ -126,8 +122,7 @@ namespace lve
         const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
         const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-        struct DeletionEntry
-        {
+        struct DeletionEntry {
             std::function<void()> deleter;
             u64 frameQueued;
         };

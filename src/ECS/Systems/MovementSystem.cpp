@@ -13,17 +13,40 @@
 #include <chrono>
 #include <algorithm>
 #include <optional>
+#include <fstream>
 #include <GLFW/glfw3.h>
 
 namespace lve
 {
     extern Coordinator coordinator;
 
-    void MovementSystem::Update(float dt)
-    {
-        dt = glm::min(dt, 0.05f);
-        for (auto const &entity : mEntities)
-        {
+    // CSV log file — opened once, stays open for the lifetime of the program.
+    static std::ofstream s_velocityLog;
+
+    // Call once before the first Update() to open the file and write the header.
+    static void EnsureVelocityLogOpen() {
+        if (s_velocityLog.is_open())
+            return;
+
+        s_velocityLog.open("velocity_log.csv", std::ios::out | std::ios::trunc);
+        if (!s_velocityLog.is_open()) {
+            std::cerr << "[MovementSystem] WARNING: could not open velocity_log.csv for writing.\n";
+            return;
+        }
+
+        // CSV header
+        s_velocityLog << "deltaTime, smoothDeltaTime ,frame,vx,vy,vz,speed_xz,speed_3d,any_input,forward,backward,left,right\n";
+    }
+
+    void MovementSystem::Update(float dt, u64 frameIndex) {
+
+        // At the top of Update(), replace raw dt usage with smoothed version
+        m_smoothedDt = glm::clamp(dt, 0.0f, 0.0333f);
+        float smoothDt = m_smoothedDt;
+
+        EnsureVelocityLogOpen();
+
+        for (auto const &entity : mEntities) {
             auto &transform = coordinator.GetComponent<Transform>(entity);
             auto &input = coordinator.GetComponent<InputComponent>(entity);
             auto &moveStats = coordinator.GetComponent<MovementStats>(entity);
@@ -59,55 +82,59 @@ namespace lve
 
             float friction = rigidBody.isGrounded ? moveStats.groundFriction : moveStats.airFriction;
             if (moveStats.flying)
-                rigidBody.velocity.y *= friction * dt;
+                rigidBody.velocity.y *= pow(friction, smoothDt * 60.0f);
 
-            rigidBody.velocity.x *= friction;
-            rigidBody.velocity.z *= friction;
+            float frictionFactor = pow(friction, smoothDt * 60.0f);
+            rigidBody.velocity.x *= frictionFactor;
+            rigidBody.velocity.z *= frictionFactor;
 
             float accel = rigidBody.isGrounded ? moveStats.groundAcceleration : moveStats.airAcceleration;
-            if (moveStats.flying)
-            {
+            if (moveStats.flying) {
                 accel = moveStats.groundAcceleration;
-                rigidBody.velocity.y += moveDir.y * accel * dt;
+                rigidBody.velocity.y += moveDir.y * accel * smoothDt;
             }
 
-            rigidBody.velocity.x += moveDir.x * accel * dt;
-            rigidBody.velocity.z += moveDir.z * accel * dt;
+            rigidBody.velocity.x += moveDir.x * accel * smoothDt;
+            rigidBody.velocity.z += moveDir.z * accel * smoothDt;
 
-            // std::cout << "acceleration " << accel << '\n';
-
-            // rigidBody.velocity.x = rigidBody.velocity.x;
-
-            if (moveStats.flying)
-            {
+            if (moveStats.flying) {
                 if (input.moveUp)
                     rigidBody.velocity.y = moveStats.moveSpeed;
                 else if (input.moveDown)
                     rigidBody.velocity.y = -moveStats.moveSpeed;
             }
 
-            if (input.jump && !releaseSpace)
-            {
+            if (input.jump && !releaseSpace) {
                 auto now = std::chrono::steady_clock::now();
 
                 float elapsed = std::chrono::duration<float>(now - lastJumpPress).count();
 
-                if (elapsed <= 0.25f)
-                {
+                if (elapsed <= 0.25f) {
                     moveStats.flying = !moveStats.flying;
-                    // std::cout << "is flying? " << moveStats.flying << '\n';
                 }
 
                 lastJumpPress = now;
 
-                if (rigidBody.isGrounded)
-                {
+                if (rigidBody.isGrounded) {
                     rigidBody.velocity.y = moveStats.jumpForce;
-                    // std::cout << "is jumping? " << rigidBody.velocity.y << '\n';
                 }
             }
 
             releaseSpace = input.jump;
+
+            // ── Per-frame velocity CSV logging ──────────────────────────────
+            if (s_velocityLog.is_open()) {
+                const glm::vec3 &v = rigidBody.velocity;
+                float speedXZ = glm::length(glm::vec2(v.x, v.z));
+                float speed3D = glm::length(v);
+
+                // 1 if any directional key is held, 0 if no input
+                int anyInput = (input.moveForward || input.moveBackward || input.moveLeft || input.moveRight) ? 1 : 0;
+
+                s_velocityLog << dt << ',' << smoothDt << ',' << frameIndex << ',' << v.x << ',' << v.y << ',' << v.z << ',' << speedXZ << ',' << speed3D << ',' << anyInput << ',' << input.moveForward
+                              << ',' << input.moveBackward << ',' << input.moveLeft << ',' << input.moveRight << '\n';
+            }
+            // ────────────────────────────────────────────────────────────────
         }
     }
-}
+} // namespace lve

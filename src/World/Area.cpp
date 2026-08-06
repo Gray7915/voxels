@@ -14,13 +14,14 @@ namespace lve
 {
     Area::~Area() = default;
 
-    Area::Area(LveDevice &lveDevice, u64 seed) : device(lveDevice), chunkGenSystem(*this), chunkMeshSystem(*this, device), chunkMutationSystem(), worldSeed(seed) {
+    Area::Area(LveDevice &lveDevice, s64 seed, Coordinator &coordinator)
+        : device(lveDevice), chunkGenSystem(*this), chunkMeshSystem(*this, device), chunkMutationSystem(), worldSeed(seed), coordinator(coordinator) {
         std::cout << "seed " << seed << '\n';
     }
 
     void Area::updateArea() {
         chunkGenSystem.update();
-        chunkMutationSystem.Update(*this);
+        chunkMutationSystem.Update(*this, coordinator);
     }
     void Area::tick(LveDevice &lveDevice, glm::vec3 center, uint32_t currentFrameIndex) {
         ivec3 c = ivec3(center) / ivec3(16, 32, 16);

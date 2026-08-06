@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <unordered_map>
+#include "ECS/Coordinator.hpp"
 
 #include "Rendering/Core/lve_device.hpp"
 #include "World/Systems/ChunkGenerationSystem.hpp"
@@ -19,15 +20,15 @@ namespace lve
         static const int MinMaxOffset = 4;
 
         Area();
-        Area(LveDevice &lveDevice, u64 seed);
+        Area(LveDevice &lveDevice, s64 seed, Coordinator &coordinator);
         ~Area();
         Area(const Area &) = delete;
         Area &operator=(const Area &) = delete;
         Area(Area &&) = default;
         Area &operator=(Area &&) = default;
 
-        void setWorldSeed(u64 worldSeed) { this->worldSeed = worldSeed; }
-        u64 getWorldSeed() { return worldSeed; }
+        void setWorldSeed(s64 worldSeed) { this->worldSeed = worldSeed; }
+        s64 getWorldSeed() { return worldSeed; }
         vec3 areaCenter;
 
         void tick(LveDevice &lveDevice, glm::vec3 center, uint32_t currentFrameIndex);
@@ -49,13 +50,15 @@ namespace lve
         void updateArea();
 
       private:
-        u64 worldSeed;
+        s64 worldSeed;
 
         LveDevice &device;
 
         ChunkGenerationSystem chunkGenSystem;
         ChunkMeshSystem chunkMeshSystem;
         ChunkMutationSystem chunkMutationSystem;
+
+        Coordinator &coordinator;
     };
 } // namespace lve
 

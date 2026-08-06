@@ -64,6 +64,7 @@ namespace lve
     }
 
     void ChunkMeshSystem::tryQueueForMeshing(ivec3 coord, Chunk &chunk, LveDevice &device, NeighborVoxelInfo neighborVoxelInfo) {
+        // std::cout << "try queue for mesh" << '\n';
         MeshJob job;
         job.chunkCoord = coord;
         job.worldOffset = chunk.offset;

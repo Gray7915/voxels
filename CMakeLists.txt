@@ -120,8 +120,12 @@ set(IMGUI_SOURCES
     ${IMGUI_PATH}/imgui_impl_vulkan.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES})
- 
+set(RMLUI_BACKEND_SOURCES
+    ${rmlui_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.cpp
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES} ${RMLUI_BACKEND_SOURCES})
+
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
  
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
@@ -147,6 +151,7 @@ if (WIN32)
     ${GLM_PATH}
     ${NLOHMANN_PATH}
     ${DI_PATH}
+    ${rmlui_SOURCE_DIR}/Backends 
     )
  
   target_link_directories(${PROJECT_NAME} PUBLIC

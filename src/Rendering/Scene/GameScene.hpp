@@ -9,6 +9,7 @@
 #include "Rendering/Systems/highlight_render_system.hpp"
 #include "Rendering/Systems/simple_render_system.hpp"
 #include "Rendering/Systems/ui_render_system.hpp"
+#include "Rendering/Systems/RmlRenderSystem.hpp"
 #include "Ui/ImguiManager.hpp"
 #include "Util/lve_frame_info.hpp"
 #include "Util/AppContext.hpp"
@@ -22,51 +23,87 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
+#include <RmlUi/Core.h>
+#include "Ui/RmlSystemInterface.hpp"
+#include "Ui/RmlRenderInterface.hpp"
+
+#include "Ui/InventoryUI.hpp"
 namespace Rendering
 {
     enum class GameSceneState { Loading, Playing };
     class GameScene : public Scene {
       public:
-        GameScene(AppContext &context, SceneManager &sceneManager, int seed) : context(context), sceneManager(sceneManager), seed(seed) {}
+        GameScene(AppContext &context, SceneManager &sceneManager, u64 seed) : context(context), sceneManager(sceneManager), seed(seed) {}
 
         void onEnter() override {
             chunkRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             highlightRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             simpleRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
-            area = std::make_unique<lve::Area>(context.device, seed);
+            area = std::make_unique<lve::Area>(context.device, seed, context.coordinator);
+            systemInterface = std::make_unique<RmlSystemInterface>();
+            renderInterface = std::make_unique<lve::RmlRenderInterface>(context.device);
+
+            Rml::SetSystemInterface(systemInterface.get());
+            Rml::SetRenderInterface(renderInterface.get());
+            Rml::Initialise();
+            Rml::LoadFontFace("../content/ui/LatoLatin-Regular.ttf");
+
+            rmlContext = Rml::CreateContext("main", Rml::Vector2i(context.window.getExtent().width, context.window.getExtent().height));
+            context.window.setRmlContext(rmlContext);
+            rmlRenderSystem = std::make_unique<lve::RmlRenderSystem>(context.device, context.renderer.StandaloneUIRenderPass->getRenderPass(), *renderInterface);
+            renderInterface->setViewportSize(context.window.getExtent().width, context.window.getExtent().height);
+            inventoryUI = std::make_unique<UI::InventoryUI>("Inventory 1", Rml::Vector2f(50, 200), rmlContext);
+            inventoryUI->AddItem("Mk III L.A.S.E.R.");
         }
 
         void onExit() override {
-            // cleanup if needed when returning to menu etc.
+            if (rmlContext) {
+                rmlContext->UnloadAllDocuments();
+                Rml::RemoveContext(rmlContext->GetName());
+                rmlContext = nullptr;
+            }
+
+            Rml::Shutdown();
         }
 
         void update(float deltaTime) override {
-            area->updateArea();
-
-            if (state == GameSceneState::Loading) {
-                return;
-            }
 
             lastFrameTime = deltaTime;
-            auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
-            camPosition = camTransform.position;
-            camRotation = camTransform.rotation;
+
+            if (glfwGetKey(context.window.getGLFWwindow(), GLFW_KEY_R) == GLFW_PRESS) {
+                inventoryUI->SetSelected("Mk III L.A.S.E.R.");
+            }
+
+            if (rmlContext) {
+                rmlContext->Update();
+            }
 
             context.systems.inputSystem->Update(&context.window);
             context.systems.movementSystem->Update(deltaTime);
             context.systems.physicsSystem->Update(deltaTime);
             context.systems.collisionSystem->Update(deltaTime, *area);
-            context.systems.interactionSystem->Update(deltaTime, context.window, context.device, *area);
+            context.systems.interactionSystem->Update(deltaTime, context.window, context.device, *area, context.coordinator);
             context.systems.inventorySystem->Update(*area);
 
+            area->updateArea();
+            if (state == GameSceneState::Loading) {
+                return;
+            }
+            auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
+            camPosition = camTransform.position;
+            camRotation = camTransform.rotation;
+
             hoveredID = context.systems.interactionSystem->hoveredID;
+
             context.coordinator.eventBus.blockBreakRequest.clear();
             context.coordinator.eventBus.blockPlaceRequested.clear();
         }
 
         void render(lve::FrameInfo &frameInfo) override {
+            // std::cout << "renderLoopUpdate" << '\n';
             area->tick(context.device, camPosition, frameInfo.frameIndex);
             if (state == GameSceneState::Loading) {
+                // std::cout << "Loading /calling chunks ready" << '\n';
                 if (chunksReady() >= minimumChunksToLoad) {
                     state = GameSceneState::Playing;
                     context.window.setMouseActive();
@@ -111,15 +148,20 @@ namespace Rendering
         int chunksReady() {
             auto spawnChunk = area->chunks.find(ivec3{0, 0, 0});
             if (spawnChunk != area->chunks.end()) {
+                // std::cout << "spawn chunk not loaded" << '\n';
                 if (!spawnChunk->second->voxelData.isGenerated()) {
                     return 0;
                 }
             }
 
             int count = 0;
-            for (auto &[coord, chunk] : area->chunks)
+            // std::cout << "chunks ready " << count << '\n';
+            for (auto &[coord, chunk] : area->chunks) {
                 if (chunk && chunk->chunkState == lve::ChunkState::Uploaded && chunk->chunkModel != nullptr)
                     count++;
+                // if (chunk->chunkModel == nullptr)
+                //  std::cout << "chunk model null" << '\n';
+            }
             return count;
         }
 
@@ -153,6 +195,12 @@ namespace Rendering
 
         void renderUI(lve::FrameInfo &frameInfo, Transform &camTransform, CameraComponent &camera) {
             context.renderer.UiRenderPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
+            rmlRenderSystem->render(frameInfo.commandBuffer);
+
+            if (rmlContext) {
+                renderInterface->setFrameIndex(frameInfo.frameIndex);
+                rmlContext->Render();
+            }
             context.imgui.newFrame();
             context.imgui.drawDebugWindow(lastFrameTime, camPosition, camTransform, camera, *area);
             context.imgui.drawCrosshair(context.window.getExtent().width, context.window.getExtent().height);
@@ -163,7 +211,7 @@ namespace Rendering
 
         AppContext &context;
         SceneManager &sceneManager;
-        int seed;
+        u64 seed;
 
         std::unique_ptr<lve::Area> area;
         Entity mainCamera;
@@ -171,6 +219,14 @@ namespace Rendering
         std::optional<lve::ChunkRenderSystem> chunkRenderSystem;
         std::optional<lve::HighlightRenderSystem> highlightRenderSystem;
         std::optional<lve::SimpleRenderSystem> simpleRenderSystem;
+
+        std::unique_ptr<RmlSystemInterface> systemInterface;
+        std::unique_ptr<lve::RmlRenderInterface> renderInterface;
+        std::unique_ptr<lve::RmlRenderSystem> rmlRenderSystem;
+
+        std::unique_ptr<UI::InventoryUI> inventoryUI;
+        Rml::Context *rmlContext = nullptr;
+        Rml::ElementDocument *document = nullptr;
 
         ivec4 hoveredID{0};
         vec3 camPosition{0};

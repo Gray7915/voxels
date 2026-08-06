@@ -80,6 +80,7 @@ namespace lve
     }
 
     void ChunkMeshWorkerPool::emitVoxel(MeshJob &job, MeshResult &result, ivec3 pos) {
+        // std::cout << "voxel emitted" << '\n';
         int BlockID = job.voxelData.get(pos.x, pos.y, pos.z);
         auto &blockDef = BlockRegistry::Get().GetBlockByID(BlockID)->get();
         switch (blockDef.behaviour.behaviourType) {

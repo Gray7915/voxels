@@ -10,15 +10,15 @@
 
 namespace lve
 {
-    extern Coordinator coordinator;
+    void ChunkMutationSystem::Update(Area &area, Coordinator &coordinator) {
 
-    void ChunkMutationSystem::Update(Area &area) {
         for (auto &e : coordinator.eventBus.blockBreakRequest.read()) {
             Chunk *chunk = area.getChunk(e.chunkPos);
 
-            if (!chunk || !chunk->voxelData.isGenerated())
+            if (!chunk || !chunk->voxelData.isGenerated()) {
+                std::cout << "no vox data or chunk not generated" << '\n';
                 continue;
-
+            }
             chunk->voxelData.set(e.blockPos.x, e.blockPos.y, e.blockPos.z, 0);
             chunk->chunkState = ChunkState::Dirty;
             area.markNeighborChunksDirty(e.chunkPos);

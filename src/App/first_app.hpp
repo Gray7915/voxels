@@ -67,8 +67,8 @@ namespace lve
         LveRenderer lveRenderer{lveWindow, lveDevice};
         ImguiManager imguiManager{lveDevice, lveWindow, lveRenderer};
 
-        Area area{lveDevice, 2};
-        // glm::ivec4 hoveredID;
+        // Area area{lveDevice, 2};
+        //  glm::ivec4 hoveredID;
 
         VkQueryPool queryPool;
     };

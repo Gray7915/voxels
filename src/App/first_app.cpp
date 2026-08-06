@@ -58,8 +58,8 @@ namespace lve
     FirstApp::~FirstApp() { vkDestroyQueryPool(lveDevice.device(), queryPool, nullptr); }
 
     void FirstApp::run() {
-        auto injector = di::make_injector(di::bind<LveDevice>.to(lveDevice), di::bind<Area>.to(area), di::bind<Coordinator>.to(coordinator), di::bind<LveWindow>.to(lveWindow),
-                                          di::bind<LveRenderer>.to(lveRenderer), di::bind<BlockRegistry>.to(BlockRegistry::Get()), di::bind<ItemRegistry>.to(ItemRegistry::Get()));
+        auto injector = di::make_injector(di::bind<LveDevice>.to(lveDevice), di::bind<Coordinator>.to(coordinator), di::bind<LveWindow>.to(lveWindow), di::bind<LveRenderer>.to(lveRenderer),
+                                          di::bind<BlockRegistry>.to(BlockRegistry::Get()), di::bind<ItemRegistry>.to(ItemRegistry::Get()));
 
         coordinator.Init();
         ItemRegistrySetup::SetupItemRegistry(ItemRegistry::Get());
@@ -85,14 +85,8 @@ namespace lve
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         std::cout << "setup render systems" << '\n';
 
-        // Entity mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = vec3{0, 68, 0}});
-
         float aspect = lveRenderer.getAspectRatio();
         systems.cameraSystem->Update(aspect);
-
-        // Entity testEntity = coordinator.CreateEntity();
-        // coordinator.AddComponent(testEntity, RenderableComponent{.model = LveModel::createModelFromFile(lveDevice, "models/ferret_scaled2.obj")});
-        // coordinator.AddComponent(testEntity, Transform{.position = {0, 66, 0}, .scale = {1, 1, 1}});
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         assert(lveWindow.getGLFWwindow() != nullptr && "window null)");

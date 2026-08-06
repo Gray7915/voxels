@@ -36,6 +36,7 @@ namespace lve
 
         std::unique_ptr<LveDescriptorPool> rmlPool;
         std::unique_ptr<LveDescriptorSetLayout> rmlTextureLayout;
+        std::unique_ptr<lve::LveTexture> fallbackTexture;
     };
 
 } // namespace lve

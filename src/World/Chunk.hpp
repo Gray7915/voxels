@@ -33,7 +33,7 @@ namespace lve
         glm::mat4 mat4();
         glm::mat3 normalMatrix();
 
-        enum BlockType : uint8_t { Air, Solid };
+        enum BlockType : u8 { Air, Solid };
 
         struct Transform {
             glm::mat4 mat4();
@@ -50,6 +50,9 @@ namespace lve
             }
             chunkModel = std::move(model);
             chunkState = ChunkState::Uploaded;
+            // std::cout << "chunk vert count " << this->chunkModel->modelVerticies.size() << " chunk indicie count  " << this->chunkModel->modelIindices.size() << '\n';
+            // std::cout << "chunk model applied " << '\n';
+            // std::cout << "chunk voxel data generated " << this->voxelData.isGenerated() << '\n';
         }
         std::shared_ptr<LveModel> chunkModel{};
     };

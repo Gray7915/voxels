@@ -1,47 +1,109 @@
     <rml>
     <head>
     <title>Test</title>
+    <data-model src="menu"/>
+
     <style>
+
     body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background-color: #111;
+        font-family: LatoLatin;
+        font-size: 24dp;
+        color: white;
+    }
+
+ .menu {
+    position: absolute;
+
+    width: 50vw;
+    height: auto;
+
+    top: 50%;
+    left: 50%;
+
+    margin-top: -200dp;
+    margin-left: -25vw;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 30dp;
+
+    decorator: tiled-box("ui/panel.png");
+    box-sizing: border-box;
+}
+
+   .menu-title {
+    font-size: 36dp;
+    margin-bottom: 30dp;
     width: 100%;
-    height: 100%;
+    height: 46dp;
+    white-space: nowrap;
+    text-align: center;
+}
 
-    font-family: LatoLatin;
-    font-size: 48dp;
+.menu input {
+    width: 100%;
+    height: 50dp;
+    margin-bottom: 20dp;
+    background-color: white;
+    color: #222;
+    font-size: 24dp;
+    padding: 8dp;
+    box-sizing: border-box;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.menu button {
+    width: 100%;
+    height: 60dp;
+    background-color: #444;
     color: white;
+    border-width: 2dp;
+    border-color: #888;
+    font-size: 28dp;
+    margin-top: 10dp;
+    white-space: nowrap;
+    text-align: center;
+    padding-top: 12dp;
+    box-sizing: border-box;
 }
 
-    .hotbar {
-        position: absolute;
-        bottom: 20dp;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        flex-direction: row;
+    .menu button:hover {
+        background-color: #666;
     }
 
-   .slot {
-    width: 48dp;
-    height: 48dp;
-    background: red;
+    .menu button:active {
+        background-color: #222;
+    }
+
+ .logo {
+    width: 80dp;
+    height: 80dp;
+    margin-bottom: 30dp;
+    align-self: center;
 }
-
-    .slot.selected {
-        border-color: #ffffff;
-        border-width: 3dp;
-    }
-
-    .slot img {
-        width: 40dp;
-        height: 40dp;
-        margin: 4dp;
-    }
     </style>
     </head>
+
     <body>
-    <div>Hello RmlUi</div>
-    <div class="hotbar" id="hotbar">
-        <div class="slot" id="slot1">Slot1</div>
+    <div class="menu" data-model="menu">  
+         <img class="logo" src="logo.png"/>
+        <div class="menu-title">
+            Generate World
+        </div>
+
+        <input type="text" data-value="seed"/>
+
+        <button id="generate_button">
+            Generate
+        </button>
+
     </div>
+
     </body>
     </rml>

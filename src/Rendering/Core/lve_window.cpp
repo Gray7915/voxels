@@ -1,6 +1,8 @@
 #include "lve_window.hpp"
 #include "ECS/Systems/InputSystem.hpp"
 #include <stdexcept>
+#include <RmlUi_Platform_GLFW.h>
+
 namespace lve
 {
     LveWindow::LveWindow(int w, int h, std::string name) : width{w}, height{h}, windowName{name} { initWindow(); }
@@ -31,7 +33,11 @@ namespace lve
 
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, frameBufferResizeCallback);
-        glfwSetCursorPosCallback(window, InputSystem::mouse_callback);
+
+        glfwSetCursorPosCallback(window, cursorPositionCallback);
+        glfwSetMouseButtonCallback(window, mouseButtonCallback);
+        glfwSetKeyCallback(window, keyCallback);
+        glfwSetCharCallback(window, charCallback);
 
         if (glfwRawMouseMotionSupported()) {
             // Hide and lock the cursor to the window (required for raw motion)
@@ -75,6 +81,58 @@ namespace lve
             return false;
         } else {
             return true;
+        }
+    }
+
+    void LveWindow::setRmlContext(Rml::Context *context) { rmlContext = context; }
+
+    void LveWindow::cursorPositionCallback(GLFWwindow *window, double xpos, double ypos) {
+        auto lveWindow = static_cast<LveWindow *>(glfwGetWindowUserPointer(window));
+
+        // Game camera
+        InputSystem::mouse_callback(window, xpos, ypos);
+
+        // UI
+        if (lveWindow->rmlContext) {
+            lveWindow->rmlContext->ProcessMouseMove(static_cast<int>(xpos), static_cast<int>(ypos), 0);
+        }
+    }
+
+    void LveWindow::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
+        auto lveWindow = static_cast<LveWindow *>(glfwGetWindowUserPointer(window));
+
+        if (!lveWindow->rmlContext)
+            return;
+
+        if (action == GLFW_PRESS)
+            lveWindow->rmlContext->ProcessMouseButtonDown(button, mods);
+
+        if (action == GLFW_RELEASE)
+            lveWindow->rmlContext->ProcessMouseButtonUp(button, mods);
+    }
+
+    void LveWindow::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+        auto lveWindow = static_cast<LveWindow *>(glfwGetWindowUserPointer(window));
+
+        // Always send to your game input system
+
+        // Also send to RmlUi if it exists
+        if (lveWindow->rmlContext) {
+            auto rmlKey = RmlGLFW::ConvertKey(key);
+
+            if (action == GLFW_PRESS || action == GLFW_REPEAT)
+                lveWindow->rmlContext->ProcessKeyDown(rmlKey, mods);
+
+            if (action == GLFW_RELEASE)
+                lveWindow->rmlContext->ProcessKeyUp(rmlKey, mods);
+        }
+    }
+
+    void LveWindow::charCallback(GLFWwindow *window, unsigned int codepoint) {
+        auto lveWindow = static_cast<LveWindow *>(glfwGetWindowUserPointer(window));
+
+        if (lveWindow->rmlContext) {
+            lveWindow->rmlContext->ProcessTextInput(static_cast<Rml::Character>(codepoint));
         }
     }
 } // namespace lve

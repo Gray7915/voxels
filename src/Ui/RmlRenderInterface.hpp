@@ -35,11 +35,17 @@ namespace lve
         void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override;
         void EnableScissorRegion(bool enable) override;
         void SetScissorRegion(Rml::Rectanglei region) override;
-        Rml::TextureHandle LoadTexture(Rml::Vector2i &texture_dimensions, const Rml::String &source) override { return 1; }
+        Rml::TextureHandle LoadTexture(Rml::Vector2i &texture_dimensions, const Rml::String &source) override;
         Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override;
         void ReleaseTexture(Rml::TextureHandle texture) override;
+        void setFrameIndex(int index) { currentFrameIndex = index; }
+        void setFallbackDescriptor(VkDescriptorSet set) { fallbackDescriptorSet = set; }
 
       private:
+        Rml::TextureHandle createTexture(const unsigned char *data, int width, int height, bool isFont);
+
+        VkDescriptorSet fallbackDescriptorSet = VK_NULL_HANDLE;
+
         struct CompiledGeometry {
             std::unique_ptr<lve::LveBuffer> vertexBuffer;
             std::unique_ptr<lve::LveBuffer> indexBuffer;
@@ -49,6 +55,7 @@ namespace lve
         struct RmlTexture {
             std::unique_ptr<lve::LveTexture> texture;
             VkDescriptorSet descriptorSet;
+            bool isFont = false;
         };
 
         lve::LveDevice &device;
@@ -65,5 +72,7 @@ namespace lve
         std::unordered_map<Rml::TextureHandle, RmlTexture> textureMap;
         uint64_t nextHandle = 1;
         uint64_t nextTextureHandle = 1;
+        std::unique_ptr<lve::LveTexture> fallbackTexture;
+        int currentFrameIndex;
     };
 } // namespace lve

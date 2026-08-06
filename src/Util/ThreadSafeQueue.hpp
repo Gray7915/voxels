@@ -18,7 +18,7 @@ namespace lve
 {
     struct GenJob {
         ivec3 chunkCoord;
-        u64 worldSeed;
+        s64 worldSeed;
     };
 
     struct GenResult {

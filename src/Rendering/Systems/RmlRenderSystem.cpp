@@ -11,6 +11,11 @@ namespace lve
         createPipeline(renderPass);
         renderInterface.setPipeline(lvePipeline->getPipeline(), pipelineLayout);
         renderInterface.setDescriptorLayout(rmlTextureLayout.get(), rmlPool.get(), this);
+        uint8_t whitePixel[4] = {255, 255, 255, 255};
+        fallbackTexture = std::make_unique<lve::LveTexture>(lveDevice, whitePixel, 1, 1);
+        VkDescriptorSet fallbackSet = createTextureDescriptor(fallbackTexture->getImageView(), fallbackTexture->getSampler());
+        renderInterface.setFallbackDescriptor(fallbackSet);
+        assert(fallbackSet != VK_NULL_HANDLE);
     }
 
     RmlRenderSystem::~RmlRenderSystem() { vkDestroyPipelineLayout(lveDevice.device(), pipelineLayout, nullptr); }

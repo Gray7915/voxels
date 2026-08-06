@@ -14,10 +14,16 @@ layout(push_constant) uniform PushConstants {
 } push;
 
 void main() {
-    if (push.useTexture == 1) {
+    if (push.useTexture == 2) {
+        // Colour texture (images, decorators)
+        vec4 texColor = texture(fontTexture, fragTexCoord);
+        outColor = fragColor * texColor;
+    } else if (push.useTexture == 1) {
+        // Font/glyph texture (alpha mask)
         vec4 texColor = texture(fontTexture, fragTexCoord);
         outColor = vec4(fragColor.rgb, fragColor.a * texColor.r);
     } else {
+        // No texture
         outColor = fragColor;
     }
 }

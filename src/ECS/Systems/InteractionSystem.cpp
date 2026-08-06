@@ -17,9 +17,7 @@
 
 namespace lve
 {
-    extern Coordinator coordinator;
-
-    void InteractionSystem::Update(float deltaTime, LveWindow &lveWindow, LveDevice &lveDevice, Area &area) {
+    void InteractionSystem::Update(float deltaTime, LveWindow &lveWindow, LveDevice &lveDevice, Area &area, Coordinator &coordinator) {
         for (auto const &entity : mEntities) {
             auto &transform = coordinator.GetComponent<Transform>(entity);
             auto &camera = coordinator.GetComponent<CameraComponent>(entity);

@@ -7,8 +7,7 @@
 
 #include <optional>
 
-struct InventoryComponent
-{
+struct InventoryComponent {
     int selectedStack = 0;
 
     int InventoryCapacity = 5;

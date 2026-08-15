@@ -2,7 +2,6 @@
 
     <head>
         <title>Inventory</title>
-
         <style>
             body {
                 width: 100%;
@@ -21,14 +20,23 @@
                 flex-shrink: 0;
                 align-items: flex-start;
                 margin-bottom: 20dp;
+                /*
                 border-color: aqua;
+                border-width: 2dp;
+                */
                 width: 522dp;
+                min-width: 522dp;
+                max-width: 522dp;
                 height: 56dp;
             }
 
             .icon {
                 width: 56dp;
+                min-width: 56dp;
+                max-width: 56dp;
                 height: 56dp;
+                min-height: 56dp;
+                max-height: 56dp;
                 flex-grow: 0;
                 flex-shrink: 0;
                 border-color: transparent;

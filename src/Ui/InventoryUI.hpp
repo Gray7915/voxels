@@ -4,6 +4,8 @@
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Types.h>
 
+#include "Util/ButtonListener.hpp"
+#include "Util/ItemListener.hpp"
 namespace UI
 {
     class InventoryUI {
@@ -21,7 +23,25 @@ namespace UI
         void AddItem(const Rml::String &name);
         void SetSelected(const Rml::String &name);
 
+        void openCreativeInventory();
+        std::function<void(const Rml::String &itemId)> onItemClicked;
+
       private:
-        Rml::ElementDocument *document;
+        Rml::ElementDocument *document = nullptr;
+        Rml::ElementDocument *inventoryWindow = nullptr;
+
+        bool invWindowOpen = false;
+
+        Rml::DataModelHandle itemsModel;
+        std::unique_ptr<ItemListener> itemClickListener;
+        std::vector<std::unique_ptr<ItemListener>> itemListeners;
+        void setupItemsModel(Rml::Context *context);
+        void attachClickListeners();
+
+        struct DisplayItem {
+            Rml::String id;
+            Rml::String name;
+        };
+        std::vector<DisplayItem> displayItems;
     };
 } // namespace UI

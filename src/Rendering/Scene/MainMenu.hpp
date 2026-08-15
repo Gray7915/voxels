@@ -21,13 +21,11 @@ namespace fs = std::filesystem;
 
 namespace Rendering
 {
-    class MenuScene : public Scene
-    {
-    public:
+    class MenuScene : public Scene {
+      public:
         MenuScene(AppContext &context, SceneManager &sceneManager) : sceneManager(sceneManager), context(context) {}
 
-        void onEnter() override
-        {
+        void onEnter() override {
             context.window.setMouseActive();
 
             systemInterface = std::make_unique<RmlSystemInterface>();
@@ -43,8 +41,7 @@ namespace Rendering
             rmlRenderSystem = std::make_unique<lve::RmlRenderSystem>(context.device, context.renderer.StandaloneUIRenderPass->getRenderPass(), *renderInterface);
             renderInterface->setViewportSize(context.window.getExtent().width, context.window.getExtent().height);
 
-            if (Rml::DataModelConstructor constructor = rmlContext->CreateDataModel("menu"))
-            {
+            if (Rml::DataModelConstructor constructor = rmlContext->CreateDataModel("menu")) {
                 constructor.Bind("seed", &seedText);
                 menuModel = constructor.GetModelHandle();
             }
@@ -55,25 +52,22 @@ namespace Rendering
             std::cout << fs::absolute(p) << '\n';
             std::cout << fs::exists(p) << '\n';
 
-            if (document)
-            {
+            if (document) {
                 document->Show();
                 auto button = document->GetElementById("generate_button");
-                buttonListener = std::make_unique<ButtonListener>([this]()
-                                                                  {
+                buttonListener = std::make_unique<ButtonListener>([this]() {
                     std::cout << "seedText = " << seedText << "\n";
                     std::cout << "seed as int = " << std::stoi(seedText) << '\n';
-                    sceneManager.switchTo(std::make_unique<GameScene>(context, sceneManager, std::stoi(seedText))); });
+                    sceneManager.switchTo(std::make_unique<GameScene>(context, sceneManager, std::stoi(seedText)));
+                });
 
                 button->AddEventListener(Rml::EventId::Click, buttonListener.get());
             }
         }
 
-        void onExit() override
-        {
+        void onExit() override {
             vkDeviceWaitIdle(context.device.device());
-            if (rmlContext)
-            {
+            if (rmlContext) {
                 rmlContext->UnloadAllDocuments();
                 Rml::RemoveContext(rmlContext->GetName());
                 rmlContext = nullptr;
@@ -82,12 +76,9 @@ namespace Rendering
             Rml::Shutdown();
         }
 
-        void update(float deltaTime) override
-        {
-            if (rmlContext)
-            {
-                if (menuModel.IsVariableDirty("seed"))
-                {
+        void update(float deltaTime) override {
+            if (rmlContext) {
+                if (menuModel.IsVariableDirty("seed")) {
                     // seedText has already been updated by RmlUi, nothing extra needed
                     // but you must call this to clear the dirty flag
                     menuModel.DirtyVariable("seed");
@@ -96,11 +87,9 @@ namespace Rendering
             }
         }
 
-        void render(lve::FrameInfo &frameInfo) override
-        {
+        void render(lve::FrameInfo &frameInfo) override {
             VkExtent2D extent = context.window.getExtent();
-            if (extent.width != lastWidth || extent.height != lastHeight)
-            {
+            if (extent.width != lastWidth || extent.height != lastHeight) {
                 lastWidth = extent.width;
                 lastHeight = extent.height;
                 if (rmlContext)
@@ -112,8 +101,7 @@ namespace Rendering
             context.renderer.StandaloneUIRenderPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
             rmlRenderSystem->render(frameInfo.commandBuffer);
 
-            if (rmlContext)
-            {
+            if (rmlContext) {
                 renderInterface->setFrameIndex(context.device.getFrameCount());
                 rmlContext->Render();
             }
@@ -121,7 +109,7 @@ namespace Rendering
             context.renderer.StandaloneUIRenderPass->end(frameInfo.commandBuffer);
         }
 
-    private:
+      private:
         AppContext &context;
         SceneManager &sceneManager;
         Rml::String seedText = "19";

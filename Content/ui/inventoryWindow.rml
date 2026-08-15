@@ -1,0 +1,78 @@
+<rml>
+
+    <head id="head">
+        <title>Inventory Window</title>
+        <style>
+            body {
+                width: 100%;
+                height: 100%;
+                font-family: LatoLatin;
+
+            }
+
+            .inventory-window {
+                position: absolute;
+                width: 500dp;
+                height: 600dp;
+                top: 50%;
+                left: 50%;
+                margin-left: -250dp;
+                margin-top: -300dp;
+                background-color: rgba(30, 30, 30, 220);
+                border-width: 2dp;
+                border-color: #888;
+                padding: 20dp;
+            }
+
+            .inventory-title {
+                font-size: 28dp;
+                color: white;
+                margin-bottom: 20dp;
+                text-align: center;
+            }
+
+            .item-list {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .item-row {
+                width: 100%;
+                height: 50dp;
+                background-color: rgba(60, 60, 60, 200);
+                border-width: 1dp;
+                border-color: #555;
+                margin-bottom: 4dp;
+                padding: 10dp;
+                box-sizing: border-box;
+                color: white;
+                font-size: 22dp;
+            }
+
+            .item-row:hover {
+                background-color: rgba(100, 100, 100, 200);
+            }
+
+            .item-row:active {
+                background-color: rgba(40, 40, 40, 200);
+            }
+        </style>
+    </head>
+
+    <body data-model="items" id="body">
+        <div class="inventory-window" id="window div">
+
+            <div class="inventory-title" id="title">
+                Items
+            </div>
+
+            <div class="item-list" id="itemList">
+                <div class="item-row" data-for="item : items" data-attr-id="item.id">
+                    {{item.name}} {{item.id}}
+                </div>
+            </div>
+
+        </div>
+    </body>
+</rml>

@@ -29,6 +29,8 @@
 #include "Ui/RmlRenderInterface.hpp"
 
 #include "Ui/InventoryUI.hpp"
+#include "Inventory/ItemStack.hpp"
+#include "Inventory/ItemRegistry.hpp"
 namespace Rendering
 {
     enum class GameSceneState { Loading, Playing };
@@ -105,9 +107,32 @@ namespace Rendering
 
             context.coordinator.eventBus.blockBreakRequest.clear();
             context.coordinator.eventBus.blockPlaceRequested.clear();
+
+            static bool escapeWasPressed = false;
+            bool escapeIsPressed = glfwGetKey(context.window.getGLFWwindow(), GLFW_KEY_E) == GLFW_PRESS;
+            if (escapeWasPressed && !escapeIsPressed) {
+                escapeWasPressed = false;
+            }
+
+            if (!escapeWasPressed && escapeIsPressed) {
+                escapeWasPressed = true;
+                inventoryUI->openCreativeInventory();
+                context.window.setMouseActive();
+            }
         }
 
         void render(lve::FrameInfo &frameInfo) override {
+
+            VkExtent2D extent = context.window.getExtent();
+            if (extent.width != lastWidth || extent.height != lastHeight) {
+                lastWidth = extent.width;
+                lastHeight = extent.height;
+                if (rmlContext)
+                    rmlContext->SetDimensions(Rml::Vector2i(extent.width, extent.height));
+                if (renderInterface)
+                    renderInterface->setViewportSize(extent.width, extent.height);
+            }
+
             area->tick(context.device, camPosition, frameInfo.frameIndex);
             // Check if previous upload is done
             if (pendingUpload.has_value()) {
@@ -120,8 +145,7 @@ namespace Rendering
                         auto model = std::make_unique<lve::LveModel>(context.device, std::move(slot.vertexDst), std::move(slot.indexDst));
                         chunk->applyMesh(std::move(model), frameInfo.frameIndex, context.device);
                     }
-                    vkFreeCommandBuffers(context.device.device(), // <-- missing
-                                         context.device.getCommandPool(), 1, &pendingUpload->cmd);
+                    vkFreeCommandBuffers(context.device.device(), context.device.getCommandPool(), 1, &pendingUpload->cmd);
                     vkDestroyFence(context.device.device(), pendingUpload->fence, nullptr);
                     context.stagingPool.reset();
                     pendingUpload.reset();
@@ -164,6 +188,26 @@ namespace Rendering
                     vec3 spawnPos = findSpawnPosition({0, 0});
                     camPosition = spawnPos;
                     mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = spawnPos, .scale{1, 1, 1}});
+                    inventoryUI->onItemClicked = [this](const Rml::String &itemId) {
+                        auto &inv = context.coordinator.GetComponent<InventoryComponent>(mainCamera);
+                        std::cout << "itemId = '" << itemId << "'\n";
+                        // for()
+                        /*
+                        Need to think about how inventory really works.the current system doesn't really function so probably good to have a think about that.
+*/
+                        // std::cout << "itemId = '" << itemId << "'\n";
+                        bool added = false;
+                        for (auto &stack : inv.inventoryStacks) {
+                            if (!stack.has_value()) {
+                                stack = ItemStack(ItemRegistry::Get().GetItemByID(std::stoi(itemId)), ItemRegistry::Get().GetItemByID(std::stoi(itemId))->maxStackSize);
+                                added = true;
+                                break;
+                            }
+                        }
+                        if (!added) {
+                            inv.inventoryStacks.at(0) = lve::ItemStack(ItemRegistry::Get().GetItemByID(std::stoi(itemId)), 1);
+                        }
+                    };
                 } else {
                     renderLoadingScreen(frameInfo);
                     return;
@@ -283,6 +327,9 @@ namespace Rendering
         Rml::Context *rmlContext = nullptr;
         Rml::ElementDocument *document = nullptr;
 
+        bool inventoryOpen = false;
+        bool ePressedLastFrame = false;
+
         ivec4 hoveredID{0};
         vec3 camPosition{0};
         vec3 camRotation{0};
@@ -298,5 +345,8 @@ namespace Rendering
         std::optional<PendingUpload> pendingUpload;
 
         int prevFrame = -1;
+
+        u32 lastHeight = 0;
+        u32 lastWidth = 0;
     };
 } // namespace Rendering

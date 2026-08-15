@@ -2,8 +2,7 @@
 
 namespace lve
 {
-    void ItemRegistrySetup::SetupItemRegistry(ItemRegistry &itemRegistry)
-    {
+    void ItemRegistrySetup::SetupItemRegistry(ItemRegistry &itemRegistry) {
         itemRegistry.Register({.itemId = 1, .itemName = "GrassyDirt", .maxStackSize = 64});
         itemRegistry.Register({.itemId = 2, .itemName = "Dirt", .maxStackSize = 64});
         itemRegistry.Register({.itemId = 3, .itemName = "Stone", .maxStackSize = 64});
@@ -11,4 +10,4 @@ namespace lve
         // itemRegistry.Register({.})
     }
 
-}
+} // namespace lve

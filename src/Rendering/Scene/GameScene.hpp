@@ -77,24 +77,27 @@ namespace Rendering
         }
 
         void update(float deltaTime) override {
-
             lastFrameTime = deltaTime;
-            // std::cout << "frame " << context.device.getFrameCount() << '\n';
-            if (glfwGetKey(context.window.getGLFWwindow(), GLFW_KEY_R) == GLFW_PRESS) {
-                inventoryUI->SetSelected("Mk III L.A.S.E.R.");
-            }
+            deltaTime = std::min(deltaTime, 0.25f);
+            accumulator += deltaTime; // ← only once
 
-            if (rmlContext) {
+            if (rmlContext)
                 rmlContext->Update();
-            }
 
+            // Input sampled once per render frame, not per physics step
             context.systems.inputSystem->Update(&context.window);
-            context.systems.movementSystem->Update(deltaTime, context.device.getFrameCount());
-            context.systems.physicsSystem->Update(deltaTime);
-            context.systems.collisionSystem->Update(deltaTime, *area);
+
+            while (accumulator >= FIXED_DT) {
+                if (!inventoryOpen) {
+                    context.systems.movementSystem->Update(FIXED_DT, frameIndex);
+                }
+                context.systems.physicsSystem->Update(FIXED_DT);
+                context.systems.collisionSystem->Update(FIXED_DT, *area);
+                accumulator -= FIXED_DT;
+            }
+            context.systems.movementSystem->UpdateCamera();
             context.systems.interactionSystem->Update(deltaTime, context.window, context.device, *area, context.coordinator);
             context.systems.inventorySystem->Update(*area);
-
             area->updateArea();
             if (state == GameSceneState::Loading) {
                 return;
@@ -108,15 +111,18 @@ namespace Rendering
             context.coordinator.eventBus.blockBreakRequest.clear();
             context.coordinator.eventBus.blockPlaceRequested.clear();
 
-            static bool escapeWasPressed = false;
-            bool escapeIsPressed = glfwGetKey(context.window.getGLFWwindow(), GLFW_KEY_E) == GLFW_PRESS;
-            if (escapeWasPressed && !escapeIsPressed) {
-                escapeWasPressed = false;
+            const auto &playerInputComp = context.coordinator.GetComponent<InputComponent>(mainCamera);
+
+            static bool EWasPressed = false;
+            bool EIsPressed = playerInputComp.openInventory;
+            if (EWasPressed && !EIsPressed) {
+                EWasPressed = false;
             }
 
-            if (!escapeWasPressed && escapeIsPressed) {
-                escapeWasPressed = true;
+            if (!EWasPressed && EIsPressed) {
+                EWasPressed = true;
                 inventoryUI->openCreativeInventory();
+                inventoryOpen = !inventoryOpen;
                 context.window.setMouseActive();
             }
         }
@@ -348,5 +354,9 @@ namespace Rendering
 
         u32 lastHeight = 0;
         u32 lastWidth = 0;
+
+        const float FIXED_DT = 1.0f / 60.0f;
+        float accumulator = 0.0f;
+        u64 frameIndex = 0;
     };
 } // namespace Rendering

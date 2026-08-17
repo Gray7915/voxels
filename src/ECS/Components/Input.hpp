@@ -2,8 +2,7 @@
 #include <glm/glm.hpp>
 #include <chrono>
 
-struct InputComponent
-{
+struct InputComponent {
     bool moveForward = false;
     bool moveBackward = false;
     bool moveLeft = false;
@@ -13,6 +12,8 @@ struct InputComponent
     bool moveDown = false;
 
     bool releaseSpace = false;
+
+    bool openInventory = false;
 
     float mouseDeltaX = 0.f;
     float mouseDeltaY = 0.f;
@@ -30,18 +31,8 @@ struct InputComponent
     bool middleMouseClicked = false;
     bool rightMouseClicked = false;
 
-    bool escapePressed;
-
-    bool onePressed;
-    bool twoPressed;
-    bool threePressed;
-    bool fourPressed;
-    bool fivePressed;
-    bool sixPressed;
-    bool sevenPressed;
-    bool eightPressed;
-    bool ninePressed;
-    bool zeroPressed;
+    bool primaryAction = false;   // left mouse break block thingie
+    bool secondaryAction = false; // open chest, interact with block, ect
 
     std::chrono::steady_clock::time_point leftMouseWasClicked;
     std::chrono::steady_clock::time_point middleMouseWasClicked;

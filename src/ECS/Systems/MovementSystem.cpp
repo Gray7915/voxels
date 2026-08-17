@@ -38,6 +38,19 @@ namespace lve
         s_velocityLog << "deltaTime, smoothDeltaTime ,frame,vx,vy,vz,speed_xz,speed_3d,any_input,forward,backward,left,right\n";
     }
 
+    void MovementSystem::UpdateCamera() {
+        for (auto const &entity : mEntities) {
+            auto &transform = coordinator.GetComponent<Transform>(entity);
+            auto &input = coordinator.GetComponent<InputComponent>(entity);
+            auto &moveStats = coordinator.GetComponent<MovementStats>(entity);
+
+            transform.rotation.y += input.mouseDeltaX * moveStats.mouseSensitivity;
+            transform.rotation.x += input.mouseDeltaY * moveStats.mouseSensitivity;
+            transform.rotation.x = glm::clamp(transform.rotation.x, -1.5f, 1.5f);
+            transform.rotation.y = glm::mod(transform.rotation.y, glm::two_pi<float>());
+        }
+    }
+
     void MovementSystem::Update(float dt, u64 frameIndex) {
 
         // At the top of Update(), replace raw dt usage with smoothed version
@@ -51,12 +64,6 @@ namespace lve
             auto &input = coordinator.GetComponent<InputComponent>(entity);
             auto &moveStats = coordinator.GetComponent<MovementStats>(entity);
             auto &rigidBody = coordinator.GetComponent<RigidBodyComponent>(entity);
-
-            // Camera rotation
-            transform.rotation.y += input.mouseDeltaX * moveStats.mouseSensitivity;
-            transform.rotation.x += input.mouseDeltaY * moveStats.mouseSensitivity;
-            transform.rotation.x = glm::clamp(transform.rotation.x, -1.5f, 1.5f);
-            transform.rotation.y = glm::mod(transform.rotation.y, glm::two_pi<float>());
 
             // Movement basis
             float yaw = transform.rotation.y;
@@ -84,18 +91,21 @@ namespace lve
             if (moveStats.flying)
                 rigidBody.velocity.y *= pow(friction, smoothDt * 60.0f);
 
+            float accel = rigidBody.isGrounded ? moveStats.groundAcceleration : moveStats.airAcceleration;
+
             float frictionFactor = pow(friction, smoothDt * 60.0f);
             rigidBody.velocity.x *= frictionFactor;
             rigidBody.velocity.z *= frictionFactor;
 
-            float accel = rigidBody.isGrounded ? moveStats.groundAcceleration : moveStats.airAcceleration;
-            if (moveStats.flying) {
-                accel = moveStats.groundAcceleration;
-                rigidBody.velocity.y += moveDir.y * accel * smoothDt;
-            }
-
             rigidBody.velocity.x += moveDir.x * accel * smoothDt;
             rigidBody.velocity.z += moveDir.z * accel * smoothDt;
+
+            glm::vec2 velXZ(rigidBody.velocity.x, rigidBody.velocity.z);
+            if (glm::length(velXZ) > moveStats.moveSpeed) {
+                velXZ = glm::normalize(velXZ) * moveStats.moveSpeed;
+                rigidBody.velocity.x = velXZ.x;
+                rigidBody.velocity.z = velXZ.y;
+            }
 
             if (moveStats.flying) {
                 if (input.moveUp)

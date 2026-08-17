@@ -108,6 +108,7 @@ namespace lve
             auto newTime = std::chrono::high_resolution_clock::now();
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
+            frameTime = std::min(frameTime, 0.25f);
             // std::cout << "Set time in loop" << '\n';
             // coordinator.eventBus.blockBreakRequest.clear();
             // coordinator.eventBus.blockPlaceRequested.clear();

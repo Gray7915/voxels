@@ -53,8 +53,8 @@ namespace lve
                 return;
             }
 
-            instance->pendingMouseDeltaX = static_cast<float>(xpos - instance->lastX);
-            instance->pendingMouseDeltaY = static_cast<float>(ypos - instance->lastY);
+            instance->pendingMouseDeltaX += static_cast<float>(xpos - instance->lastX);
+            instance->pendingMouseDeltaY += static_cast<float>(ypos - instance->lastY);
             instance->lastX = xpos;
             instance->lastY = ypos;
         } else {

@@ -17,11 +17,8 @@
 
 namespace std
 {
-    template <>
-    struct hash<lve::Vertex>
-    {
-        size_t operator()(lve::Vertex const &vertex) const
-        {
+    template <> struct hash<lve::Vertex> {
+        size_t operator()(lve::Vertex const &vertex) const {
             size_t seed = 0;
             lve::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
             return seed;
@@ -34,8 +31,7 @@ namespace lve
 
     LveModel::LveModel(LveDevice &device, const LveModel::Builder &builder) : LveModel(device, builder, device.getCommandPool()) {}
 
-    LveModel::LveModel(LveDevice &device, const LveModel::Builder &builder, VkCommandPool pool) : lveDevice{device}
-    {
+    LveModel::LveModel(LveDevice &device, const LveModel::Builder &builder, VkCommandPool pool) : lveDevice{device} {
         createVertexBuffers(builder.vertices, pool);
         createIndexBuffer(builder.indices, pool);
         modelVerticies = builder.vertices;
@@ -43,8 +39,7 @@ namespace lve
         modelSections = builder.sections;
     }
 
-    LveModel::LveModel(LveDevice &device, std::unique_ptr<LveBuffer> vertexBuf, std::unique_ptr<LveBuffer> indexBuf) : lveDevice{device}
-    {
+    LveModel::LveModel(LveDevice &device, std::unique_ptr<LveBuffer> vertexBuf, std::unique_ptr<LveBuffer> indexBuf) : lveDevice{device} {
         vertexBuffer = std::move(vertexBuf);
         indexBuffer = std::move(indexBuf);
         vertexCount = static_cast<uint32_t>(vertexBuffer->getInstanceCount());
@@ -53,32 +48,26 @@ namespace lve
     }
     LveModel::~LveModel() {}
 
-    std::unique_ptr<LveModel> LveModel::createModelFromFile(LveDevice &device, const std::string &filepath)
-    {
+    std::unique_ptr<LveModel> LveModel::createModelFromFile(LveDevice &device, const std::string &filepath) {
         Builder builder{};
         builder.loadModel(ENGINE_DIR + filepath);
         return std::make_unique<LveModel>(device, builder);
     }
 
-    std::unique_ptr<LveModel> LveModel::createChunkModel(LveDevice &device, std::vector<Vertex> vertices, std::vector<uint32_t> indices, VkCommandPool pool)
-    {
+    std::unique_ptr<LveModel> LveModel::createChunkModel(LveDevice &device, std::vector<Vertex> vertices, std::vector<uint32_t> indices, VkCommandPool pool) {
         Builder builder{};
-        for (Vertex vertex : vertices)
-        {
+        for (Vertex vertex : vertices) {
             builder.vertices.push_back(vertex);
         }
-        for (uint32_t indicie : indices)
-        {
+        for (uint32_t indicie : indices) {
             builder.indices.push_back(indicie);
         }
         return std::make_unique<LveModel>(device, builder, pool);
     }
 
-    void LveModel::createVertexBuffers(const std::vector<Vertex> &vertices, VkCommandPool pool)
-    {
+    void LveModel::createVertexBuffers(const std::vector<Vertex> &vertices, VkCommandPool pool) {
         vertexCount = static_cast<uint32_t>(vertices.size());
-        if (vertexCount < 3)
-        {
+        if (vertexCount < 3) {
             std::cerr << "Warning: createVertexBuffers called with fewer than 3 vertices\n";
             return;
         }
@@ -95,13 +84,11 @@ namespace lve
         lveDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize, pool);
     }
 
-    void LveModel::createIndexBuffer(const std::vector<uint32_t> &indices, VkCommandPool pool)
-    {
+    void LveModel::createIndexBuffer(const std::vector<uint32_t> &indices, VkCommandPool pool) {
         indexCount = static_cast<uint32_t>(indices.size());
         hasIndexBuffer = indexCount > 0;
 
-        if (!hasIndexBuffer)
-        {
+        if (!hasIndexBuffer) {
             return;
         }
 
@@ -118,34 +105,27 @@ namespace lve
         lveDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize, pool);
     }
 
-    void LveModel::draw(VkCommandBuffer commandBuffer)
-    {
-        if (hasIndexBuffer)
-        {
+    void LveModel::draw(VkCommandBuffer commandBuffer) {
+        if (hasIndexBuffer) {
             vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
             RenderStats::Get().drawCalls++;
             RenderStats::Get().triangles += indexCount / 3;
-        }
-        else
-        {
+        } else {
             vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
         }
     }
 
-    void LveModel::bind(VkCommandBuffer commandBuffer)
-    {
+    void LveModel::bind(VkCommandBuffer commandBuffer) {
         VkBuffer buffers[] = {vertexBuffer->getBuffer()};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
-        if (hasIndexBuffer)
-        {
+        if (hasIndexBuffer) {
             vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
         }
     }
 
-    std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescriptions()
-    {
+    std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescriptions() {
         std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
         bindingDescriptions[0].binding = 0;
         bindingDescriptions[0].stride = sizeof(Vertex);
@@ -153,8 +133,7 @@ namespace lve
         return bindingDescriptions;
     }
 
-    std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescriptions()
-    {
+    std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescriptions() {
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 
         attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)});
@@ -165,59 +144,70 @@ namespace lve
         return attributeDescriptions;
     }
 
-    void LveModel::Builder::loadModel(const std::string &filepath)
-    {
+    void LveModel::Builder::loadModel(const std::string &filepath) {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
         std::string warn, err;
 
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
-        {
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str())) {
             throw std::runtime_error(warn + err);
         }
         vertices.clear();
         indices.clear();
-        sections.clear();
 
         std::unordered_map<Vertex, uint32_t> uniqueVerticies{};
-        for (const auto &shape : shapes)
-        {
-            if (sections.find(shape.name) == sections.end())
-            {
-                sections[shape.name] = ModelSection{};
-                sections[shape.name].name = shape.name;
-                std::cout << shape.name << '\n';
-                size_t pos = shape.name.find_last_of('_');
-                if (pos != std::string::npos)
-                {
-                    std::string direction = shape.name.substr(pos + 1);
-                    if (shape.name.ends_with("_north"))
-                        sections[shape.name].dirction = Math::Direction::NORTH;
-                    else if (shape.name.ends_with("_south"))
-                        sections[shape.name].dirction = Math::Direction::SOUTH;
-                    else if (shape.name.ends_with("_east"))
-                        sections[shape.name].dirction = Math::Direction::EAST;
-                    else if (shape.name.ends_with("_west"))
-                        sections[shape.name].dirction = Math::Direction::WEST;
-                    else if (shape.name.ends_with("up"))
-                        sections[shape.name].dirction = Math::Direction::UP;
-                    else if (shape.name.ends_with("_down"))
-                        sections[shape.name].dirction = Math::Direction::DOWN;
-                    else if (shape.name.ends_with("_center"))
-                        sections[shape.name].dirction = Math::Direction::CENTER;
+        int shapeNum = 0;
+        for (const auto &shape : shapes) {
+            std::cout << shape.name << '\n';
+            size_t pos = shape.name.find_last_of('_');
+            if (pos != std::string::npos) {
+                std::string direction = shape.name.substr(pos + 1);
+                if (shape.name.ends_with("_north") || shape.name.ends_with("_zero")) {
+                    sections[0].dirction = Math::Direction::NORTH;
+                    sections[0].stage = 0;
+                    shapeNum = 0;
+                } else if (shape.name.ends_with("_south") || shape.name.ends_with("_one")) {
+                    sections[1].dirction = Math::Direction::SOUTH;
+                    sections[1].stage = 1;
+                    shapeNum = 1;
+                } else if (shape.name.ends_with("_east") || shape.name.ends_with("_two")) {
+                    sections[2].dirction = Math::Direction::EAST;
+                    sections[2].stage = 2;
+                    shapeNum = 2;
+                } else if (shape.name.ends_with("_west") || shape.name.ends_with("_three")) {
+                    sections[3].dirction = Math::Direction::WEST;
+                    sections[3].stage = 3;
+                    shapeNum = 3;
+                } else if (shape.name.ends_with("up") || shape.name.ends_with("_four")) {
+                    sections[4].dirction = Math::Direction::UP;
+                    sections[4].stage = 4;
+                    shapeNum = 4;
+                } else if (shape.name.ends_with("_down") || shape.name.ends_with("_five")) {
+                    sections[5].dirction = Math::Direction::DOWN;
+                    sections[5].stage = 5;
+                    shapeNum = 5;
+                } else if (shape.name.ends_with("_center") || shape.name.ends_with("_six")) {
+                    sections[6].dirction = Math::Direction::CENTER;
+                    sections[6].stage = 6;
+                    shapeNum = 6;
+                } else if (shape.name.ends_with("_seven")) {
+                    sections[7].stage = 7;
+                    shapeNum = 7;
+                } else {
+                    sections[0].stage = 0;
+                    shapeNum = 0;
                 }
+                // std::cout << " shapeNum " << shapeNum << '\n';
             }
 
-            ModelSection &section = sections[shape.name];
+            ModelSection &section = sections[shapeNum];
             std::unordered_map<Vertex, uint32_t> sectionUniqueVertices{};
 
-            for (const auto &index : shape.mesh.indices)
-            {
+            for (const auto &index : shape.mesh.indices) {
                 Vertex vertex{};
 
-                if (index.vertex_index >= 0)
-                {
+                if (index.vertex_index >= 0) {
                     vertex.position = {
                         attrib.vertices[3 * index.vertex_index + 0], // x
                         attrib.vertices[3 * index.vertex_index + 1], // y
@@ -232,8 +222,7 @@ namespace lve
                     };
                 }
 
-                if (index.normal_index >= 0)
-                {
+                if (index.normal_index >= 0) {
                     vertex.normal = {
                         attrib.normals[3 * index.normal_index + 0], // x
                         attrib.normals[3 * index.normal_index + 1], // y
@@ -241,23 +230,20 @@ namespace lve
                     };
                 }
 
-                if (index.texcoord_index >= 0)
-                {
+                if (index.texcoord_index >= 0) {
                     vertex.uv = {
                         attrib.texcoords[2 * index.texcoord_index + 0], // x
                         attrib.texcoords[2 * index.texcoord_index + 1], // y
                     };
                 }
 
-                if (uniqueVerticies.count(vertex) == 0)
-                {
+                if (uniqueVerticies.count(vertex) == 0) {
                     uniqueVerticies[vertex] = static_cast<uint32_t>(vertices.size());
                     vertices.push_back(vertex);
                 }
                 indices.push_back(uniqueVerticies[vertex]);
 
-                if (sectionUniqueVertices.count(vertex) == 0)
-                {
+                if (sectionUniqueVertices.count(vertex) == 0) {
                     sectionUniqueVertices[vertex] = static_cast<uint32_t>(section.vertices.size());
                     section.vertices.push_back(vertex);
                 }

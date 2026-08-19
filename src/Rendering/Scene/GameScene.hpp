@@ -86,6 +86,7 @@ namespace Rendering
 
             // Input sampled once per render frame, not per physics step
             context.systems.inputSystem->Update(&context.window);
+            context.systems.movementSystem->UpdateCamera();
 
             while (accumulator >= FIXED_DT) {
                 if (!inventoryOpen) {
@@ -95,8 +96,7 @@ namespace Rendering
                 context.systems.collisionSystem->Update(FIXED_DT, *area);
                 accumulator -= FIXED_DT;
             }
-            context.systems.movementSystem->UpdateCamera();
-            context.systems.interactionSystem->Update(deltaTime, context.window, context.device, *area, context.coordinator);
+            context.systems.interactionSystem->Update(FIXED_DT, context.window, context.device, *area, context.coordinator);
             context.systems.inventorySystem->Update(*area);
             area->updateArea();
             if (state == GameSceneState::Loading) {

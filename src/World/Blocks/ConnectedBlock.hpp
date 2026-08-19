@@ -8,9 +8,8 @@
 
 namespace lve
 {
-    class Fence
-    {
-    public:
+    class ConnectedBlock {
+      public:
         /*
             In the case of something like a fence or wall the bits are assumed to be read as such
             Bit 0 = North
@@ -20,17 +19,14 @@ namespace lve
             Bit 4 = Up
             The central post of the fence or wall should always be drawn
         */
-        static bool isSegmentBitActive(Voxel voxel, Math::Direction direction)
-        {
+        static bool isSegmentBitActive(Voxel voxel, Math::Direction direction) {
 
             u8 segmentBits = voxel.state.usagebits;
-            for (int i = 0; i < 5; i++)
-            {
+            for (int i = 0; i < 5; i++) {
                 bool set = (voxel.state.usagebits >> i) & 1;
                 // std::cout << "bit " << i << " = " << set << '\n';
             }
-            switch (direction)
-            {
+            switch (direction) {
             case Math::Direction::NORTH:
                 // std::cout << "north" << (voxel.state.segment & (1 << 0)) << '\n';
                 return voxel.state.usagebits & (1 << 0);
@@ -66,10 +62,8 @@ namespace lve
             }
         }
 
-        static void setSegmentBit(Voxel &voxel, Math::Direction direction, bool hasNeighbor)
-        {
-            switch (direction)
-            {
+        static void setSegmentBit(Voxel &voxel, Math::Direction direction, bool hasNeighbor) {
+            switch (direction) {
             case Math::Direction::NORTH:
                 hasNeighbor ? voxel.state.usagebits |= (1 << 0) : voxel.state.usagebits &= ~(1 << 0);
                 break;
@@ -92,4 +86,4 @@ namespace lve
             }
         }
     };
-}
+} // namespace lve

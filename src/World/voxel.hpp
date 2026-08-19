@@ -10,8 +10,7 @@ inline constexpr int BLOCK_DIR_EAST = 0x3;
 inline constexpr int BLOCK_DIR_UP = 0x4;
 inline constexpr int BLOCK_DIR_DOWN = 0x5;
 
-struct blockState
-{
+struct blockState {
     uint8_t rotation : 3;  // three bits for rotation
     uint8_t segment : 5;   // bits of a multiblock block
     uint8_t usagebits : 8; // growth stage ect ?
@@ -20,18 +19,11 @@ struct blockState
 static_assert(alignof(blockState) == 1);
 static_assert(sizeof(blockState) == sizeof(uint16_t));
 
-inline constexpr blockState IntToBlockState(uint16_t i)
-{
-    return std::bit_cast<blockState>(i);
-}
+inline constexpr blockState IntToBlockState(uint16_t i) { return std::bit_cast<blockState>(i); }
 
-inline constexpr uint16_t BlockStateTwoInt(blockState b)
-{
-    return std::bit_cast<uint16_t>(b);
-}
+inline constexpr uint16_t BlockStateTwoInt(blockState b) { return std::bit_cast<uint16_t>(b); }
 
-struct Voxel
-{
+struct Voxel {
     uint16_t blockID;
     blockState state;
 };

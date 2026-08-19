@@ -25,8 +25,10 @@ namespace lve
         void workerLoop();
         MeshResult generateMesh(MeshJob &job, VkCommandPool pool);
         void emitVoxel(MeshJob &job, MeshResult &result, ivec3 pos);
-        void emitBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos);
-        void emitConnectedBlock(MeshJob &job, MeshResult &result, glm::ivec3 pos);
+        void emitBlock(MeshJob &job, MeshResult &result, ivec3 pos);
+        void emitConnectedBlock(MeshJob &job, MeshResult &result, ivec3 pos);
+        void emitStagedBlock(MeshJob &job, MeshResult &result, ivec3 pos);
+        void emitDirectionalBlock(MeshJob &job, MeshResult &result, ivec3 pos);
         int calculateAO(glm::ivec3 pos, int face, int vertexIndex, MeshJob &job);
         static glm::ivec3 getDirection(int i);
         static glm::vec2 getAtlasUV(int face, glm::vec2 uv, int blockType);

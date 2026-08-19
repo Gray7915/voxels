@@ -17,22 +17,20 @@
 namespace lve
 {
 
-    struct ModelSection
-    {
+    struct ModelSection {
         std::string name;
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
         Math::Direction dirction = Math::Direction::CENTER;
+        u8 stage = 0;
     };
 
-    class LveModel
-    {
-    public:
-        struct Builder
-        {
+    class LveModel {
+      public:
+        struct Builder {
             std::vector<Vertex> vertices{};
             std::vector<uint32_t> indices{};
-            std::unordered_map<std::string, ModelSection> sections;
+            std::array<ModelSection, 8> sections;
             void loadModel(const std::string &filepath);
         };
 
@@ -52,9 +50,9 @@ namespace lve
 
         std::vector<Vertex> modelVerticies{};
         std::vector<u32> modelIindices{};
-        std::unordered_map<std::string, ModelSection> modelSections;
+        std::array<ModelSection, 8> modelSections;
 
-    private:
+      private:
         void createVertexBuffers(const std::vector<Vertex> &vertices, VkCommandPool pool);
         void createIndexBuffer(const std::vector<uint32_t> &indices, VkCommandPool pool);
 
@@ -67,4 +65,4 @@ namespace lve
         std::unique_ptr<LveBuffer> indexBuffer;
         uint32_t indexCount;
     };
-}
+} // namespace lve

@@ -34,8 +34,7 @@ namespace lve
             return;
         }
 
-        // CSV header
-        s_velocityLog << "deltaTime, smoothDeltaTime ,frame,vx,vy,vz,speed_xz,speed_3d,any_input,forward,backward,left,right\n";
+        s_velocityLog << "type,deltaTime,frame,vx,vy,vz,speed_xz,speed_3d,mouseDeltaX,mouseDeltaY,any_input,forward,backward,left,right\n";
     }
 
     void MovementSystem::UpdateCamera() {
@@ -43,11 +42,14 @@ namespace lve
             auto &transform = coordinator.GetComponent<Transform>(entity);
             auto &input = coordinator.GetComponent<InputComponent>(entity);
             auto &moveStats = coordinator.GetComponent<MovementStats>(entity);
-
             transform.rotation.y += input.mouseDeltaX * moveStats.mouseSensitivity;
             transform.rotation.x += input.mouseDeltaY * moveStats.mouseSensitivity;
             transform.rotation.x = glm::clamp(transform.rotation.x, -1.5f, 1.5f);
             transform.rotation.y = glm::mod(transform.rotation.y, glm::two_pi<float>());
+
+            if (s_velocityLog.is_open()) {
+                s_velocityLog << "camera,0,0,0,0,0,0,0," << input.mouseDeltaX << ',' << input.mouseDeltaY << ",0,0,0,0,0\n";
+            }
         }
     }
 
@@ -141,8 +143,8 @@ namespace lve
                 // 1 if any directional key is held, 0 if no input
                 int anyInput = (input.moveForward || input.moveBackward || input.moveLeft || input.moveRight) ? 1 : 0;
 
-                s_velocityLog << dt << ',' << smoothDt << ',' << frameIndex << ',' << v.x << ',' << v.y << ',' << v.z << ',' << speedXZ << ',' << speed3D << ',' << anyInput << ',' << input.moveForward
-                              << ',' << input.moveBackward << ',' << input.moveLeft << ',' << input.moveRight << '\n';
+                s_velocityLog << "physics," << dt << ',' << frameIndex << ',' << v.x << ',' << v.y << ',' << v.z << ',' << speedXZ << ',' << speed3D << ',' << "0,0," << anyInput << ','
+                              << input.moveForward << ',' << input.moveBackward << ',' << input.moveLeft << ',' << input.moveRight << '\n';
             }
             // ────────────────────────────────────────────────────────────────
         }

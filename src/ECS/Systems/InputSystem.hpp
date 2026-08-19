@@ -5,11 +5,9 @@
 
 namespace lve
 {
-    class InputSystem : public System
-    {
-    public:
-        struct KeyMappings
-        {
+    class InputSystem : public System {
+      public:
+        struct KeyMappings {
             int moveLeft = GLFW_KEY_A;
             int moveRight = GLFW_KEY_D;
             int moveForward = GLFW_KEY_W;
@@ -26,11 +24,11 @@ namespace lve
 
         static InputSystem *instance;
 
-    private:
+      private:
         bool firstMouse = true;
         double lastX = 0.0;
         double lastY = 0.0;
         float pendingMouseDeltaX = 0.f;
         float pendingMouseDeltaY = 0.f;
     };
-}
+} // namespace lve

@@ -7,18 +7,15 @@
 
 namespace Math
 {
-    enum class Direction : u8
-    {
+    enum class Direction : u8 {
         NORTH,
         SOUTH,
         EAST,
         WEST,
         UP,
         DOWN,
-
+        CENTER,
         COUNT,
-
-        CENTER
     };
 
     constexpr std::array<ivec3, 4> HorizontalCardinal = {{
@@ -55,19 +52,14 @@ namespace Math
         {-1, 0, 1},
     }};
 
-    constexpr ivec3 DirectionByFaceInt(int face)
-    {
+    constexpr ivec3 DirectionByFaceInt(int face) {
         assert(face >= 0 && face < 6);
         return CardinalDirections.at(face);
     }
 
-    constexpr ivec3 DirectionByCardinal(Direction direction)
-    {
-        return CardinalDirections.at(static_cast<int>(direction));
-    }
+    constexpr ivec3 DirectionByCardinal(Direction direction) { return CardinalDirections.at(static_cast<int>(direction)); }
 
-    constexpr Direction VectorToCardinal(ivec3 direction)
-    {
+    constexpr Direction VectorToCardinal(ivec3 direction) {
         if (direction == ivec3{1, 0, 0})
             return Direction::NORTH;
         if (direction == ivec3{-1, 0, 0})
@@ -85,4 +77,4 @@ namespace Math
         assert(false && "Invalid direction vector");
         return Direction::NORTH;
     }
-}
+} // namespace Math

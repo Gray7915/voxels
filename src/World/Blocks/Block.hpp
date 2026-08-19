@@ -13,7 +13,14 @@ namespace lve
         Mesh,
     };
 
-    enum class BlockBehaviourType : u8 { NONE = 0, CONNECTED = 1, STAGED = 2, RANDOM_OFFSET = 3, CUSTOM = 4 };
+    enum class BlockBehaviourType : u8 {
+        NONE = 0,
+        CONNECTED = 1,
+        STAGED = 2,
+        RANDOM_OFFSET = 3,
+        CUSTOM = 4,
+        DIRECTIONAL = 5,
+    };
 
     struct BitField {
         std::string name;

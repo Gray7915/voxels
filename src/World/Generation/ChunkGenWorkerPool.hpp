@@ -10,8 +10,6 @@
 
 namespace lve
 {
-    extern Octave noise;
-
     class ChunkGenWorkerPool {
       public:
         explicit ChunkGenWorkerPool(size_t threadCount = std::thread::hardware_concurrency());
@@ -28,5 +26,14 @@ namespace lve
         ThreadSafeQueue<GenJob> jobQueue;
         ThreadSafeQueue<GenResult> resultQueue;
         std::atomic<bool> running{true};
+
+        static int hashSeed(uint64_t seed) {
+            seed ^= seed >> 33;
+            seed *= 0xff51afd7ed558ccdULL;
+            seed ^= seed >> 33;
+            seed *= 0xc4ceb9fe1a85ec53ULL;
+            seed ^= seed >> 33;
+            return (int)(seed & 0x7fffffff);
+        }
     };
 } // namespace lve

@@ -50,9 +50,6 @@ namespace lve
             }
             chunkModel = std::move(model);
             chunkState = ChunkState::Uploaded;
-            // std::cout << "chunk vert count " << this->chunkModel->modelVerticies.size() << " chunk indicie count  " << this->chunkModel->modelIindices.size() << '\n';
-            // std::cout << "chunk model applied " << '\n';
-            // std::cout << "chunk voxel data generated " << this->voxelData.isGenerated() << '\n';
         }
         std::shared_ptr<LveModel> chunkModel{};
     };

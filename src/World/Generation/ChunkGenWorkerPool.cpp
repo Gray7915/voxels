@@ -2,8 +2,6 @@
 #include "Util/Types.hpp"
 namespace lve
 {
-    Octave noise;
-
     ChunkGenWorkerPool::ChunkGenWorkerPool(size_t threadCount) {
         for (size_t i = 0; i < threadCount; i++)
             workers.emplace_back([this] {
@@ -30,6 +28,7 @@ namespace lve
     }
 
     VoxelData ChunkGenWorkerPool::generateTerrain(GenJob job) {
+        Octave noise(hashSeed(job.worldSeed), 6, 0.5f);
         VoxelData data{};
         data.allocate();
         ivec3 chunkCoord = job.chunkCoord;
@@ -39,7 +38,7 @@ namespace lve
             for (int z = 0; z < VoxelData::DEPTH; z++) {
                 vec2 worldPos = vec2(x + worldOrigin.x, z + worldOrigin.y);
                 // std::cout << "seed before call to sample " << job.worldSeed << '\n';
-                float heightValue = noise.sample(worldPos * 0.009f, job.worldSeed);
+                float heightValue = noise.sample(worldPos * 0.003f, job.worldSeed);
                 heightValue = (heightValue + 1.0f) * 0.5f;
 
                 int surfaceHeight = (int)(heightValue * (VoxelData::HEIGHT - 1));

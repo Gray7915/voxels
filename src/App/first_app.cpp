@@ -88,7 +88,7 @@ namespace lve
         float aspect = lveRenderer.getAspectRatio();
         systems.cameraSystem->Update(aspect);
 
-        auto currentTime = std::chrono::high_resolution_clock::now();
+        auto currentTime = std::chrono::steady_clock::now();
         assert(lveWindow.getGLFWwindow() != nullptr && "window null)");
         AppContext context{.device = lveDevice,
                            .window = lveWindow,
@@ -105,7 +105,7 @@ namespace lve
         while (!lveWindow.shouldClose()) {
             glfwPollEvents();
 
-            auto newTime = std::chrono::high_resolution_clock::now();
+            auto newTime = std::chrono::steady_clock::now();
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
             frameTime = std::min(frameTime, 0.25f);
@@ -122,8 +122,8 @@ namespace lve
             if (auto commandBuffer = lveRenderer.beginFrame()) {
                 int frameIndex = lveRenderer.getFrameIndex();
 
-                auto start = std::chrono::high_resolution_clock::now();
-                auto end = std::chrono::high_resolution_clock::now();
+                auto start = std::chrono::steady_clock::now();
+                auto end = std::chrono::steady_clock::now();
 
                 // std::cout<< "Chunk mesh update: "<< std::chrono::duration<double, std::milli>(end - start).count()<<
                 // "ms\n";

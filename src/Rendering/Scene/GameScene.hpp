@@ -77,8 +77,13 @@ namespace Rendering
         }
 
         void update(float deltaTime) override {
+
+            /*
+            Need to add some list of things like saplings, crops, ect, that have a timer who decreases by delta time giving the same grown time right?
+            Each chunk has its own list so if unloaded when chunk saving added the list should be saved with the chunk. or they could be used to keep chunks loaded? im not sure.
+            */
             lastFrameTime = deltaTime;
-            deltaTime = std::min(deltaTime, 0.25f);
+            // deltaTime = std::min(deltaTime, 0.25f);
             accumulator += deltaTime; // ← only once
 
             if (rmlContext)
@@ -96,7 +101,7 @@ namespace Rendering
                 context.systems.collisionSystem->Update(FIXED_DT, *area);
                 accumulator -= FIXED_DT;
             }
-            context.systems.interactionSystem->Update(FIXED_DT, context.window, context.device, *area, context.coordinator);
+            context.systems.interactionSystem->Update(deltaTime, context.window, context.device, *area, context.coordinator);
             context.systems.inventorySystem->Update(*area);
             area->updateArea();
             if (state == GameSceneState::Loading) {

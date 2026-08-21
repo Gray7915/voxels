@@ -223,6 +223,6 @@
             "all": "oakLeaves"
         },
         "hardness": 2,
-        "renderType": "block"
+        "renderType": "transparent"
     }
 ]

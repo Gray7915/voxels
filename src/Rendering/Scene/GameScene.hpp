@@ -155,11 +155,15 @@ namespace Rendering
                             continue;
                         auto model = std::make_unique<lve::LveModel>(context.device, std::move(slot.vertexDst), std::move(slot.indexDst));
                         chunk->applyMesh(std::move(model), frameInfo.frameIndex, context.device);
+                        if (chunk->chunkState == ChunkState::PendingUpload)
+                            chunk->chunkState = ChunkState::Uploaded;
                     }
                     vkFreeCommandBuffers(context.device.device(), context.device.getCommandPool(), 1, &pendingUpload->cmd);
                     vkDestroyFence(context.device.device(), pendingUpload->fence, nullptr);
                     context.stagingPool.reset();
-                    pendingUpload.reset();
+                    if (context.stagingPool.isTransferInFlight() && context.stagingPool.isTransferInFlight()) {
+                        context.stagingPool.reset();
+                    }
                 }
                 // not ready — skip uploading this frame, GPU still working
             }

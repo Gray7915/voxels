@@ -36,16 +36,19 @@ class ChunkStagingPool {
     // Called from worker thread — claims a region and memcpys into it
     // Returns false if pool is full
     bool writeChunk(ivec3 coord, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices, LveDevice &device) {
-        if (vertices.empty() || indices.empty())
-            return true;
+        if (vertices.empty() || indices.empty()) {
+            assert(false && "unexpected empty mesh — all air chunk?");
+            return false;
+        }
         VkDeviceSize vSize = sizeof(Vertex) * vertices.size();
         VkDeviceSize iSize = sizeof(uint32_t) * indices.size();
 
         std::lock_guard<std::mutex> lock(mutex);
 
-        if (writeHead + vSize + iSize > POOL_SIZE)
+        if (writeHead + vSize + iSize > POOL_SIZE) {
+            std::cout << "pool full, writeHead: " << writeHead << " needed: " << vSize + iSize << '\n';
             return false; // full this frame, retry next frame
-
+        }
         Slot slot{};
         slot.chunkCoord = coord;
         slot.vertexOffset = writeHead;
@@ -80,12 +83,14 @@ class ChunkStagingPool {
             VkBufferCopy ic{slot.indexOffset, 0, slot.indexSize};
             vkCmdCopyBuffer(cmd, stagingBuffer->getBuffer(), slot.indexDst->getBuffer(), 1, &ic);
         }
+        transferInFlight = true;
         return std::move(pendingSlots);
     }
 
     // Called from main thread after fence signals — reset for next frame
     void reset() {
         std::lock_guard<std::mutex> lock(mutex);
+        std::cout << "pool reset, was at: " << writeHead << '\n';
         transferInFlight = false;
         writeHead = 0;
     }

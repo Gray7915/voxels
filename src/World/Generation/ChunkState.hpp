@@ -2,16 +2,5 @@
 
 namespace lve
 {
-    enum class ChunkState
-    {
-        Unloaded,
-        QueuedForGeneration,
-        Generating,
-        Generated,
-        QueuedForMeshing,
-        Meshing,
-        Ready,
-        Uploaded,
-        Dirty
-    };
+    enum class ChunkState { Unloaded, QueuedForGeneration, Generating, Generated, QueuedForMeshing, Meshing, Ready, PendingUpload, Uploaded, Dirty };
 }

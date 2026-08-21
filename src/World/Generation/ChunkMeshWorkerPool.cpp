@@ -77,7 +77,7 @@ namespace lve
             return result;
         }
 
-        //        result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, pool);
+        // result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, pool);
         return result;
     }
 

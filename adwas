@@ -1,0 +1,100 @@
+[33m08a3531[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to origin/master
+[33m08a3531[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: reset: moving to origin/master
+[33m08a3531[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{2}: commit: have some proper terrain gen, trees and stuff now spawn and all, but there are many many threading errors for the chunks
+[33m7ecef83[m HEAD@{3}: commit: some noise stuff and inventory stuff
+[33m7061ed6[m HEAD@{4}: commit: working on generalizing the model storage and usage in meshing
+[33m6654c89[m HEAD@{5}: reset: moving to origin/master
+[33m6654c89[m HEAD@{6}: commit: some movement updates, added delta time smoothing
+[33m5375fe4[m HEAD@{7}: commit: fixed some stuff, now places proper block id, not just fences. Though fences are still called vases
+[33m8777175[m HEAD@{8}: commit: i think finally fixed the bloody hitching, caused by movement
+[33m99a2d47[m HEAD@{9}: reset: moving to origin/master
+[33m99a2d47[m HEAD@{10}: pull --tags origin master: Fast-forward
+[33m7972302[m HEAD@{11}: commit: loads of changes, i need to commit more often
+[33m2c48104[m HEAD@{12}: reset: moving to origin/master
+[33m34f8894[m HEAD@{13}: checkout: moving from master to master
+[33m34f8894[m HEAD@{14}: commit (merge): Merge branch 'master' of https://github.com/Gray7915/voxels
+[33m32fc746[m HEAD@{15}: checkout: moving from Working to master
+[33m9a4e7c6[m[33m ([m[1;31morigin/Working[m[33m, [m[1;32mWorking[m[33m)[m HEAD@{16}: commit: other stuff
+[33mde90e79[m HEAD@{17}: commit: started implementation RmlUi. Mightn't work on linux
+[33m9bd0f10[m HEAD@{18}: commit: seeds now work, also spawns at an appropriate location
+[33md89ae6e[m HEAD@{19}: commit: seed thingie doesn't quite work but have loading screen and consitent world gen hooray
+[33m262a945[m HEAD@{20}: commit: other stuff
+[33m0c708b0[m HEAD@{21}: pull --tags origin Working: Fast-forward
+[33m5313e5f[m HEAD@{22}: commit: much refactoring, so so much
+[33m01b4d79[m HEAD@{23}: commit: block stuff
+[33m1c42ad8[m HEAD@{24}: commit: scene stuff (very cool)
+[33mec4422e[m HEAD@{25}: commit: Added entity factory thingie
+[33ma9fc7d0[m HEAD@{26}: commit: redid dirt nicely
+[33mf655992[m HEAD@{27}: commit: added renderType variable
+[33m1b31197[m HEAD@{28}: commit: python for making models fit in world
+[33ma74bab9[m HEAD@{29}: commit: cool texture changes
+[33m71d20ca[m HEAD@{30}: pull --tags origin Working: Fast-forward
+[33m3c63a97[m HEAD@{31}: pull --tags origin Working: Fast-forward
+[33m2c1a1d3[m HEAD@{32}: commit: more editing and cleanup plus some threading stuff, stuttering is done now i think?
+[33m9c17eac[m HEAD@{33}: commit: added json parsing, hooray
+[33m6fc56fa[m HEAD@{34}: pull --tags origin Working: Fast-forward
+[33mbec3da6[m HEAD@{35}: commit: inventory modeifications, model stuff, some interaction refinement aswell
+[33m19e61c6[m HEAD@{36}: pull --tags origin Working: Merge made by the 'ort' strategy.
+[33m4e600c5[m HEAD@{37}: commit: more refactoring, adding helper methods, ect
+[33m370ad68[m HEAD@{38}: commit: clean up and other changes
+[33m0d31889[m HEAD@{39}: checkout: moving from 0d318897548bf499fe4f470576f1b21de7ba15ca to Working
+[33m0d31889[m HEAD@{40}: commit: added some type stuff, direction stuff, and constants stuff plus removing dead code.
+[33mc6577f1[m HEAD@{41}: checkout: moving from master to c6577f11cb8b2cd03b599a50ff7fe3a5d0aaa208
+[33m32fc746[m HEAD@{42}: commit: attempting raytracing
+[33mc6577f1[m HEAD@{43}: pull --tags origin master: Fast-forward
+[33mac444ba[m HEAD@{44}: pull --tags origin master: Fast-forward
+[33me2bdd89[m HEAD@{45}: commit: Texture atlas changes
+[33m13c6e12[m HEAD@{46}: commit: general clean up
+[33ma434ec2[m HEAD@{47}: commit: TestFence model
+[33mbaab2f9[m HEAD@{48}: commit: did aabb testing for blocks that aren't full blocks, needs cleaning up though
+[33m14c26a8[m HEAD@{49}: commit: tasks
+[33m8d04e60[m HEAD@{50}: commit: added get block id for area
+[33m9de58db[m HEAD@{51}: commit: now have different highlights for differnet blocks or non blocks
+[33m03f0c31[m HEAD@{52}: commit: changed block registry to use otpional
+[33mb729b86[m HEAD@{53}: commit: added some stuff to ray that it returns
+[33me345b27[m HEAD@{54}: commit: started the process of adding different highlight boxes for non cubes
+[33m4edadd0[m HEAD@{55}: commit: added block registry and changed the block class a bit
+[33m98bb23b[m HEAD@{56}: commit: fixed the escape button thingie
+[33m517a825[m HEAD@{57}: commit: more block stuff
+[33mefc51bd[m HEAD@{58}: commit: Box volume aabb
+[33m667c717[m HEAD@{59}: commit: small changes
+[33mfd7086e[m HEAD@{60}: commit: new block class to be workede on
+[33m5698bf1[m HEAD@{61}: commit: Changed some of meshing code to make it more readable. You can now get items by string name and id hooray
+[33ma6d05ac[m HEAD@{62}: commit: made some changes, started implementing a proper voxel thingie
+[33m94c7e00[m HEAD@{63}: pull --tags origin master: Fast-forward
+[33mdd9c697[m HEAD@{64}: commit: started adding a proper voxel thingie, also changes to cpp20
+[33m907eb70[m HEAD@{65}: commit (merge): Merge branch 'master' of https://github.com/Gray7915/voxels
+[33mc4a55b6[m HEAD@{66}: commit: maybe finally fixed AO?
+[33m4cd0dae[m HEAD@{67}: commit: More AO stuff
+[33mca8b844[m HEAD@{68}: commit: test
+[33m15145aa[m HEAD@{69}: commit: Fixed AO hooray
+[33mbaa66fa[m HEAD@{70}: pull --tags origin master: Fast-forward
+[33m1d1f56a[m HEAD@{71}: pull --tags origin master: Fast-forward
+[33m7ebfc2b[m HEAD@{72}: commit: pbr lighting test
+[33m24205c1[m HEAD@{73}: commit: more chunk neightbor stuff, still ain't done at all
+[33m6356f49[m HEAD@{74}: commit: continued work on getting neight chunk data, i think meshsystem bit is done
+[33m437df51[m HEAD@{75}: commit: started adding some chunk neighbor info stuff
+[33m1370189[m HEAD@{76}: pull --tags origin master: Fast-forward
+[33m131253f[m HEAD@{77}: commit: proof of concept inventory thingie
+[33m477b756[m HEAD@{78}: pull --tags origin master: Merge made by the 'ort' strategy.
+[33m7024295[m HEAD@{79}: commit: taks stuff
+[33m2bed1a6[m HEAD@{80}: commit: more refactoring, won't run still but she'll be right
+[33m0c3a211[m HEAD@{81}: commit: fixed a few things, lots more work to do
+[33m9231b55[m HEAD@{82}: commit: started doing multithreading for chunk gen and meshing. long way to go yet but its a good start (doesn't compile rn)
+[33md444fc3[m HEAD@{83}: pull --tags origin master: Fast-forward
+[33m2302903[m HEAD@{84}: commit: started the slow processes of removing the lve game object fully and other cleanup. Boy this is gonna take a while...
+[33m85e62fc[m HEAD@{85}: commit: added pos to debug window, also added bools for number row key press detection.
+[33m15f3dce[m HEAD@{86}: commit: it renders now hooray (i may have been blinde)
+[33m09900b1[m HEAD@{87}: pull --tags origin master: Fast-forward
+[33mab0fca7[m HEAD@{88}: commit: new rayhit struct
+[33mf35009b[m HEAD@{89}: commit: some small changes
+[33m7f82123[m HEAD@{90}: pull --tags origin master: Fast-forward
+[33md69141b[m HEAD@{91}: commit: if cursor isn't disabled doesn't affect cam movement
+[33mb52cfb3[m HEAD@{92}: commit: i can not enter and exit the cursor being disabled in the window. Need to do more work to stop it affecting the cam pos when not disabled.
+[33m6ca7ee5[m HEAD@{93}: pull --tags origin master: Fast-forward
+[33m2f92e77[m HEAD@{94}: pull --tags origin master: Fast-forward
+[33mdeeac7c[m HEAD@{95}: commit: changed value dec to stop compiler complaining and lowered spawn height
+[33m99e3996[m HEAD@{96}: pull --tags origin master: Fast-forward
+[33m1b7691a[m HEAD@{97}: pull --tags origin master: Fast-forward
+[33md8e7726[m HEAD@{98}: commit: removed old highlight system. Changed the swapchain a bit
+[33md3fd9

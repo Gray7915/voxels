@@ -9,6 +9,7 @@ namespace lve
 {
     struct Noise {
         virtual float sample(vec2 i, s64 seed) const = 0;
+        virtual float sample3d(vec3 i, s64 seed) const = 0;
         virtual ~Noise() = default;
     };
 
@@ -18,17 +19,18 @@ namespace lve
         FastNoiseLite fnl;
 
         Octave() : Octave(0, 4, 0.5f) {}
-        Octave(uint64_t worldSeed, size_t n, float o) : n(n), o(o) {
+        Octave(u64 worldSeed, size_t n, float o) : n(n), o(o) {
             fnl.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
             fnl.SetSeed((int)worldSeed);
-            fnl.SetFractalType(FastNoiseLite::FractalType_Ridged);
+            fnl.SetFractalType(FastNoiseLite::FractalType_FBm);
             fnl.SetFractalOctaves((int)n);
-            fnl.SetFractalLacunarity(2.1);
-            fnl.SetFractalGain(0.5f);
-            fnl.SetFrequency(0.6f);
+            fnl.SetFractalLacunarity(2.0f);
+            fnl.SetFractalGain(o);
+            fnl.SetFrequency(0.5f);
         }
 
         float sample(vec2 i, s64 worldSeed) const override;
+        float sample3d(vec3 i, s64 worldSeed) const override;
     };
 
     struct Combined : Noise {

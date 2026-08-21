@@ -152,6 +152,9 @@ namespace lve
         configInfo.multisampleInfo.alphaToOneEnable = VK_FALSE;      // Optional
 
         configInfo.colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        /*
+            alpha disabled rn, gotta probably do some more stuff to fix it i reckon (for leaves and stuff)
+        */
         configInfo.colorBlendAttachment.blendEnable = VK_FALSE;
         configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;  // Optional
         configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional

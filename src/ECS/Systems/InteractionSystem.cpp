@@ -48,7 +48,7 @@ namespace lve
             if (pWasPressed && !pIsPressed)
                 pWasPressed = false;
 
-            if (pIsPressed && !pWasPressed && rayHit.hitPosition != ivec3(-1.0f) && lveWindow.getMenuActive()) {
+            if (pIsPressed && rayHit.hitPosition != ivec3(-1.0f) && lveWindow.getMenuActive()) {
                 pWasPressed = true;
                 ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
                 ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);

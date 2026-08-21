@@ -192,5 +192,37 @@
         "behaviour": {
             "type": "connected"
         }
+    },
+    {
+        "name": "oak_logs",
+        "id": 5,
+        "model": "cube",
+        "isSolid": true,
+        "boundingBoxes": [],
+        "highlightBoxSize": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+        },
+        "textures": { "all": "oaklog_side"},
+        "hardness": 0,
+        "renderType": "block"
+    },
+    {
+        "name": "oak_leaves",
+        "id": 6,
+        "model": "cube",
+        "isSolid": true,
+        "boundingBoxes": [],
+        "highlightBoxSize": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+        },
+        "textures": {
+            "all": "oakLeaves"
+        },
+        "hardness": 2,
+        "renderType": "block"
     }
 ]

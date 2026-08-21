@@ -11,6 +11,7 @@
 #include "World/Chunk.hpp"
 #include "World/NeighborVoxelInfo.hpp"
 #include "World/VoxelData.hpp"
+#include "World/Generation/noise.hpp"
 
 #include "Util/Types.hpp"
 #include "Util/lve_util.hpp"
@@ -19,6 +20,14 @@ namespace lve
     struct GenJob {
         ivec3 chunkCoord;
         s64 worldSeed;
+        Octave *groundNoise;
+        Octave *groundNoise2;
+        Octave *groundNoise3;
+        Octave *largeGroundNoise;
+        Octave *modifierNoise;
+        Octave *treeNoise;
+        Octave *caveNoise;
+        Octave *caveNoise2;
     };
 
     struct GenResult {

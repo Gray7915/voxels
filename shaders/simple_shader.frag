@@ -39,4 +39,7 @@ void main()
     texColor.rgb *= fragAO;
     
     outColor = texColor * vec4(fragColor, 1.0);
+
+    if (texColor.a < 0.5)
+        discard;
 }

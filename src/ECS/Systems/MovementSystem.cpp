@@ -90,10 +90,14 @@ namespace lve
                 moveDir = glm::normalize(moveDir);
 
             float friction = rigidBody.isGrounded ? moveStats.groundFriction : moveStats.airFriction;
-            if (moveStats.flying)
-                rigidBody.velocity.y *= pow(friction, smoothDt * 60.0f);
-
             float accel = rigidBody.isGrounded ? moveStats.groundAcceleration : moveStats.airAcceleration;
+
+            if (moveStats.flying) {
+                rigidBody.velocity.y *= pow(friction, smoothDt * 60.0f);
+                if (input.sprint) {
+                    accel = accel *= 4;
+                }
+            }
 
             float frictionFactor = pow(friction, smoothDt * 60.0f);
             rigidBody.velocity.x *= frictionFactor;
@@ -101,13 +105,6 @@ namespace lve
 
             rigidBody.velocity.x += moveDir.x * accel * smoothDt;
             rigidBody.velocity.z += moveDir.z * accel * smoothDt;
-
-            glm::vec2 velXZ(rigidBody.velocity.x, rigidBody.velocity.z);
-            if (glm::length(velXZ) > moveStats.moveSpeed) {
-                velXZ = glm::normalize(velXZ) * moveStats.moveSpeed;
-                rigidBody.velocity.x = velXZ.x;
-                rigidBody.velocity.z = velXZ.y;
-            }
 
             if (moveStats.flying) {
                 if (input.moveUp)

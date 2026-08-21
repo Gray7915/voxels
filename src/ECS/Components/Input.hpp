@@ -10,6 +10,7 @@ struct InputComponent {
     bool jump = false;
     bool moveUp = false;
     bool moveDown = false;
+    bool sprint = false;
 
     bool releaseSpace = false;
 

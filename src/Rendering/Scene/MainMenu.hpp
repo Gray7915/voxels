@@ -56,8 +56,6 @@ namespace Rendering
                 document->Show();
                 auto button = document->GetElementById("generate_button");
                 buttonListener = std::make_unique<ButtonListener>([this]() {
-                    std::cout << "seedText = " << seedText << "\n";
-                    std::cout << "seed as int = " << std::stoi(seedText) << '\n';
                     sceneManager.switchTo(std::make_unique<GameScene>(context, sceneManager, std::stoi(seedText)));
                 });
 
@@ -79,8 +77,6 @@ namespace Rendering
         void update(float deltaTime) override {
             if (rmlContext) {
                 if (menuModel.IsVariableDirty("seed")) {
-                    // seedText has already been updated by RmlUi, nothing extra needed
-                    // but you must call this to clear the dirty flag
                     menuModel.DirtyVariable("seed");
                 }
                 rmlContext->Update();

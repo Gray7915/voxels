@@ -2,6 +2,7 @@
 
 #include "Rendering/Passes/GeometryPass.hpp"
 #include "Rendering/Passes/UIRenderPass.hpp"
+#include "Rendering/Passes/OffScreenPass.hpp"
 #include "SwapChain.hpp"
 #include "lve_device.hpp"
 #include "lve_model.hpp"
@@ -50,6 +51,7 @@ namespace lve
         void createGeometryPass();
         void creatUIPass();
         void createStandaloneUIPass();
+        void createOffScreenUIPass();
 
         VkCommandBuffer beginFrame();
         void endFrame();
@@ -60,6 +62,7 @@ namespace lve
         std::unique_ptr<GeometryPass> geometryPass;
         std::unique_ptr<UIRenderPass> UiRenderPass;
         std::unique_ptr<UIRenderPass> StandaloneUIRenderPass;
+        std::unique_ptr<OffScreenPass> OffScreenUIPass;
 
       private:
         void createCommandBuffers();

@@ -7,6 +7,7 @@
 #include "Rendering/Core/lve_renderer.hpp"
 #include "Rendering/Core/lve_window.hpp"
 #include "Rendering/Passes/GeometryPass.hpp"
+#include "Rendering/Passes/OffScreenPass.hpp"
 #include "Rendering/Core/ChunkStagingPool.hpp"
 #include <unordered_map>
 

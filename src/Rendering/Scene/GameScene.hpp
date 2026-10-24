@@ -9,6 +9,8 @@
 #include "Rendering/Systems/highlight_render_system.hpp"
 #include "Rendering/Systems/simple_render_system.hpp"
 #include "Rendering/Systems/ui_render_system.hpp"
+#include "Rendering/Systems/OffScreenRenderSystem.hpp"
+
 #include "Rendering/Systems/RmlRenderSystem.hpp"
 #include "Rendering/Core/ChunkStagingPool.hpp"
 #include "Ui/ImguiManager.hpp"
@@ -42,6 +44,8 @@ namespace Rendering
             chunkRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             highlightRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             simpleRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
+            offScreenRenderSystem.emplace(context.device, context.renderer.OffScreenUIPass->getRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
+
             area = std::make_unique<lve::Area>(context.device, seed, context.coordinator, context.stagingPool);
             systemInterface = std::make_unique<RmlSystemInterface>();
             renderInterface = std::make_unique<lve::RmlRenderInterface>(context.device);
@@ -56,7 +60,40 @@ namespace Rendering
             rmlRenderSystem = std::make_unique<lve::RmlRenderSystem>(context.device, context.renderer.StandaloneUIRenderPass->getRenderPass(), *renderInterface);
             renderInterface->setViewportSize(context.window.getExtent().width, context.window.getExtent().height);
             inventoryUI = std::make_unique<UI::InventoryUI>("Inventory 1", Rml::Vector2f(50, 200), rmlContext);
-            inventoryUI->AddItem("Mk III L.A.S.E.R.");
+            std::cout << "make invent thingie" << '\n';
+            // inventoryUI->AddItem("Mk III L.A.S.E.R.");
+            std::cout << "added big lazer" << '\n';
+            /*
+                        // Pre-build all block models — safe here, no frame in flight
+                        // Pre-create targets
+                        for (auto &item : inventoryUI->getItems()) {
+                            BlockId id = std::stoi(item.id);
+                            context.renderer.OffScreenUIPass->createPreviewForBlock(id);
+                        }
+
+                        // Record and submit all preview renders in one shot before the game loop
+                        VkCommandBuffer cmd = context.device.beginSingleTimeCommands(context.device.getCommandPool());
+
+                        FrameInfo previewFrame{};
+                        previewFrame.commandBuffer = cmd;
+                        previewFrame.globalDescriptorSet = context.renderSetup.globalDescriptorSets[0];
+
+                        for (auto &item : inventoryUI->getItems()) {
+                            BlockId id = std::stoi(item.id);
+                            context.renderer.OffScreenUIPass->begin(cmd, id);
+                            offScreenRenderSystem->renderInvItems(previewFrame, id);
+                            context.renderer.OffScreenUIPass->end(cmd);
+                        }
+
+                        context.device.endSingleTimeCommands(cmd, context.device.getCommandPool());
+
+                        for (auto &item : inventoryUI->getItems()) {
+                            BlockId id = std::stoi(item.id);
+                            VkDescriptorSet ds = context.renderer.OffScreenUIPass->getDescriptorSet(id);
+                            if (ds != VK_NULL_HANDLE)
+                                inventoryUI->AddItemWithImage("slot_" + item.id, ds);
+                        }
+                                */
         }
 
         void onExit() override {
@@ -133,6 +170,10 @@ namespace Rendering
         }
 
         void render(lve::FrameInfo &frameInfo) override {
+            for (auto &[slotIndex, ds] : pendingHotbarUpdates) {
+                inventoryUI->AddItemWithImage("slot_" + std::to_string(slotIndex), ds);
+            }
+            pendingHotbarUpdates.clear();
 
             VkExtent2D extent = context.window.getExtent();
             if (extent.width != lastWidth || extent.height != lastHeight) {
@@ -145,56 +186,7 @@ namespace Rendering
             }
 
             area->tick(context.device, camPosition, frameInfo.frameIndex);
-            // Check if previous upload is done
-            if (pendingUpload.has_value()) {
-                VkResult status = vkGetFenceStatus(context.device.device(), pendingUpload->fence);
-                if (status == VK_SUCCESS) {
-                    for (auto &slot : pendingUpload->slots) {
-                        lve::Chunk *chunk = area->getChunk(slot.chunkCoord);
-                        if (!chunk)
-                            continue;
-                        auto model = std::make_unique<lve::LveModel>(context.device, std::move(slot.vertexDst), std::move(slot.indexDst));
-                        chunk->applyMesh(std::move(model), frameInfo.frameIndex, context.device);
-                        if (chunk->chunkState == ChunkState::PendingUpload)
-                            chunk->chunkState = ChunkState::Uploaded;
-                    }
-                    vkFreeCommandBuffers(context.device.device(), context.device.getCommandPool(), 1, &pendingUpload->cmd);
-                    vkDestroyFence(context.device.device(), pendingUpload->fence, nullptr);
-                    context.stagingPool.reset();
-                    if (context.stagingPool.isTransferInFlight() && context.stagingPool.isTransferInFlight()) {
-                        context.stagingPool.reset();
-                    }
-                }
-                // not ready — skip uploading this frame, GPU still working
-            }
-
-            // Submit new upload batch if nothing in flight
-            if (!pendingUpload.has_value()) {
-                VkCommandBuffer transferCmd = context.device.beginSingleTimeCommands(context.device.getCommandPool());
-                auto slots = context.stagingPool.recordCopies(transferCmd);
-                vkEndCommandBuffer(transferCmd);
-
-                if (!slots.empty()) {
-                    VkFenceCreateInfo fenceInfo{};
-                    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-                    VkFence fence;
-                    vkCreateFence(context.device.device(), &fenceInfo, nullptr, &fence);
-
-                    VkSubmitInfo submitInfo{};
-                    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-                    submitInfo.commandBufferCount = 1;
-                    submitInfo.pCommandBuffers = &transferCmd;
-
-                    {
-                        std::lock_guard<std::mutex> lock(context.device.getQueueMutex());
-                        vkQueueSubmit(context.device.graphicsQueue(), 1, &submitInfo, fence);
-                    }
-
-                    pendingUpload = PendingUpload{fence, transferCmd, std::move(slots)};
-                } else {
-                    vkFreeCommandBuffers(context.device.device(), context.device.getCommandPool(), 1, &transferCmd);
-                }
-            }
+            uploadPendingChunks(frameInfo, 4);
 
             if (state == GameSceneState::Loading) {
                 if (chunksReady() >= minimumChunksToLoad) {
@@ -205,17 +197,12 @@ namespace Rendering
                     mainCamera = ECS::EntityFactory::Get().Create("MainCamera", ECS::SpawnInfo{.position = spawnPos, .scale{1, 1, 1}});
                     inventoryUI->onItemClicked = [this](const Rml::String &itemId) {
                         auto &inv = context.coordinator.GetComponent<InventoryComponent>(mainCamera);
-                        std::cout << "itemId = '" << itemId << "'\n";
-                        // for()
-                        /*
-                        Need to think about how inventory really works.the current system doesn't really function so probably good to have a think about that.
-*/
-                        // std::cout << "itemId = '" << itemId << "'\n";
                         bool added = false;
                         for (auto &stack : inv.inventoryStacks) {
                             if (!stack.has_value()) {
                                 stack = ItemStack(ItemRegistry::Get().GetItemByID(std::stoi(itemId)), ItemRegistry::Get().GetItemByID(std::stoi(itemId))->maxStackSize);
                                 added = true;
+                                pendingHotbarUpdates.push_back({std::stoi(itemId), context.renderer.OffScreenUIPass->getDescriptorSet(std::stoi(itemId))});
                                 break;
                             }
                         }
@@ -232,6 +219,13 @@ namespace Rendering
             auto &camTransform = context.coordinator.GetComponent<Transform>(mainCamera);
             auto &camera = context.coordinator.GetComponent<CameraComponent>(mainCamera);
 
+            lve::GlobalUbo ubo{};
+            ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
+            ubo.cameraPosition = ivec4(camTransform.position, 1.f);
+            ubo.fogColor = glm::vec4(0.4f, 0.7f, 1.0f, 1.0f);
+            ubo.fogStart = 200.0f;
+            ubo.fogEnd = 228.0f;
+
             // Rendering — completely unaffected by upload state
             context.renderer.geometryPass->begin(frameInfo.commandBuffer, context.renderer.getImageIndex());
             chunkRenderSystem->renderChunks(frameInfo, area->chunks, context.coordinator, mainCamera);
@@ -246,11 +240,29 @@ namespace Rendering
             }
             context.renderer.geometryPass->end(frameInfo.commandBuffer);
 
+            for (auto &item : inventoryUI->getItems()) {
+                BlockId id = std::stoi(item.id);
+                // std::cout << "into for loop" << '\n';
+                if (!context.renderer.OffScreenUIPass->hasPreview(id)) {
+                    std::cout << "Rendering preview for block " << id << '\n';
+                    context.renderer.OffScreenUIPass->createPreviewForBlock(id);
+
+                    std::cout << "Has preview after create: " << context.renderer.OffScreenUIPass->hasPreview(id) << '\n';
+
+                    context.renderer.OffScreenUIPass->begin(frameInfo.commandBuffer, id);
+                    offScreenRenderSystem->renderInvItems(frameInfo, id);
+                    context.renderer.OffScreenUIPass->end(frameInfo.commandBuffer);
+
+                    VkDescriptorSet ds = context.renderer.OffScreenUIPass->getDescriptorSet((int)id);
+                    std::cout << "Descriptor set after render: " << ds << '\n';
+
+                    // Register with RmlUi immediately after rendering
+                    inventoryUI->AddItemWithImage("slot_" + std::to_string((int)id), ds);
+                }
+            }
+
             renderUI(frameInfo, camTransform, camera);
 
-            lve::GlobalUbo ubo{};
-            ubo.projectionView = camera.projectionMatrix * camera.viewMatrix;
-            ubo.cameraPosition = ivec4(camTransform.position, 1);
             context.renderSetup.uboBuffers[frameInfo.frameIndex]->writeToBuffer(&ubo);
             context.renderSetup.uboBuffers[frameInfo.frameIndex]->flush();
             RenderStats::Get().reset();
@@ -258,6 +270,63 @@ namespace Rendering
 
       private:
         static constexpr int minimumChunksToLoad = 9;
+
+        void uploadPendingChunks(lve::FrameInfo &frameInfo, int budget) {
+            VkCommandBuffer cmd = frameInfo.commandBuffer;
+            auto &device = context.device;
+            int frame = (int)device.getFrameCount();
+            bool recorded = false;
+
+            for (auto &[coord, chunkPtr] : area->chunks) {
+                if (budget <= 0)
+                    break;
+                lve::Chunk *chunk = chunkPtr.get();
+                if (!chunk || !chunk->pendingMesh)
+                    continue;
+
+                lve::ChunkMeshData mesh = std::move(*chunk->pendingMesh);
+                chunk->pendingMesh.reset();
+
+                if (mesh.indices.empty()) { // all-air chunk
+                    if (chunk->chunkState == ChunkState::PendingUpload)
+                        chunk->chunkState = ChunkState::Uploaded;
+                    continue;
+                }
+                --budget;
+
+                VkDeviceSize vSize = sizeof(lve::Vertex) * mesh.vertices.size();
+                VkDeviceSize iSize = sizeof(u32) * mesh.indices.size();
+
+                auto staging = std::make_shared<lve::LveBuffer>(device, vSize + iSize, 1, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                staging->map();
+                staging->writeToBuffer(mesh.vertices.data(), vSize, 0);
+                staging->writeToBuffer(mesh.indices.data(), iSize, vSize);
+                staging->unmap();
+
+                auto vertexDst = std::make_unique<lve::LveBuffer>(device, sizeof(lve::Vertex), (u32)mesh.vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                auto indexDst = std::make_unique<lve::LveBuffer>(device, sizeof(u32), (u32)mesh.indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+                VkBufferCopy vc{0, 0, vSize};
+                VkBufferCopy ic{vSize, 0, iSize};
+                vkCmdCopyBuffer(cmd, staging->getBuffer(), vertexDst->getBuffer(), 1, &vc);
+                vkCmdCopyBuffer(cmd, staging->getBuffer(), indexDst->getBuffer(), 1, &ic);
+
+                device.queueDeletion([staging]() {
+                }, frame); // keep staging alive until GPU is done
+
+                chunk->applyMesh(std::make_unique<lve::LveModel>(device, std::move(vertexDst), std::move(indexDst)), frame, device);
+                recorded = true;
+            }
+
+            if (recorded) {
+                VkMemoryBarrier b{VK_STRUCTURE_TYPE_MEMORY_BARRIER};
+                b.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                b.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_INDEX_READ_BIT;
+                vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1, &b, 0, nullptr, 0, nullptr);
+            }
+        }
 
         int chunksReady() {
             auto spawnChunk = area->chunks.find(ivec3{0, 0, 0});
@@ -333,6 +402,7 @@ namespace Rendering
         std::optional<lve::ChunkRenderSystem> chunkRenderSystem;
         std::optional<lve::HighlightRenderSystem> highlightRenderSystem;
         std::optional<lve::SimpleRenderSystem> simpleRenderSystem;
+        std::optional<lve::OffScreenRenderSystem> offScreenRenderSystem;
 
         std::unique_ptr<RmlSystemInterface> systemInterface;
         std::unique_ptr<lve::RmlRenderInterface> renderInterface;
@@ -367,5 +437,7 @@ namespace Rendering
         const float FIXED_DT = 1.0f / 60.0f;
         float accumulator = 0.0f;
         u64 frameIndex = 0;
+
+        std::vector<std::pair<int, VkDescriptorSet>> pendingHotbarUpdates;
     };
 } // namespace Rendering

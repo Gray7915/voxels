@@ -2,6 +2,11 @@
 #include <unordered_map>
 #include <memory>
 #include <iostream>
+#include <mutex>
+#include <atomic>
+#include <vector>
+#include <optional>
+
 #include <glm/ext/vector_int3.hpp>
 #include "../Util/IVec3Hash.h"
 #include "World/Generation/ChunkState.hpp"
@@ -11,6 +16,11 @@
 
 namespace lve
 {
+    struct ChunkMeshData {
+        std::vector<Vertex> vertices;
+        std::vector<u32> indices;
+    };
+
     class Chunk {
       public:
         Chunk(LveDevice &lveDevice, glm::vec3 offset);
@@ -40,17 +50,24 @@ namespace lve
             glm::mat3 normalMatrix();
         };
 
+        bool hasPendingMesh() const { return hasPending.load(std::memory_order_acquire); }
+
         void setVoxelData(VoxelData data) { this->voxelData = data; };
 
         void applyMesh(std::unique_ptr<LveModel> model, int currentFrameIndex, LveDevice &device) {
             if (chunkModel) {
                 auto oldModel = std::shared_ptr<LveModel>(std::move(chunkModel));
-                device.queueDeletion([model = oldModel]() {
+                device.queueDeletion([oldModel]() {
                 }, currentFrameIndex);
             }
             chunkModel = std::move(model);
-            chunkState = ChunkState::Uploaded;
+            if (chunkState == ChunkState::PendingUpload)
+                chunkState = ChunkState::Uploaded;
         }
+
+        std::mutex meshMutex;
+        std::optional<ChunkMeshData> pendingMesh;
+        std::atomic<bool> hasPending{false};
         std::shared_ptr<LveModel> chunkModel{};
     };
 } // namespace lve

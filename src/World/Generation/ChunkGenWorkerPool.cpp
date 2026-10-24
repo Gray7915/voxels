@@ -138,40 +138,27 @@ namespace lve
 
     void ChunkGenWorkerPool::runTerrainPass(GenJob job, VoxelData &data) {
         ivec3 chunkCoord = job.chunkCoord;
-        ivec2 worldOrigin = glm::ivec2(chunkCoord.x, chunkCoord.z) * VoxelData::WIDTH;
-
-        int surfaceHeights[VoxelData::WIDTH][VoxelData::DEPTH];
+        ivec3 worldPos = chunkCoord * 16;
         for (int x = 0; x < VoxelData::WIDTH; x++)
             for (int z = 0; z < VoxelData::DEPTH; z++) {
-                vec2 worldPos = vec2(x + worldOrigin.x, z + worldOrigin.y);
-                surfaceHeights[x][z] = glm::clamp((int)getNoiseValue(job, ivec3(worldPos.x, 0, worldPos.y)), 0, VoxelData::HEIGHT - 1);
-            }
-
-        for (int x = 0; x < VoxelData::WIDTH; x++)
-            for (int z = 0; z < VoxelData::DEPTH; z++) {
-                vec2 worldPos = vec2(x + worldOrigin.x, z + worldOrigin.y);
-                int surfaceHeight = surfaceHeights[x][z];
+                int surfaceHeight = glm::clamp((int)getNoiseValue(job, ivec3(x + worldPos.x, 0, z + worldPos.z)), 0, VoxelData::HEIGHT - 1);
                 for (int y = 0; y < VoxelData::HEIGHT; y++) {
-                    float density = getDensity(job, ivec3(worldPos.x, y, worldPos.y), (float)surfaceHeight);
-                    if (density < 0.0f) {
-                        data.set(x, y, z, BlockRegistry::Get().GetBlockIDByName("air"));
-                    } else {
-                        int depth = surfaceHeight - y;
-                        if (depth == 0)
-                            data.set(x, y, z, BlockRegistry::Get().GetBlockIDByName("grass"));
-                        else if (depth < 4)
-                            data.set(x, y, z, BlockRegistry::Get().GetBlockIDByName("dirt"));
-                        else
-                            data.set(x, y, z, BlockRegistry::Get().GetBlockIDByName("stone"));
-                    }
+
+                    if (y == surfaceHeight)
+                        data.set(x, y, z, BlockRegistry::Get().GetBlockIDByName("grass"));
+                    else if (y < surfaceHeight && y > surfaceHeight - 5)
+                        data.set(x, y, z, BlockRegistry::Get().GetBlockIDByName("dirt"));
+                    else if (y < surfaceHeight - 5)
+                        data.set(x, y, z, BlockRegistry::Get().GetBlockIDByName("stone"));
                 }
             }
     }
 
     void ChunkGenWorkerPool::runCavePass(GenJob job, VoxelData &data) {
+
         /*
-        caves already in get density thingie, this is for when i have a full proper cave pass
-        */
+caves already in get density thingie, this is for when i have a full proper cave pass
+*/
     }
 
     void ChunkGenWorkerPool::runFloraPass(GenJob job, VoxelData &data) {

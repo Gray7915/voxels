@@ -55,6 +55,10 @@ namespace lve
             if (texIt != textureMap.end()) {
                 descToBind = texIt->second.descriptorSet;
                 useTexture = texIt->second.isFont ? 1 : 2;
+            } else {
+                // Direct cast — block preview descriptor set
+                descToBind = (VkDescriptorSet)texture;
+                useTexture = 2;
             }
         }
         vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descToBind, 0, nullptr);
@@ -126,7 +130,32 @@ namespace lve
         return createTexture((const unsigned char *)source.data(), source_dimensions.x, source_dimensions.y, true);
     }
 
+    Rml::TextureHandle RmlRenderInterface::RegisterExternalTexture(VkDescriptorSet descriptorSet) {
+        Rml::TextureHandle handle = nextTextureHandle++;
+
+        RmlTexture entry{};
+        entry.texture = nullptr;
+        entry.descriptorSet = descriptorSet;
+        entry.isFont = false;
+
+        textureMap[handle] = std::move(entry);
+
+        return handle;
+    }
+
     Rml::TextureHandle RmlRenderInterface::LoadTexture(Rml::Vector2i &texture_dimensions, const Rml::String &source) {
+        std::cout << "LoadTexture called: " << source << '\n';
+        if (source.starts_with("block://")) {
+            VkDescriptorSet ds = reinterpret_cast<VkDescriptorSet>(std::stoull(source.substr(8)));
+
+            if (ds == VK_NULL_HANDLE)
+                return 0;
+
+            texture_dimensions = {256, 256};
+
+            return RegisterExternalTexture(ds);
+        }
+
         int width, height, channels;
         unsigned char *data = stbi_load(source.c_str(), &width, &height, &channels, 4);
         if (!data)

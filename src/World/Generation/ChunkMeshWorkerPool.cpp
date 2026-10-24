@@ -77,7 +77,7 @@ namespace lve
             return result;
         }
 
-        // result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, pool);
+        result.model = LveModel::createChunkModel(*job.device, result.verticies, result.indices, pool);
         return result;
     }
 
@@ -291,6 +291,9 @@ namespace lve
     }
 
     Voxel ChunkMeshWorkerPool::getChunkVoxel(const MeshJob &job, glm::ivec3 v) {
+        if (v.y < 0 || v.y >= CHUNK_HEIGHT)
+            return Voxel{};
+
         if (v.x >= 0 && v.x < CHUNK_WIDTH && v.y >= 0 && v.y < CHUNK_HEIGHT && v.z >= 0 && v.z < CHUNK_DEPTH) {
             // std::cout << "get voxel " << v.y << " " << v.y << " " << v.z << '\n';
             return job.voxelData.getVoxel(v.x, v.y, v.z);

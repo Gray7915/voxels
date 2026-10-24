@@ -11,10 +11,14 @@ layout(set = 0, binding = 1) uniform sampler2D texSampler;
 layout(location = 0) out vec4 outColor;
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
-  mat4 projectionViewMatrix;
-  vec4 ambientLightColor; // w is intensity
-  vec3 lightPosition;
-  vec4 lightColor;
+    mat4 projectionView;       
+    vec4 ambientLightColor;     
+    vec3 lightPosition;         
+    vec4 lightColor;          
+    vec4 cameraPosition;        
+    vec4 fogColor;              
+    float fogStart;             
+    float fogEnd;         
 } ubo;
 
 layout(push_constant) uniform Push {
@@ -22,24 +26,29 @@ layout(push_constant) uniform Push {
     mat4 normalMatrix;
 } push;
 
-vec3 direction = vec3(0.0, 1.0, 1.0);
-vec3 color = vec3(1.0, 0.55, 0.25);
-float intensity = 0.8;
-
 void main()
 {
+    // --- lighting (unchanged) ---
     vec3 directionToLight = ubo.lightPosition - fragWorldPos;
-    float attenuation = 1.0 / dot(directionToLight, directionToLight); // distance squared
+    float attenuation = 1.0 / dot(directionToLight, directionToLight);
 
-    vec3 lightColor = ubo.lightColor.xyz * ubo.lightColor.w * attenuation;
-    vec3 ambientLight = ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
-    vec3 diffuseLight = lightColor * max(dot(normalize(fragNormal), normalize(directionToLight)), 0);
+    vec3 lightColor    = ubo.lightColor.xyz * ubo.lightColor.w * attenuation;
+    vec3 ambientLight  = ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
+    vec3 diffuseLight  = lightColor * max(dot(normalize(fragNormal), normalize(directionToLight)), 0);
 
     vec4 texColor = texture(texSampler, fragUV);
     texColor.rgb *= fragAO;
-    
-    outColor = texColor * vec4(fragColor, 1.0);
 
     if (texColor.a < 0.5)
         discard;
+
+    vec3 litColor = texColor.rgb * fragColor * (ambientLight + diffuseLight);
+
+    // --- fog ---
+    float dist      = length(ubo.cameraPosition.xyz - fragWorldPos);
+    float linear    = clamp((ubo.fogEnd - dist) / (ubo.fogEnd - ubo.fogStart), 0.0, 1.0);
+    float fogFactor = linear * linear;
+    vec3 finalColor = mix(ubo.fogColor.xyz, litColor, fogFactor);
+
+    outColor = vec4(finalColor, texColor.a);
 }

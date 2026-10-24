@@ -51,14 +51,17 @@ namespace lve
             if (!chunk)
                 continue;
 
-            bool written = stagingPool.writeChunk(result.chunkCoord, result.verticies, result.indices, device);
+            chunk->pendingMesh = ChunkMeshData{std::move(result.verticies), std::move(result.indices)};
+            if (chunk->chunkState != ChunkState::Dirty)
+                chunk->chunkState = ChunkState::PendingUpload;
+            /*bool written = stagingPool.writeChunk(result.chunkCoord, result.verticies, result.indices, device);
             if (written) {
                 // Only set Uploaded if nothing marked it dirty while it was in flight
                 if (chunk->chunkState != ChunkState::Dirty)
                     chunk->chunkState = ChunkState::PendingUpload;
             } else {
                 chunk->chunkState = ChunkState::Dirty;
-            }
+            }*/
         }
     }
 

@@ -52,20 +52,26 @@
             .icon.selected {
                 border-color: yellow;
             }
+
+            .slot-img {
+                width: 48dp;
+                height: 48dp;
+                margin: 4dp;
+            }
         </style>
     </head>
 
     <body>
         <div id="inventory_bar">
-            <div class="icon" id="slot_1"></div>
-            <div class="icon" id="slot_2"></div>
-            <div class="icon" id="slot_3"></div>
-            <div class="icon" id="slot_4"></div>
-            <div class="icon" id="slot_5"></div>
-            <div class="icon" id="slot_6"></div>
-            <div class="icon" id="slot_7"></div>
-            <div class="icon" id="slot_8"></div>
-            <div class="icon" id="slot_9"></div>
+            <div class="icon" id="slot_1"><img id="slot_1_img" class="slot-img" /></div>
+            <div class="icon" id="slot_2"><img id="slot_2_img" class="slot-img" /></div>
+            <div class="icon" id="slot_3"><img id="slot_3_img" class="slot-img" /></div>
+            <div class="icon" id="slot_4"><img id="slot_4_img" class="slot-img" /></div>
+            <div class="icon" id="slot_5"><img id="slot_5_img" class="slot-img" /></div>
+            <div class="icon" id="slot_6"><img id="slot_6_img" class="slot-img" /></div>
+            <div class="icon" id="slot_7"><img id="slot_7_img" class="slot-img" /></div>
+            <div class="icon" id="slot_8"><img id="slot_8_img" class="slot-img" /></div>
+            <div class="icon" id="slot_9"><img id="slot_9_img" class="slot-img" /></div>
         </div>
     </body>
 

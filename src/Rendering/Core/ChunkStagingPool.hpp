@@ -37,7 +37,8 @@ class ChunkStagingPool {
     // Returns false if pool is full
     bool writeChunk(ivec3 coord, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices, LveDevice &device) {
         if (vertices.empty() || indices.empty()) {
-            assert(false && "unexpected empty mesh — all air chunk?");
+            std::cerr << "unexpected empty mesh — all air chunk? " << coord.x << " " << coord.y << " " << coord.z << '\n';
+            assert(false);
             return false;
         }
         VkDeviceSize vSize = sizeof(Vertex) * vertices.size();
@@ -90,7 +91,7 @@ class ChunkStagingPool {
     // Called from main thread after fence signals — reset for next frame
     void reset() {
         std::lock_guard<std::mutex> lock(mutex);
-        std::cout << "pool reset, was at: " << writeHead << '\n';
+        // std::cout << "pool reset, was at: " << writeHead << '\n';
         transferInFlight = false;
         writeHead = 0;
     }

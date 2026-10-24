@@ -41,6 +41,9 @@ namespace lve
         void setFrameIndex(int index) { currentFrameIndex = index; }
         void setFallbackDescriptor(VkDescriptorSet set) { fallbackDescriptorSet = set; }
 
+        Rml::TextureHandle RegisterExternalTexture(VkDescriptorSet descriptorSet);
+        Rml::TextureHandle RegisterBlockPreview(BlockId blockId, VkDescriptorSet descriptorSet);
+
       private:
         Rml::TextureHandle createTexture(const unsigned char *data, int width, int height, bool isFont);
 

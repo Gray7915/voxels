@@ -103,8 +103,18 @@ namespace lve
             rigidBody.velocity.x *= frictionFactor;
             rigidBody.velocity.z *= frictionFactor;
 
-            rigidBody.velocity.x += moveDir.x * accel * smoothDt;
-            rigidBody.velocity.z += moveDir.z * accel * smoothDt;
+            float targetSpeed = moveStats.moveSpeed * (input.sprint ? 1.5f : 1.0f); // your sprint value
+            if (!rigidBody.isGrounded)
+                targetSpeed *= 0.6f; // optional air penalty
+
+            float currentSpeed = rigidBody.velocity.x * moveDir.x + rigidBody.velocity.z * moveDir.z;
+            float addSpeed = targetSpeed - currentSpeed;
+
+            if (glm::length(moveDir) > 0.0f && addSpeed > 0.0f) {
+                float push = glm::min(accel * smoothDt, addSpeed);
+                rigidBody.velocity.x += moveDir.x * push;
+                rigidBody.velocity.z += moveDir.z * push;
+            }
 
             if (moveStats.flying) {
                 if (input.moveUp)

@@ -5,6 +5,7 @@
 #include "Rendering/Systems/highlight_render_system.hpp"
 #include "Rendering/Systems/simple_render_system.hpp"
 #include "Rendering/Systems/ui_render_system.hpp"
+#include "Rendering/Systems/OffScreenRenderSystem.hpp"
 #include "World/Chunk.hpp"
 
 #include "ECS/Coordinator.hpp"
@@ -79,10 +80,6 @@ namespace lve
 
         RenderSetup renderSetup = setupRender(lveDevice);
 
-        std::cout << "setup systems" << '\n';
-        HighlightRenderSystem highlightRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
-        ChunkRenderSystem chunkRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
-        SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), renderSetup.globalSetLayout->getDescriptorSetLayout()};
         std::cout << "setup render systems" << '\n';
 
         float aspect = lveRenderer.getAspectRatio();

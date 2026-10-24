@@ -75,6 +75,7 @@ namespace UI
                 itemListeners.push_back(std::unique_ptr<ItemListener>(listener));
             }
         }
+        std::cout << "finished listener attatchment" << '\n';
     }
 
     void InventoryUI::AddItem(const Rml::String &name) {
@@ -88,6 +89,27 @@ namespace UI
         // icon->SetClass("icon", true);
         content->SetInnerRML(name);
         ///        std::cout << "Children: " << content->GetNumChildren() << '\n';
+    }
+
+    void InventoryUI::AddItemWithImage(const Rml::String &slotId, const VkDescriptorSet &descSet) {
+        if (!document) {
+            std::cout << "AddItemWithImage: document is null!\n";
+            return;
+        }
+
+        std::string elemId = slotId + "_img";
+        Rml::Element *img = document->GetElementById(elemId);
+        std::cout << "AddItemWithImage: looking for '" << elemId << "' → " << (img ? "FOUND" : "NOT FOUND") << '\n';
+
+        if (!img) {
+            std::cout << "img not found: " << slotId << "_img\n";
+            return;
+        }
+
+        std::string src = "block://" + std::to_string((uintptr_t)descSet);
+        std::cout << "setting src: " << src << '\n';
+        img->RemoveAttribute("src");
+        img->SetAttribute("src", src);
     }
 
     void InventoryUI::SetSelected(const Rml::String &id) {
@@ -104,7 +126,7 @@ namespace UI
         }
 
         // Set selected on the target slot
-        if (Rml::Element *slot = document->GetElementById("slot_1")) {
+        if (Rml::Element *slot = document->GetElementById("slot_2_img")) {
             // std::cout << "slot one selected" << '\n';
             slot->SetClass("selected", true);
         }

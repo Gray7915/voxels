@@ -42,6 +42,7 @@ namespace lve
         createGeometryPass();
         creatUIPass();
         createStandaloneUIPass();
+        createOffScreenUIPass();
     }
 
     void LveRenderer::createGeometryPass() { geometryPass = std::make_unique<GeometryPass>(lveDevice, *swapChain); }
@@ -49,6 +50,8 @@ namespace lve
     void LveRenderer::creatUIPass() { UiRenderPass = std::make_unique<UIRenderPass>(lveDevice, *swapChain, Mode::Overlay); }
 
     void LveRenderer::createStandaloneUIPass() { StandaloneUIRenderPass = std::make_unique<UIRenderPass>(lveDevice, *swapChain, Mode::Standalone); }
+
+    void LveRenderer::createOffScreenUIPass() { OffScreenUIPass = std::make_unique<OffScreenPass>(lveDevice, 256, 256); }
 
     void LveRenderer::createCommandBuffers() {
         commandBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);

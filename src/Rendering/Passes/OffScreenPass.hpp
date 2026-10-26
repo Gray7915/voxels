@@ -33,7 +33,10 @@ namespace lve
         void createPreviewForBlock(BlockId blockId);
 
         // get the descriptor set to hand to RmlUi
-        VkDescriptorSet getDescriptorSet(int blockId) { return targets.at(blockId).descriptorSet; }
+        VkDescriptorSet getDescriptorSet(int blockId) {
+            auto it = targets.find(blockId);
+            return it == targets.end() ? VK_NULL_HANDLE : it->second.descriptorSet;
+        }
 
         VkRenderPass getRenderPass() const { return renderPass; }
 

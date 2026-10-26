@@ -91,24 +91,18 @@ namespace UI
         ///        std::cout << "Children: " << content->GetNumChildren() << '\n';
     }
 
-    void InventoryUI::AddItemWithImage(const Rml::String &slotId, const VkDescriptorSet &descSet) {
-        if (!document) {
-            std::cout << "AddItemWithImage: document is null!\n";
+    void InventoryUI::AddItemWithImage(const Rml::String &slotId, BlockId blockId) {
+        if (!document)
             return;
-        }
 
-        std::string elemId = slotId + "_img";
-        Rml::Element *img = document->GetElementById(elemId);
-        std::cout << "AddItemWithImage: looking for '" << elemId << "' → " << (img ? "FOUND" : "NOT FOUND") << '\n';
-
-        if (!img) {
-            std::cout << "img not found: " << slotId << "_img\n";
+        Rml::Element *img = document->GetElementById(slotId + "_img");
+        if (!img)
             return;
-        }
 
-        std::string src = "block://" + std::to_string((uintptr_t)descSet);
-        std::cout << "setting src: " << src << '\n';
-        img->RemoveAttribute("src");
+        const std::string src = "block://" + std::to_string(blockId);
+        if (img->GetAttribute<Rml::String>("src", "") == src)
+            return; // already set, avoid redundant reloads
+
         img->SetAttribute("src", src);
     }
 

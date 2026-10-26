@@ -49,7 +49,10 @@ namespace Rendering
             area = std::make_unique<lve::Area>(context.device, seed, context.coordinator, context.stagingPool);
             systemInterface = std::make_unique<RmlSystemInterface>();
             renderInterface = std::make_unique<lve::RmlRenderInterface>(context.device);
-
+            renderInterface->setBlockPreviewResolver([this](BlockId id) -> VkDescriptorSet {
+                auto *pass = context.renderer.OffScreenUIPass.get();
+                return pass ? pass->getDescriptorSet(id) : VK_NULL_HANDLE;
+            });
             Rml::SetSystemInterface(systemInterface.get());
             Rml::SetRenderInterface(renderInterface.get());
             Rml::Initialise();
@@ -63,37 +66,36 @@ namespace Rendering
             std::cout << "make invent thingie" << '\n';
             // inventoryUI->AddItem("Mk III L.A.S.E.R.");
             std::cout << "added big lazer" << '\n';
-            /*
-                        // Pre-build all block models — safe here, no frame in flight
-                        // Pre-create targets
-                        for (auto &item : inventoryUI->getItems()) {
-                            BlockId id = std::stoi(item.id);
-                            context.renderer.OffScreenUIPass->createPreviewForBlock(id);
-                        }
 
-                        // Record and submit all preview renders in one shot before the game loop
-                        VkCommandBuffer cmd = context.device.beginSingleTimeCommands(context.device.getCommandPool());
+            // Pre-build all block models — safe here, no frame in flight
+            // Pre-create targets
+            for (auto &item : inventoryUI->getItems()) {
+                BlockId id = std::stoi(item.id);
+                context.renderer.OffScreenUIPass->createPreviewForBlock(id);
+            }
 
-                        FrameInfo previewFrame{};
-                        previewFrame.commandBuffer = cmd;
-                        previewFrame.globalDescriptorSet = context.renderSetup.globalDescriptorSets[0];
+            // Record and submit all preview renders in one shot before the game loop
+            VkCommandBuffer cmd = context.device.beginSingleTimeCommands(context.device.getCommandPool());
 
-                        for (auto &item : inventoryUI->getItems()) {
-                            BlockId id = std::stoi(item.id);
-                            context.renderer.OffScreenUIPass->begin(cmd, id);
-                            offScreenRenderSystem->renderInvItems(previewFrame, id);
-                            context.renderer.OffScreenUIPass->end(cmd);
-                        }
+            FrameInfo previewFrame{};
+            previewFrame.commandBuffer = cmd;
+            previewFrame.globalDescriptorSet = context.renderSetup.globalDescriptorSets[0];
 
-                        context.device.endSingleTimeCommands(cmd, context.device.getCommandPool());
+            for (auto &item : inventoryUI->getItems()) {
+                BlockId id = std::stoi(item.id);
+                context.renderer.OffScreenUIPass->begin(cmd, id);
+                offScreenRenderSystem->renderInvItems(previewFrame, id);
+                context.renderer.OffScreenUIPass->end(cmd);
+            }
 
-                        for (auto &item : inventoryUI->getItems()) {
-                            BlockId id = std::stoi(item.id);
-                            VkDescriptorSet ds = context.renderer.OffScreenUIPass->getDescriptorSet(id);
-                            if (ds != VK_NULL_HANDLE)
-                                inventoryUI->AddItemWithImage("slot_" + item.id, ds);
-                        }
-                                */
+            context.device.endSingleTimeCommands(cmd, context.device.getCommandPool());
+
+            for (auto &item : inventoryUI->getItems()) {
+                BlockId id = std::stoi(item.id);
+                VkDescriptorSet ds = context.renderer.OffScreenUIPass->getDescriptorSet(id);
+                if (ds != VK_NULL_HANDLE)
+                    inventoryUI->AddItemWithImage("slot_" + item.id, id);
+            }
         }
 
         void onExit() override {
@@ -170,8 +172,8 @@ namespace Rendering
         }
 
         void render(lve::FrameInfo &frameInfo) override {
-            for (auto &[slotIndex, ds] : pendingHotbarUpdates) {
-                inventoryUI->AddItemWithImage("slot_" + std::to_string(slotIndex), ds);
+            for (auto &[slotIndex, blockId] : pendingHotbarUpdates) {
+                inventoryUI->AddItemWithImage("slot_" + std::to_string(slotIndex), blockId);
             }
             pendingHotbarUpdates.clear();
 
@@ -202,7 +204,8 @@ namespace Rendering
                             if (!stack.has_value()) {
                                 stack = ItemStack(ItemRegistry::Get().GetItemByID(std::stoi(itemId)), ItemRegistry::Get().GetItemByID(std::stoi(itemId))->maxStackSize);
                                 added = true;
-                                pendingHotbarUpdates.push_back({std::stoi(itemId), context.renderer.OffScreenUIPass->getDescriptorSet(std::stoi(itemId))});
+                                const int blockId = std::stoi(itemId);
+                                pendingHotbarUpdates.push_back({blockId, blockId});
                                 break;
                             }
                         }
@@ -257,7 +260,7 @@ namespace Rendering
                     std::cout << "Descriptor set after render: " << ds << '\n';
 
                     // Register with RmlUi immediately after rendering
-                    inventoryUI->AddItemWithImage("slot_" + std::to_string((int)id), ds);
+                    inventoryUI->AddItemWithImage("slot_" + std::to_string((int)id), id);
                 }
             }
 
@@ -438,6 +441,6 @@ namespace Rendering
         float accumulator = 0.0f;
         u64 frameIndex = 0;
 
-        std::vector<std::pair<int, VkDescriptorSet>> pendingHotbarUpdates;
+        std::vector<std::pair<int, BlockId>> pendingHotbarUpdates;
     };
 } // namespace Rendering

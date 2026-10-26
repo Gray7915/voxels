@@ -38,8 +38,8 @@ namespace lve
         VkDescriptorSetLayout textureSetLayout;
 
         std::unordered_map<BlockId, std::unique_ptr<LveModel>> modelCache;
+        std::unique_ptr<LveModel> emitIcon(BlockId blockId);
 
-        std::unique_ptr<LveModel> buildBlockModel(BlockId blockId);
         glm::mat4 buildInvProjection(u32 width, u32 height);
         glm::mat4 buildInvView();
     };

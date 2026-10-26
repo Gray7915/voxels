@@ -1,38 +1,32 @@
 #pragma once
 
 #include <functional>
+#include <vulkan/vulkan.h>
 
 namespace lve
 {
 
-  template <typename T, typename... Rest>
-  void hashCombine(std::size_t &seed, const T &v, const Rest &...rest)
-  {
-    seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    (hashCombine(seed, rest), ...);
-  };
+    template <typename T, typename... Rest> void hashCombine(std::size_t &seed, const T &v, const Rest &...rest) {
+        seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        (hashCombine(seed, rest), ...);
+    };
 
-  struct Vertex
-  {
-    glm::vec3 position;
-    glm::vec3 color;
-    glm::vec3 normal{};
-    glm::vec2 uv{};
-    float ao;
+    struct Vertex {
+        glm::vec3 position;
+        glm::vec3 color;
+        glm::vec3 normal{};
+        glm::vec2 uv{};
+        float ao;
 
-    static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
-    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+        static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
+        static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 
-    bool operator==(const Vertex &other) const
-    {
-      return position == other.position && color == other.color && normal == other.normal && uv == other.uv && ao == other.ao;
-    }
-  };
+        bool operator==(const Vertex &other) const { return position == other.position && color == other.color && normal == other.normal && uv == other.uv && ao == other.ao; }
+    };
 
-  struct RayHit
-  {
-    glm::ivec3 hitPosition;
-    glm::ivec3 hitDirection;
-    uint16_t blockID = 0;
-  };
-}
+    struct RayHit {
+        glm::ivec3 hitPosition;
+        glm::ivec3 hitDirection;
+        uint16_t blockID = 0;
+    };
+} // namespace lve

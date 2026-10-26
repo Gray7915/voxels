@@ -24,25 +24,7 @@ namespace lve
       private:
         void workerLoop();
         MeshResult generateMesh(MeshJob &job, VkCommandPool pool);
-        void emitVoxel(MeshJob &job, MeshResult &result, ivec3 pos);
-        void emitBlock(MeshJob &job, MeshResult &result, ivec3 pos);
-        void emitConnectedBlock(MeshJob &job, MeshResult &result, ivec3 pos);
-        void emitStagedBlock(MeshJob &job, MeshResult &result, ivec3 pos);
-        void emitDirectionalBlock(MeshJob &job, MeshResult &result, ivec3 pos);
-        int calculateAO(glm::ivec3 pos, int face, int vertexIndex, MeshJob &job);
-        static glm::ivec3 getDirection(int i);
-        static glm::vec2 getAtlasUV(int face, glm::vec2 uv, int blockType);
-        static glm::vec2 getModelAtlasUV(glm::vec2 modelUV, const std::string &textureName);
 
-        glm::ivec3 getFaceTangent1(int face);
-        glm::ivec3 getFaceTangent2(int face);
-
-        int getSign(glm::ivec3 tangent, glm::ivec3 vertex);
-        int getSolid(glm::ivec3 voxel, const MeshJob &job);
-
-        Voxel getChunkVoxel(const MeshJob &job, glm::ivec3 chunkVoxel);
-
-        static constexpr float aoValues[] = {0.1f, 0.34f, 0.65f, 1.f};
         std::vector<std::thread> workers;
         ThreadSafeQueue<MeshJob> jobQueue;
         ThreadSafeQueue<MeshResult> resultQueue;

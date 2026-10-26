@@ -4,6 +4,7 @@
 #include <Rendering/Core/lve_Texture.hpp>
 #include "Rendering/Systems/RmlRenderSystem.hpp"
 #include <stb_image.h>
+#include <charconv>
 namespace lve
 {
     Rml::CompiledGeometryHandle RmlRenderInterface::CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) {
@@ -53,12 +54,13 @@ namespace lve
         if (texture != 0) {
             auto texIt = textureMap.find(texture);
             if (texIt != textureMap.end()) {
-                descToBind = texIt->second.descriptorSet;
-                useTexture = texIt->second.isFont ? 1 : 2;
-            } else {
-                // Direct cast — block preview descriptor set
-                descToBind = (VkDescriptorSet)texture;
-                useTexture = 2;
+                VkDescriptorSet ds = texIt->second.descriptorSet;
+                if (texIt->second.blockId && blockPreviewResolver)
+                    ds = blockPreviewResolver(*texIt->second.blockId); // always current
+                if (ds != VK_NULL_HANDLE) {
+                    descToBind = ds;
+                    useTexture = texIt->second.isFont ? 1 : 2;
+                }
             }
         }
         vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descToBind, 0, nullptr);
@@ -93,11 +95,17 @@ namespace lve
         if (it == textureMap.end())
             return;
 
-        auto tex = std::shared_ptr<lve::LveTexture>(std::move(it->second.texture));
+        if (!it->second.texture) { // external block preview: descriptor set is owned by OffScreenPass
+            std::erase_if(blockTextureCache, [&](const auto &kv) {
+                return kv.second == texture;
+            });
+            textureMap.erase(it);
+            return;
+        }
 
+        auto tex = std::shared_ptr<lve::LveTexture>(std::move(it->second.texture));
         device.queueDeletion([tex]() {
         }, currentFrameIndex);
-
         textureMap.erase(it);
     }
 
@@ -145,15 +153,29 @@ namespace lve
 
     Rml::TextureHandle RmlRenderInterface::LoadTexture(Rml::Vector2i &texture_dimensions, const Rml::String &source) {
         std::cout << "LoadTexture called: " << source << '\n';
-        if (source.starts_with("block://")) {
-            VkDescriptorSet ds = reinterpret_cast<VkDescriptorSet>(std::stoull(source.substr(8)));
+        constexpr std::string_view blockScheme = "block://";
+        if (source.starts_with(blockScheme)) {
+            const std::string_view idStr = std::string_view(source).substr(blockScheme.size());
 
+            BlockId id{};
+            auto [ptr, ec] = std::from_chars(idStr.data(), idStr.data() + idStr.size(), id);
+            if (ec != std::errc{} || ptr != idStr.data() + idStr.size() || !blockPreviewResolver)
+                return 0;
+
+            if (auto it = blockTextureCache.find(id); it != blockTextureCache.end())
+                return it->second;
+
+            VkDescriptorSet ds = blockPreviewResolver(id);
             if (ds == VK_NULL_HANDLE)
                 return 0;
 
             texture_dimensions = {256, 256};
-
-            return RegisterExternalTexture(ds);
+            Rml::TextureHandle handle = nextTextureHandle++;
+            RmlTexture entry{};
+            entry.blockId = id;
+            textureMap[handle] = std::move(entry);
+            blockTextureCache[id] = handle;
+            return handle;
         }
 
         int width, height, channels;

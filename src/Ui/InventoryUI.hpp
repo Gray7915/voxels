@@ -4,6 +4,7 @@
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Types.h>
 #include <vulkan/vulkan.h>
+#include "Util/Types.hpp"
 
 #include "Util/ButtonListener.hpp"
 #include "Util/ItemListener.hpp"
@@ -28,7 +29,7 @@ namespace UI
         /// Adds a brand-new item into this inventory.
         /// @param[in] name The name of this item.
         void AddItem(const Rml::String &name);
-        void AddItemWithImage(const Rml::String &name, const VkDescriptorSet &descSet);
+        void AddItemWithImage(const Rml::String &slotId, BlockId blockId);
         void SetSelected(const Rml::String &name);
 
         void openCreativeInventory();

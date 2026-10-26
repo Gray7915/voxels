@@ -3,10 +3,15 @@
 #include <vulkan/vulkan.h>
 #include <unordered_map>
 #include <memory>
+#include <functional>
+#include <optional>
+
 #include "Rendering/Core/lve_buffer.hpp"
 #include "Rendering/Core/lve_device.hpp"
 #include "Rendering/Core/lve_Texture.hpp"
 #include "Rendering/Core/lve_descriptors.hpp"
+
+using BlockPreviewResolver = std::function<VkDescriptorSet(BlockId)>;
 
 namespace lve
 {
@@ -44,6 +49,8 @@ namespace lve
         Rml::TextureHandle RegisterExternalTexture(VkDescriptorSet descriptorSet);
         Rml::TextureHandle RegisterBlockPreview(BlockId blockId, VkDescriptorSet descriptorSet);
 
+        void setBlockPreviewResolver(BlockPreviewResolver r) { blockPreviewResolver = std::move(r); }
+
       private:
         Rml::TextureHandle createTexture(const unsigned char *data, int width, int height, bool isFont);
 
@@ -59,6 +66,7 @@ namespace lve
             std::unique_ptr<lve::LveTexture> texture;
             VkDescriptorSet descriptorSet;
             bool isFont = false;
+            std::optional<BlockId> blockId;
         };
 
         lve::LveDevice &device;
@@ -77,5 +85,8 @@ namespace lve
         uint64_t nextTextureHandle = 1;
         std::unique_ptr<lve::LveTexture> fallbackTexture;
         int currentFrameIndex;
+
+        BlockPreviewResolver blockPreviewResolver;
+        std::unordered_map<BlockId, Rml::TextureHandle> blockTextureCache;
     };
 } // namespace lve

@@ -1,6 +1,10 @@
 #include "Rendering/Systems/OffScreenRenderSystem.hpp"
 #include "App/TextureAtlas.hpp"
 #include "World/Blocks/BlockRegistry.hpp"
+#include "World/Blocks/ConnectedBlock.hpp"
+#include "World/Blocks/StagedBlock.hpp"
+#include "World/Blocks/CreateVoxel.hpp"
+#include "World/Blocks/IconVoxelContext.hpp"
 
 namespace lve
 {
@@ -68,40 +72,12 @@ namespace lve
         lvePipeline = std::make_unique<LvePipeline>(lveDevice, "shaders/offScreenUi.vert.spv", "shaders/offScreenUi.frag.spv", pipelineConfig);
     }
 
-    std::unique_ptr<LveModel> OffScreenRenderSystem::buildBlockModel(BlockId blockId) {
-        auto blockDef = BlockRegistry::Get().GetBlockByID(static_cast<int>(blockId));
-        if (!blockDef)
-            return nullptr;
-
+    std::unique_ptr<LveModel> OffScreenRenderSystem::emitIcon(BlockId blockId) {
         LveModel::Builder builder{};
+        Blocks::IconVoxelContext ctx(static_cast<int>(blockId));
+        Blocks::MeshOutput out{builder.vertices, builder.indices};
 
-        for (u8 face = 0; face < static_cast<u8>(Math::Direction::COUNT) - 1; ++face) {
-            const uint32_t baseIndex = static_cast<uint32_t>(builder.vertices.size());
-
-            for (int vert = 0; vert < 4; ++vert) {
-                size_t cubeVertex = CUBE_INDICES[face * 6 + UNIQUE_INDICES[vert]];
-
-                Vertex vertex{};
-                vertex.position = CUBE_VERTICES[cubeVertex] - glm::vec3(0.5f);
-                vertex.normal = CUBE_NORMALS[face];
-                vertex.color = {0.1f, 0.1f, 0.1f};
-                vertex.ao = 0.9f;
-                const std::string &texName = blockDef->faces.at(face);
-                const auto &atlas = TextureAtlas::Get();
-                const auto it = atlas.atlasRegions.find(texName);
-                if (it != atlas.atlasRegions.end()) {
-                    const auto &region = it->second;
-                    const vec2 uv = CUBE_UVS[vert];
-                    vertex.uv = {(region.x + uv.x * region.width) / static_cast<float>(atlas.atlasWidth), (region.y + uv.y * region.height) / static_cast<float>(atlas.atlasHeight)};
-                } else {
-                    vertex.uv = CUBE_UVS[vert];
-                }
-                builder.vertices.push_back(vertex);
-            }
-
-            for (size_t i : FACE_INDICES)
-                builder.indices.push_back(baseIndex + static_cast<uint32_t>(i));
-        }
+        Blocks::emitVoxel(ctx, out, ivec3(0));
 
         if (builder.vertices.size() < 3)
             return nullptr;
@@ -110,17 +86,18 @@ namespace lve
 
     void OffScreenRenderSystem::renderInvItems(FrameInfo &frameInfo, BlockId blockId) {
         if (modelCache.find(blockId) == modelCache.end()) {
-            auto model = buildBlockModel(blockId);
+            auto model = emitIcon(blockId);
             if (!model)
                 return;
             modelCache[blockId] = std::move(model);
         }
-        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 proj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 10.0f);
-        proj[1][1] *= -1;
 
+        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 proj = glm::orthoRH_ZO(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 10.0f);
+        glm::mat4 model = glm::rotate(glm::mat4(1.f), glm::radians(-30.f), {1, 0, 0}) * glm::rotate(glm::mat4(1.f), glm::radians(45.f), {0, 1, 0});
+        proj[1][1] *= -1;
         SimplePushConstantData push{};
-        push.mvp = proj * view;
+        push.mvp = proj * view * model;
 
         std::cout << "vertex count: " << modelCache[blockId]->modelVerticies.size() << '\n';
         std::cout << "index count: " << modelCache[blockId]->modelIindices.size() << '\n';

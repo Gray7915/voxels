@@ -12,6 +12,7 @@
 #include "ECS/Coordinator.hpp"
 #include "ECS/SpawnInfo.hpp"
 #include "ECS/Systems/CameraSystem.hpp"
+#include "ECS/Components/InteractionProgress.hpp"
 
 namespace ECS
 {

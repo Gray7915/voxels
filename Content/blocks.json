@@ -86,11 +86,7 @@
                 }
             }
         ],
-        "highlightBoxSize": {
-            "x": 0.25,
-            "y": 1.0,
-            "z": 0.25
-        },
+        "highlightBoxSize": { "x": 0.3125, "y": 1.0, "z": 0.3125 },
         "highlightShape": {
             "vertices": [
                 {
@@ -186,7 +182,7 @@
             ]
         },
         "textures": {},
-        "hardness": 0,
+        "hardness": 2,
         "renderType": "mesh",
 
         "behaviour": {

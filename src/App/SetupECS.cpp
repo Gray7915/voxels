@@ -10,11 +10,11 @@
 #include "ECS/Components/AABBComponent.hpp"
 #include "ECS/Components/Renderable.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
+#include "ECS/Components/InteractionProgress.hpp"
 
 namespace lve
 {
-    ECSSystems registerECSComponents(Coordinator &coordinator)
-    {
+    ECSSystems registerECSComponents(Coordinator &coordinator) {
         ECSSystems systems;
 
         // --- Component registration ---
@@ -28,6 +28,7 @@ namespace lve
         coordinator.RegisterComponent<AABBComponent>();
         coordinator.RegisterComponent<RenderableComponent>();
         coordinator.RegisterComponent<InventoryComponent>();
+        coordinator.RegisterComponent<InteractionProgress>();
 
         // --- PhysicsSystem ---
         systems.physicsSystem = coordinator.RegisterSystem<PhysicsSystem>();
@@ -86,6 +87,7 @@ namespace lve
             signature.set(coordinator.GetComponentType<AABBComponent>());
             signature.set(coordinator.GetComponentType<CameraComponent>());
             signature.set(coordinator.GetComponentType<InventoryComponent>());
+            signature.set(coordinator.GetComponentType<InteractionProgress>());
             coordinator.SetSystemSignature<InteractionSystem>(signature);
         }
 
@@ -108,4 +110,4 @@ namespace lve
         return systems;
     }
 
-}
+} // namespace lve

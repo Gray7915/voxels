@@ -10,6 +10,7 @@
 #include "Rendering/Systems/simple_render_system.hpp"
 #include "Rendering/Systems/ui_render_system.hpp"
 #include "Rendering/Systems/OffScreenRenderSystem.hpp"
+#include "Rendering/Systems/BlockBreakRenderSystem.hpp"
 
 #include "Rendering/Systems/RmlRenderSystem.hpp"
 #include "Rendering/Core/ChunkStagingPool.hpp"
@@ -45,6 +46,7 @@ namespace Rendering
             highlightRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             simpleRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
             offScreenRenderSystem.emplace(context.device, context.renderer.OffScreenUIPass->getRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
+            blockBreakRenderSystem.emplace(context.device, context.renderer.getSwapChainRenderPass(), context.renderSetup.globalSetLayout->getDescriptorSetLayout());
 
             area = std::make_unique<lve::Area>(context.device, seed, context.coordinator, context.stagingPool);
             systemInterface = std::make_unique<RmlSystemInterface>();
@@ -89,13 +91,6 @@ namespace Rendering
             }
 
             context.device.endSingleTimeCommands(cmd, context.device.getCommandPool());
-
-            for (auto &item : inventoryUI->getItems()) {
-                BlockId id = std::stoi(item.id);
-                VkDescriptorSet ds = context.renderer.OffScreenUIPass->getDescriptorSet(id);
-                if (ds != VK_NULL_HANDLE)
-                    inventoryUI->AddItemWithImage("slot_" + item.id, id);
-            }
         }
 
         void onExit() override {
@@ -169,14 +164,11 @@ namespace Rendering
                 inventoryOpen = !inventoryOpen;
                 context.window.setMouseActive();
             }
+
+            inventoryUI->UpdateInventoryUi(context.coordinator, mainCamera);
         }
 
         void render(lve::FrameInfo &frameInfo) override {
-            for (auto &[slotIndex, blockId] : pendingHotbarUpdates) {
-                inventoryUI->AddItemWithImage("slot_" + std::to_string(slotIndex), blockId);
-            }
-            pendingHotbarUpdates.clear();
-
             VkExtent2D extent = context.window.getExtent();
             if (extent.width != lastWidth || extent.height != lastHeight) {
                 lastWidth = extent.width;
@@ -240,6 +232,8 @@ namespace Rendering
                 vec3 forward = {cos(camRotation.x) * sin(camRotation.y), -sin(camRotation.x), cos(camRotation.x) * cos(camRotation.y)};
                 vec3 dir = glm::normalize(forward);
                 highlightRenderSystem->render(frameInfo, hoveredID.w, hoveredID, boxSize, dir);
+
+                blockBreakRenderSystem->render(frameInfo, context.coordinator.GetComponent<InteractionProgress>(mainCamera));
             }
             context.renderer.geometryPass->end(frameInfo.commandBuffer);
 
@@ -384,6 +378,7 @@ namespace Rendering
             rmlRenderSystem->render(frameInfo.commandBuffer);
 
             if (rmlContext) {
+                rmlContext->Update();
                 renderInterface->setFrameIndex(context.device.getFrameCount());
                 rmlContext->Render();
             }
@@ -406,6 +401,7 @@ namespace Rendering
         std::optional<lve::HighlightRenderSystem> highlightRenderSystem;
         std::optional<lve::SimpleRenderSystem> simpleRenderSystem;
         std::optional<lve::OffScreenRenderSystem> offScreenRenderSystem;
+        std::optional<renderSystems::BlockBreakRenderSystem> blockBreakRenderSystem;
 
         std::unique_ptr<RmlSystemInterface> systemInterface;
         std::unique_ptr<lve::RmlRenderInterface> renderInterface;

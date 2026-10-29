@@ -4,6 +4,7 @@
 #include "ECS/Components/Input.hpp"
 #include "ECS/Components/InventoryComponent.hpp"
 #include "ECS/Components/Transform.hpp"
+#include "ECS/Components/InteractionProgress.hpp"
 
 #include "World/Area.hpp"
 
@@ -14,7 +15,7 @@
 #include "Physics/aabb.hpp"
 
 #include <GLFW/glfw3.h>
-
+#include <chrono>
 namespace lve
 {
     void InteractionSystem::Update(float deltaTime, LveWindow &lveWindow, LveDevice &lveDevice, Area &area, Coordinator &coordinator) {
@@ -23,6 +24,7 @@ namespace lve
             auto &camera = coordinator.GetComponent<CameraComponent>(entity);
             auto &inventory = coordinator.GetComponent<InventoryComponent>(entity);
             auto &input = coordinator.GetComponent<InputComponent>(entity);
+            auto &interactionProgress = coordinator.GetComponent<InteractionProgress>(entity);
 
             static bool escapeWasPressed = false;
             bool escapeIsPressed = glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS;
@@ -33,7 +35,7 @@ namespace lve
                 escapeWasPressed = true;
                 lveWindow.setMouseActive();
             }
-
+            expireTargets(interactionProgress, deltaTime);
             vec3 rot = transform.rotation;
             vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
             vec3 rayDir = glm::normalize(forward);
@@ -50,9 +52,7 @@ namespace lve
 
             if (pIsPressed && rayHit.hitPosition != ivec3(-1.0f) && lveWindow.getMenuActive()) {
                 pWasPressed = true;
-                ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
-                ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
-                coordinator.eventBus.blockBreakRequest.push({chunkPosition, blockCoord, entity});
+                updateMining(entity, deltaTime, area, coordinator, interactionProgress, rayHit);
             }
 
             static bool rightWasPressed = false;
@@ -74,4 +74,46 @@ namespace lve
             }
         }
     }
+
+    void InteractionSystem::expireTargets(InteractionProgress &interactionProgress, float dt) {
+        auto &targets = interactionProgress.InteractionTargetList;
+
+        for (int i = static_cast<int>(interactionProgress.InteractionTargetList.size()) - 1; i >= 0; --i) {
+            auto elapsedTime = std::chrono::steady_clock::now() - targets[i].lastInteractedwith;
+
+            double elapsed = std::chrono::duration<double>(elapsedTime).count();
+
+            if (elapsed > 1.5) {
+                targets.erase(targets.begin() + i);
+            }
+        }
+    }
+    void InteractionSystem::updateMining(Entity entity, float deltaTime, Area &area, Coordinator &coordinator, InteractionProgress &progress, const RayHit &rayHit) {
+        auto &targets = progress.InteractionTargetList;
+        ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
+        ivec3 chunkPosition = WorldToChunkId(rayHit.hitPosition);
+        ivec3 hitPos = rayHit.hitPosition;
+        auto it = std::find_if(progress.InteractionTargetList.begin(), progress.InteractionTargetList.end(), [hitPos](const InteractionTarget &interactionTarget) {
+            return interactionTarget.targetPosition == vec3(hitPos);
+        });
+        if (it != targets.end()) {
+            double breakTime = BlockRegistry::Get().GetBlockByID(rayHit.blockID)->hardness / 1.5;
+
+            it->progressSeconds += deltaTime; // only the block being hit
+            it->percentBroken = breakTime > 0.0 ? std::clamp(it->progressSeconds / breakTime, 0.0, 1.0) : 1.0;
+            it->lastInteractedwith = std::chrono::steady_clock::now();
+
+            if (it->percentBroken >= 1.0) {
+                coordinator.eventBus.blockBreakRequest.push({chunkPosition, blockCoord, entity});
+                targets.erase(it);
+            }
+        } else if (it == progress.InteractionTargetList.end()) {
+            InteractionTarget newTarget = {rayHit.hitPosition, rayHit.blockID, 0, 0, std::chrono::steady_clock::now(), std::chrono::steady_clock::now()};
+            progress.InteractionTargetList.push_back(newTarget);
+        }
+    }
+    void InteractionSystem::updatePlacing(Entity entity, float dt, Area &area, Coordinator &coord, const RayHit &hit, InventoryComponent &inv, const InputComponent &input) {}
+
+    // InteractionTarget *InteractionSystem::findTarget(InteractionProgress &, ivec3 pos) {}
+    // InteractionTarget &InteractionSystem::beginTarget(InteractionProgress &, const RayHit &) {}
 } // namespace lve

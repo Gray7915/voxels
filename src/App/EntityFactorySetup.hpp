@@ -22,6 +22,7 @@ namespace lve
                 coordinator.AddComponent(entity, InventoryComponent{});
                 coordinator.AddComponent(entity, Transform{.position = info.position});
                 coordinator.AddComponent(entity, CameraComponent{});
+                coordinator.AddComponent(entity, InteractionProgress{});
 
                 return entity;
             });

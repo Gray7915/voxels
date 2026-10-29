@@ -2,6 +2,8 @@
 #include <RmlUi/Core/Factory.h>
 #include <iostream>
 #include "Inventory/ItemRegistry.hpp"
+#include "ECS/Components/Input.hpp"
+#include "ECS/Components/InventoryComponent.hpp"
 
 namespace UI
 {
@@ -12,6 +14,12 @@ namespace UI
         inventoryWindow = context->LoadDocument("../Content/ui/inventoryWindow.rml");
 
         if (document) {
+            Rml::ElementList imgs;
+            document->GetElementsByTagName(imgs, "img");
+            for (Rml::Element *img : imgs) {
+                if (img->GetAttribute<Rml::String>("src", "").empty())
+                    img->SetProperty("display", "none");
+            }
             document->Show();
         }
 
@@ -24,6 +32,26 @@ namespace UI
         }
         if (inventoryWindow) {
             inventoryWindow->Close();
+        }
+    }
+
+    void InventoryUI::UpdateInventoryUi(lve::Coordinator &coordinator, Entity player) {
+        const auto &playerInputComp = coordinator.GetComponent<InputComponent>(player);
+        int hotbarSlot = playerInputComp.hotbarSlot;
+        SetSelected("slot_" + std::to_string(hotbarSlot + 1));
+
+        auto invComp = coordinator.GetComponent<InventoryComponent>(player);
+
+        for (int i = 0; i < invComp.inventoryStacks.size(); i++) {
+            auto &stack = invComp.inventoryStacks[i];
+
+            if (!stack.has_value()) {
+                continue;
+            }
+            int itemID = invComp.inventoryStacks.at(i).value().getItem()->itemId;
+            int slot = i + 1;
+            AddItemWithImage("slot_" + std::to_string(slot), itemID);
+            SetSlotCount("slot_" + std::to_string(slot), invComp.inventoryStacks.at(i).value().getStackCount());
         }
     }
 
@@ -99,18 +127,42 @@ namespace UI
         if (!img)
             return;
 
+        img->SetProperty("display", "block");
+
         const std::string src = "block://" + std::to_string(blockId);
         if (img->GetAttribute<Rml::String>("src", "") == src)
-            return; // already set, avoid redundant reloads
+            return;
 
         img->SetAttribute("src", src);
     }
 
-    void InventoryUI::SetSelected(const Rml::String &id) {
+    void InventoryUI::SetSlotCount(const Rml::String &slotId, int count) {
         if (!document)
             return;
 
-        // Clear selected from all slots
+        Rml::Element *countEl = document->GetElementById(slotId + "_count");
+        if (!countEl)
+            return;
+
+        if (count <= 1) {
+            if (countEl->GetInnerRML().empty())
+                return;
+            countEl->SetInnerRML("");
+            countEl->SetProperty("display", "none");
+            return;
+        }
+
+        const Rml::String text = std::to_string(count);
+        if (countEl->GetInnerRML() == text)
+            return;
+
+        countEl->SetProperty("display", "block");
+        countEl->SetInnerRML(text);
+    }
+
+    void InventoryUI::SetSelected(const Rml::String &slotId) {
+        if (!document)
+            return;
         Rml::Element *bar = document->GetElementById("inventory_bar");
         if (!bar)
             return;
@@ -119,10 +171,18 @@ namespace UI
             bar->GetChild(i)->SetClass("selected", false);
         }
 
-        // Set selected on the target slot
-        if (Rml::Element *slot = document->GetElementById("slot_2_img")) {
-            // std::cout << "slot one selected" << '\n';
+        if (Rml::Element *slot = document->GetElementById(slotId)) {
             slot->SetClass("selected", true);
+        }
+    }
+
+    void InventoryUI::ClearSlot(const Rml::String &slotId) {
+        if (!document)
+            return;
+        if (Rml::Element *img = document->GetElementById(slotId + "_img")) {
+            img->RemoveAttribute("src");
+            img->SetProperty("display", "none");
+            SetSlotCount(slotId, 0);
         }
     }
 

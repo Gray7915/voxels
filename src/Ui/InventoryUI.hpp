@@ -2,6 +2,7 @@
 
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/ElementDocument.h>
+#include "ECS/Coordinator.hpp"
 #include <RmlUi/Core/Types.h>
 #include <vulkan/vulkan.h>
 #include "Util/Types.hpp"
@@ -31,8 +32,10 @@ namespace UI
         void AddItem(const Rml::String &name);
         void AddItemWithImage(const Rml::String &slotId, BlockId blockId);
         void SetSelected(const Rml::String &name);
-
+        void ClearSlot(const Rml::String &slotId);
         void openCreativeInventory();
+        void SetSlotCount(const Rml::String &slotId, int count);
+        void UpdateInventoryUi(lve::Coordinator &coordinator, Entity player);
         std::vector<DisplayItem> getItems() { return displayItems; }
         std::function<void(const Rml::String &itemId)> onItemClicked;
 

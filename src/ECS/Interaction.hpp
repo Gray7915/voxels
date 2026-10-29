@@ -21,7 +21,7 @@ Facade for other classes when breaking blocks ect ->
 
 class Interaction {
   public:
-    static void Interact(lve::Item item, ivec3 breakablePosition, lve::Area area) {
+    static void Interact(lve::Item item, ivec3 breakablePosition, lve::Area &area) {
         BlockID targetBlockID = area.getBlockID(breakablePosition);
         auto block = BlockRegistry::Get().GetBlockByID(targetBlockID);
         if (block) {

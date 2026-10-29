@@ -14,9 +14,8 @@
 
 namespace lve
 {
-    class ChunkRenderSystem
-    {
-    public:
+    class ChunkRenderSystem {
+      public:
         ChunkRenderSystem(LveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
         ~ChunkRenderSystem();
 
@@ -25,7 +24,7 @@ namespace lve
 
         void renderChunks(FrameInfo &frameInfo, std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, IVec3Hash> &chunks, Coordinator &coordinator, Entity &player);
 
-    private:
+      private:
         void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
         void createPipeline(VkRenderPass renderPass);
         void createDescriptorSetLayout();
@@ -36,4 +35,4 @@ namespace lve
         std::unique_ptr<LvePipeline> lvePipeline;
         VkDescriptorSetLayout textureSetLayout;
     };
-}
+} // namespace lve

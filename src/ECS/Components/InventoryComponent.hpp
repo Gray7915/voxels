@@ -10,7 +10,7 @@
 struct InventoryComponent {
     int selectedStack = 0;
 
-    int InventoryCapacity = 5;
+    int InventoryCapacity = 9;
 
     std::vector<std::optional<lve::ItemStack>> inventoryStacks = std::vector<std::optional<lve::ItemStack>>(InventoryCapacity);
 };

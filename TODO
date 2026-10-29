@@ -28,3 +28,6 @@ Interaction:
   ☐ Refactor and cleanup AABB and Collision, its gonna get painful soon
   ☐ Make blocks drop themselves to be picked up by player
   ✔ Refactor ray casting so it returns a struct of hit location, hit block id, ect @done(26-07-16 16:07)
+
+GameScene:
+  ☐ Fix the render adding thingie in gamescene

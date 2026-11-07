@@ -62,15 +62,7 @@ namespace lve
 
             if (rightIsPressed && !rightWasPressed && rayHit.hitPosition != ivec3(-1.0f) && lveWindow.getMenuActive()) {
                 rightWasPressed = true;
-                ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
-                ivec3 blockCoord = WorldToChunkArray(blockPos);
-                ivec3 chunkPosition = WorldToChunkId(blockPos);
-                auto &stack = inventory.inventoryStacks.at(input.hotbarSlot);
-                BlockId id = 0;
-                if (stack) {
-                    id = stack->getItem()->itemId;
-                    coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, id, entity, input.hotbarSlot});
-                }
+                updatePlacing(entity, deltaTime, area, coordinator, rayHit, inventory, input);
             }
         }
     }
@@ -88,6 +80,7 @@ namespace lve
             }
         }
     }
+
     void InteractionSystem::updateMining(Entity entity, float deltaTime, Area &area, Coordinator &coordinator, InteractionProgress &progress, const RayHit &rayHit) {
         auto &targets = progress.InteractionTargetList;
         ivec3 blockCoord = WorldToChunkArray(rayHit.hitPosition);
@@ -104,6 +97,10 @@ namespace lve
             it->lastInteractedwith = std::chrono::steady_clock::now();
 
             if (it->percentBroken >= 1.0) {
+                const Block *block = BlockRegistry::Get().GetBlockByID(rayHit.blockID);
+                if (block->behaviour.onInteract) {
+                    block->behaviour.onInteract(hitPos.x, hitPos.y, hitPos.z, (int)entity);
+                }
                 coordinator.eventBus.blockBreakRequest.push({chunkPosition, blockCoord, entity});
                 targets.erase(it);
             }
@@ -112,7 +109,18 @@ namespace lve
             progress.InteractionTargetList.push_back(newTarget);
         }
     }
-    void InteractionSystem::updatePlacing(Entity entity, float dt, Area &area, Coordinator &coord, const RayHit &hit, InventoryComponent &inv, const InputComponent &input) {}
+
+    void InteractionSystem::updatePlacing(Entity entity, float dt, Area &area, Coordinator &coordinator, const RayHit &rayHit, InventoryComponent &inventory, const InputComponent &input) {
+        ivec3 blockPos = rayHit.hitPosition + rayHit.hitDirection;
+        ivec3 blockCoord = WorldToChunkArray(blockPos);
+        ivec3 chunkPosition = WorldToChunkId(blockPos);
+        auto &stack = inventory.inventoryStacks.at(input.hotbarSlot);
+        BlockId id = 0;
+        if (stack) {
+            id = stack->getItem()->itemId;
+            coordinator.eventBus.blockPlaceRequested.push({blockCoord, chunkPosition, id, entity, input.hotbarSlot});
+        }
+    }
 
     // InteractionTarget *InteractionSystem::findTarget(InteractionProgress &, ivec3 pos) {}
     // InteractionTarget &InteractionSystem::beginTarget(InteractionProgress &, const RayHit &) {}

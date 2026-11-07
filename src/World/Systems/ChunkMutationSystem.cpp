@@ -44,6 +44,7 @@ namespace lve
                     if (stack) {
                         stack->setStackCount(stack->getStackCount() - 1);
                         if (stack->getStackCount() == 0) {
+                            coordinator.eventBus.blockPlaced.push({req.placedBy, req.inventoryPos});
                             inventory.inventoryStacks[req.inventoryPos].reset();
                         }
                     }

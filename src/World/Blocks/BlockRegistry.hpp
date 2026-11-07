@@ -21,15 +21,17 @@ namespace lve
             blocksByName[block.name] = block.id;
         }
 
-        inline const Block *GetBlockByID(uint16_t id) const { return &blocksByID[id]; }
+        inline const Block *GetBlockByID(u16 id) const { return &blocksByID[id]; }
 
-        uint16_t GetBlockIDByName(const std::string &name) const {
+        u16 GetBlockIDByName(const std::string &name) const {
             auto it = blocksByName.find(name);
             if (it == blocksByName.end())
                 return 0;
 
             return it->second;
         }
+
+        const std::array<Block, MAX_BLOCKS> &returnBlockList() { return blocksByID; }
 
       private:
         std::array<Block, MAX_BLOCKS> blocksByID{};

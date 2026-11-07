@@ -106,9 +106,6 @@ namespace lve
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
             frameTime = std::min(frameTime, 0.25f);
-            // std::cout << "Set time in loop" << '\n';
-            // coordinator.eventBus.blockBreakRequest.clear();
-            // coordinator.eventBus.blockPlaceRequested.clear();
 
             aspect = lveRenderer.getAspectRatio();
             systems.cameraSystem->Update(aspect);
@@ -129,78 +126,10 @@ namespace lve
                 // std::cout << "frame in first app before set " << lveDevice.getFrameCount() << '\n';
                 lveDevice.setFrameCount(lveDevice.getFrameCount() + 1);
                 // std::cout << "frame in first app after set " << lveDevice.getFrameCount() << '\n';
-
-                /*
-                            auto &camera = coordinator.GetComponent<CameraComponent>(mainCamera);
-
-
-                            vkCmdResetQueryPool(commandBuffer, queryPool, 0, 8);
-
-                            vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
-
-                            lveRenderer.geometryPass->begin(commandBuffer, lveRenderer.getImageIndex());
-                            auto newstart = std::chrono::high_resolution_clock::now();
-                            chunkRenderSystem.renderChunks(frameInfo, area.chunks);
-
-                            auto newms = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - newstart).count();
-                            // if (newms > 2.0)
-                            // std::cout << "[HITCH] loadChunk took " << newms << "ms\n";
-                            // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
-                            auto block = BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w);
-                            glm::vec3 boxSize{1, 1, 1};
-                            if (block)
-                                boxSize = block->get().highlightBoxSize;
-                            // std::cout << "highlightedboxsize" << boxSize.x << " " << boxSize.y << " " << boxSize.z << '\n';
-
-                            vec3 rot = camTransform.rotation;
-                            vec3 forward = {cos(rot.x) * sin(rot.y), -sin(rot.x), cos(rot.x) * cos(rot.y)};
-                            vec3 rayDir = glm::normalize(forward);
-
-                            auto &testTrans = coordinator.GetComponent<Transform>(testEntity);
-                            auto &testModel = coordinator.GetComponent<RenderableComponent>(testEntity);
-                            simpleRenderSystem.renderGameObjects(frameInfo, testTrans.mat4(), testTrans.normalMatrix(), testModel.model);
-
-                            // systems.renderSystem->Update(frameInfo, simpleRenderSystem);
-                            highlightRenderSystem.render(frameInfo, systems.interactionSystem->hoveredID.w != 0, systems.interactionSystem->hoveredID, boxSize, rayDir,
-                                                         BlockRegistry::Get().GetBlockByID(systems.interactionSystem->hoveredID.w)->get().highlightShape);
-
-                            lveRenderer.geometryPass->end(commandBuffer);
-
-                            vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 1);
-                            vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 2);
-
-                            lveRenderer.UiRenderPass->begin(commandBuffer, lveRenderer.getImageIndex());
-                            imguiManager.newFrame();
-                            imguiManager.drawDebugWindow(frameTime, camTransform.position, camTransform, coordinator.GetComponent<CameraComponent>(mainCamera), area);
-                            imguiManager.drawCrosshair(lveWindow.getExtent().width, lveWindow.getExtent().height);
-                            imguiManager.drawInv(coordinator.GetComponent<InventoryComponent>(mainCamera));
-                            // imguiManager->drawQuitMenu(WIDTH, HEIGHT);
-                            imguiManager.render(commandBuffer);
-                            lveRenderer.UiRenderPass->end(commandBuffer);
-
-                            vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, 3);
-            */
                 lveRenderer.endFrame();
 
                 uint64_t timestamps[4];
-
-                // vkGetQueryPoolResults(lveDevice.device(), queryPool, 0, 4, sizeof(timestamps), timestamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
-
-                // double geometryMs = (timestamps[1] - timestamps[0]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
-                // double uiMs = (timestamps[3] - timestamps[2]) * lveDevice.getTimestampPeriod() / 1'000'000.0;
-
-                //  std::cout << "Chunks: " << area.chunks.size() << " Geometry: " << geometryMs << "\n";
-                // std::cout << "UI Pass time " << uiMs << '\n';
-                // std::cout << frameTime << "\n";
             }
-
-            /*
-
-                if (glfwGetKey(lveWindow.getGLFWwindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
-                {
-                    lveWindow.setMouseActive();
-                }
-    */
         }
         vkDeviceWaitIdle(lveDevice.device());
     };

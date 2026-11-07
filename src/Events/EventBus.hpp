@@ -4,12 +4,11 @@
 
 namespace lve
 {
-    struct EventBus
-    {
+    struct EventBus {
         EventQueue<BlockBrokenRequest> blockBreakRequest;
         EventQueue<BlockPlaceRequest> blockPlaceRequested;
 
-        
         EventQueue<BlockHarvested> blockHarvestEvent;
+        EventQueue<BlockPlaced> blockPlaced;
     };
-};
+}; // namespace lve

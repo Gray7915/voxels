@@ -100,6 +100,11 @@ if(NOT DI_PATH)
     set(DI_PATH external/di)
 endif()
 
+if(NOT TinyGLTF)
+    message(STATUS "TinyGLTF not specified in .env.cmake, using external/tiny_glTF")
+    set(TinyGLTF_PATH external/tiny_glTF/)
+endif()
+
 find_package(Freetype REQUIRED)
 
 if(TARGET Freetype::Freetype)
@@ -148,6 +153,7 @@ if (WIN32)
     ${GLM_PATH}
     ${NLOHMANN_PATH}
     ${DI_PATH}
+    ${TinyGLTF_PATH}
     ${rmlui_SOURCE_DIR}/Backends 
     )
  
@@ -168,6 +174,7 @@ elseif (UNIX)
       ${GLFW_INCLUDE_DIRS}
       ${GLM_PATH}
       ${DI_PATH}
+      ${TinyGLTF_PATH}
       ${rmlui_SOURCE_DIR}/Backends
     )
     target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES} rmlui Freetype::Freetype)

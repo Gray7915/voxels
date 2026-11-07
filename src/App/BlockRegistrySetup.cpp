@@ -24,6 +24,13 @@ namespace lve
             Block block;
 
             block.id = Jblock["id"];
+
+            if (block.id == 1) {
+                block.behaviour.onInteract = [](int x, int y, int z, int playerId) {
+                    std::cout << "Player " << playerId << " toggled door at " << x << "," << y << "," << z << "\n";
+                };
+            }
+
             block.name = Jblock["name"];
             block.isSolid = Jblock["isSolid"];
             block.modelName = Jblock["model"];

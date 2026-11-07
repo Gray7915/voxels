@@ -53,19 +53,26 @@ namespace UI
             AddItemWithImage("slot_" + std::to_string(slot), itemID);
             SetSlotCount("slot_" + std::to_string(slot), invComp.inventoryStacks.at(i).value().getStackCount());
         }
+
+        for (auto req : coordinator.eventBus.blockPlaced.read()) {
+            if (req.placedBy == player) {
+                ClearSlot("slot_" + std::to_string((req.slotId + 1)));
+            }
+        }
     }
 
     void InventoryUI::setupItemsModel(Rml::Context *context) {
         // build display list from registry
         for (auto &[id, item] : lve::ItemRegistry::Get().GetAll()) {
-            displayItems.push_back({std::to_string(id), item.itemName});
+            displayItems.push_back({std::to_string(id), item.itemName, "block://" + std::to_string(id)});
         }
-        std::cout << "Items found: " << displayItems.size() << '\n';
+        // std::cout << "Items found: " << displayItems.size() << '\n';
         if (Rml::DataModelConstructor constructor = context->CreateDataModel("items")) {
 
             if (auto itemHandle = constructor.RegisterStruct<DisplayItem>()) {
                 itemHandle.RegisterMember("id", &DisplayItem::id);
                 itemHandle.RegisterMember("name", &DisplayItem::name);
+                itemHandle.RegisterMember("img", &DisplayItem::image);
             }
 
             constructor.RegisterArray<std::vector<DisplayItem>>();
@@ -132,8 +139,18 @@ namespace UI
         const std::string src = "block://" + std::to_string(blockId);
         if (img->GetAttribute<Rml::String>("src", "") == src)
             return;
-
         img->SetAttribute("src", src);
+    }
+
+    void InventoryUI::applyListImages() {
+        if (!inventoryWindow)
+            return;
+        Rml::ElementList cells;
+        inventoryWindow->GetElementsByClassName(cells, "slot-cell");
+        for (Rml::Element *cell : cells) {
+            if (Rml::Element *img = cell->GetFirstChild())
+                img->SetAttribute("src", "block://" + cell->GetId());
+        }
     }
 
     void InventoryUI::SetSlotCount(const Rml::String &slotId, int count) {
@@ -190,6 +207,7 @@ namespace UI
         if (!invWindowOpen) {
             inventoryWindow->Show();
             invWindowOpen = true;
+            applyListImages();
         } else if (inventoryWindow) {
             inventoryWindow->Hide();
             invWindowOpen = false;

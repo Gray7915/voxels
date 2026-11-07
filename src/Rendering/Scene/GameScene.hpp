@@ -64,16 +64,9 @@ namespace Rendering
             context.window.setRmlContext(rmlContext);
             rmlRenderSystem = std::make_unique<lve::RmlRenderSystem>(context.device, context.renderer.StandaloneUIRenderPass->getRenderPass(), *renderInterface);
             renderInterface->setViewportSize(context.window.getExtent().width, context.window.getExtent().height);
-            inventoryUI = std::make_unique<UI::InventoryUI>("Inventory 1", Rml::Vector2f(50, 200), rmlContext);
-            std::cout << "make invent thingie" << '\n';
-            // inventoryUI->AddItem("Mk III L.A.S.E.R.");
-            std::cout << "added big lazer" << '\n';
 
-            // Pre-build all block models — safe here, no frame in flight
-            // Pre-create targets
-            for (auto &item : inventoryUI->getItems()) {
-                BlockId id = std::stoi(item.id);
-                context.renderer.OffScreenUIPass->createPreviewForBlock(id);
+            for (auto &item : lve::BlockRegistry::Get().returnBlockList()) {
+                context.renderer.OffScreenUIPass->createPreviewForBlock(item.id);
             }
 
             // Record and submit all preview renders in one shot before the game loop
@@ -83,14 +76,24 @@ namespace Rendering
             previewFrame.commandBuffer = cmd;
             previewFrame.globalDescriptorSet = context.renderSetup.globalDescriptorSets[0];
 
-            for (auto &item : inventoryUI->getItems()) {
-                BlockId id = std::stoi(item.id);
-                context.renderer.OffScreenUIPass->begin(cmd, id);
-                offScreenRenderSystem->renderInvItems(previewFrame, id);
+            for (int i = 1; i < lve::BlockRegistry::Get().returnBlockList().size(); ++i) {
+                if (lve::BlockRegistry::Get().returnBlockList().at(i).id == 0)
+                    continue;
+                std::cout << "render item " << lve::BlockRegistry::Get().returnBlockList().at(i).id << '\n';
+                context.renderer.OffScreenUIPass->begin(cmd, lve::BlockRegistry::Get().returnBlockList().at(i).id);
+                offScreenRenderSystem->renderInvItems(previewFrame, lve::BlockRegistry::Get().returnBlockList().at(i).id);
                 context.renderer.OffScreenUIPass->end(cmd);
             }
 
             context.device.endSingleTimeCommands(cmd, context.device.getCommandPool());
+
+            inventoryUI = std::make_unique<UI::InventoryUI>("Inventory 1", Rml::Vector2f(50, 200), rmlContext);
+            std::cout << "make invent thingie" << '\n';
+            // inventoryUI->AddItem("Mk III L.A.S.E.R.");
+            std::cout << "added big lazer" << '\n';
+
+            // Pre-build all block models — safe here, no frame in flight
+            // Pre-create targets
         }
 
         void onExit() override {
@@ -166,6 +169,8 @@ namespace Rendering
             }
 
             inventoryUI->UpdateInventoryUi(context.coordinator, mainCamera);
+
+            context.coordinator.eventBus.blockPlaced.clear();
         }
 
         void render(lve::FrameInfo &frameInfo) override {
@@ -236,28 +241,28 @@ namespace Rendering
                 blockBreakRenderSystem->render(frameInfo, context.coordinator.GetComponent<InteractionProgress>(mainCamera));
             }
             context.renderer.geometryPass->end(frameInfo.commandBuffer);
+            /*
+                        for (auto &item : inventoryUI->getItems()) {
+                            BlockId id = std::stoi(item.id);
+                            // std::cout << "into for loop" << '\n';
+                            if (!context.renderer.OffScreenUIPass->hasPreview(id)) {
+                                std::cout << "Rendering preview for block " << id << '\n';
+                                context.renderer.OffScreenUIPass->createPreviewForBlock(id);
 
-            for (auto &item : inventoryUI->getItems()) {
-                BlockId id = std::stoi(item.id);
-                // std::cout << "into for loop" << '\n';
-                if (!context.renderer.OffScreenUIPass->hasPreview(id)) {
-                    std::cout << "Rendering preview for block " << id << '\n';
-                    context.renderer.OffScreenUIPass->createPreviewForBlock(id);
+                                std::cout << "Has preview after create: " << context.renderer.OffScreenUIPass->hasPreview(id) << '\n';
 
-                    std::cout << "Has preview after create: " << context.renderer.OffScreenUIPass->hasPreview(id) << '\n';
+                                context.renderer.OffScreenUIPass->begin(frameInfo.commandBuffer, id);
+                                offScreenRenderSystem->renderInvItems(frameInfo, id);
+                                context.renderer.OffScreenUIPass->end(frameInfo.commandBuffer);
 
-                    context.renderer.OffScreenUIPass->begin(frameInfo.commandBuffer, id);
-                    offScreenRenderSystem->renderInvItems(frameInfo, id);
-                    context.renderer.OffScreenUIPass->end(frameInfo.commandBuffer);
+                                VkDescriptorSet ds = context.renderer.OffScreenUIPass->getDescriptorSet((int)id);
+                                std::cout << "Descriptor set after render: " << ds << '\n';
 
-                    VkDescriptorSet ds = context.renderer.OffScreenUIPass->getDescriptorSet((int)id);
-                    std::cout << "Descriptor set after render: " << ds << '\n';
-
-                    // Register with RmlUi immediately after rendering
-                    inventoryUI->AddItemWithImage("slot_" + std::to_string((int)id), id);
-                }
-            }
-
+                                // Register with RmlUi immediately after rendering
+                                inventoryUI->AddItemWithImage("slot_" + std::to_string((int)id), id);
+                            }
+                        }
+            */
             renderUI(frameInfo, camTransform, camera);
 
             context.renderSetup.uboBuffers[frameInfo.frameIndex]->writeToBuffer(&ubo);

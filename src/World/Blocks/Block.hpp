@@ -39,11 +39,20 @@ namespace lve
         float maxRandomOffset = 0.25f;
 
         std::vector<BitField> fields;
+
+        std::function<void(int x, int y, int z, int playerId)> onInteract;
+        std::function<void(int x, int y, int z, int playerId)> onPlaced;
+        std::function<void(int x, int y, int z, int playerId)> onBroken;
     };
 
     struct HighlightShape {
         std::vector<ivec2> highlighBoxEdges{};
         std::vector<vec3> highlightBoxVerticies{};
+    };
+
+    struct InteractContext {
+        int x, y, z;
+        int playerId;
     };
 
     class Block {

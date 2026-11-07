@@ -6,26 +6,28 @@
 
 namespace lve
 {
-    struct BlockBrokenRequest
-    {
+    struct BlockBrokenRequest {
         ivec3 chunkPos;
         ivec3 blockPos;
         Entity brokenBy;
         BlockId blockID;
     };
 
-    struct BlockPlaceRequest
-    {
+    struct BlockPlaceRequest {
         ivec3 blockPos;
         ivec3 chunkPos;
         BlockId blockType;
         Entity placedBy;
-        int inventoryPos;
+        u32 inventoryPos;
     };
 
-    struct BlockHarvested
-    {
+    struct BlockHarvested {
         Entity brokenBy;
         int itemType;
     };
-}
+
+    struct BlockPlaced {
+        Entity placedBy;
+        u32 slotId;
+    };
+} // namespace lve

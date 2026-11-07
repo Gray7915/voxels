@@ -13,6 +13,7 @@
 struct DisplayItem {
     Rml::String id;
     Rml::String name;
+    Rml::String image;
 };
 
 namespace UI
@@ -36,6 +37,7 @@ namespace UI
         void openCreativeInventory();
         void SetSlotCount(const Rml::String &slotId, int count);
         void UpdateInventoryUi(lve::Coordinator &coordinator, Entity player);
+        void applyListImages();
         std::vector<DisplayItem> getItems() { return displayItems; }
         std::function<void(const Rml::String &itemId)> onItemClicked;
 

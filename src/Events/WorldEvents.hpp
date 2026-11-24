@@ -1,0 +1,33 @@
+#pragma once
+
+#include <glm/glm.hpp>
+#include "ECS/Type.hpp"
+#include "Util/Types.hpp"
+
+namespace lve
+{
+    struct BlockBrokenRequest {
+        ivec3 chunkPos;
+        ivec3 blockPos;
+        Entity brokenBy;
+        BlockId blockID;
+    };
+
+    struct BlockPlaceRequest {
+        ivec3 blockPos;
+        ivec3 chunkPos;
+        BlockId blockType;
+        Entity placedBy;
+        u32 inventoryPos;
+    };
+
+    struct BlockHarvested {
+        Entity brokenBy;
+        int itemType;
+    };
+
+    struct BlockPlaced {
+        Entity placedBy;
+        u32 slotId;
+    };
+} // namespace lve

@@ -1,0 +1,126 @@
+<rml>
+
+    <head>
+        <title>Inventory</title>
+        <style>
+            body {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                align-items: center;
+                font-family: LatoLatin;
+            }
+
+            #inventory_bar {
+                display: flex;
+                flex-direction: row;
+                flex-grow: 0;
+                flex-shrink: 0;
+                align-items: flex-start;
+                margin-bottom: 20dp;
+                /*
+                border-color: aqua;
+                border-width: 2dp;
+                */
+                width: 522dp;
+                min-width: 522dp;
+                max-width: 522dp;
+                height: 56dp;
+            }
+
+            .icon {
+                width: 56dp;
+                min-width: 56dp;
+                max-width: 56dp;
+                height: 56dp;
+                min-height: 56dp;
+                max-height: 56dp;
+                flex-grow: 0;
+                flex-shrink: 0;
+                border-color: transparent;
+                margin-right: 2dp;
+                border-width: 2dp;
+                decorator: image("InvSlot.png");
+                image-color: rgba(255, 255, 255, 191);
+                position: relative
+            }
+
+            .icon:last-child {
+                margin-right: 0dp;
+            }
+
+            .icon.selected {
+                border-color: rgb(0, 136, 255);
+                border-radius: 20dp;
+            }
+
+            .slot-img {
+                width: 48dp;
+                height: 48dp;
+                margin: 4dp;
+            }
+
+            .slot {
+                position: relative;
+                /* so the count can be positioned against the slot */
+            }
+
+            .count {
+                position: absolute;
+                right: 4dp;
+                bottom: 2dp;
+                font-size: 18dp;
+                font-weight: bold;
+                color: white;
+                text-shadow: 1dp 1dp 0 black;
+                /* if your RmlUi version supports it, otherwise drop it */
+                pointer-events: none;
+                /* so clicks pass through to the slot */
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="inventory_bar">
+            <div class="icon" id="slot_1">
+                <img id="slot_1_img" class="slot-img" />
+                <div id="slot_1_count" class="count"></div>
+            </div>
+            <div class="icon" id="slot_2">
+                <img id="slot_2_img" class="slot-img" />
+                <div id="slot_2_count" class="count"></div>
+            </div>
+            <div class="icon" id="slot_3">
+                <img id="slot_3_img" class="slot-img" />
+                <div id="slot_3_count" class="count"></div>
+            </div>
+            <div class="icon" id="slot_4">
+                <img id="slot_4_img" class="slot-img" />
+                <div id="slot_4_count" class="count"></div>
+            </div>
+            <div class="icon" id="slot_5">
+                <img id="slot_5_img" class="slot-img" />
+                <div id="slot_5_count" class="count"></div>
+            </div>
+            <div class="icon" id="slot_6">
+                <img id="slot_6_img" class="slot-img" />
+                <div id="slot_6_count" class="count"></div>
+            </div>
+            <div class="icon" id="slot_7">
+                <img id="slot_7_img" class="slot-img" />
+                <div id="slot_7_count" class="count"></div>
+            </div>
+            <div class="icon" id="slot_8">
+                <img id="slot_8_img" class="slot-img" />
+                <div id="slot_8_count" class="count"></div>
+            </div>
+            <div class="icon" id="slot_9">
+                <img id="slot_9_img" class="slot-img" />
+                <div id="slot_9_count" class="count"></div>
+            </div>
+        </div>
+    </body>
+
+</rml>

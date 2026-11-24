@@ -1,0 +1,76 @@
+#pragma once
+
+#include "Rendering/Core/lve_Texture.hpp"
+#include "Rendering/Core/lve_descriptors.hpp"
+#include "Rendering/Core/lve_device.hpp"
+#include "Rendering/Core/lve_model.hpp"
+#include "Rendering/Core/lve_renderer.hpp"
+#include "Rendering/Core/lve_window.hpp"
+#include "Rendering/Passes/GeometryPass.hpp"
+#include "Rendering/Passes/OffScreenPass.hpp"
+#include "Rendering/Core/ChunkStagingPool.hpp"
+#include <unordered_map>
+
+#include "ECS/Coordinator.hpp"
+#include "ECS/EntityFactory.hpp"
+#include "ECS/Systems/CameraSystem.hpp"
+#include "ECS/Systems/CollisionSystem.hpp"
+#include "ECS/Systems/InputSystem.hpp"
+#include "ECS/Systems/InteractionSystem.hpp"
+#include "ECS/Systems/MovementSystem.hpp"
+#include "ECS/Systems/PhysicsSystem.hpp"
+#include "Ui/ImguiManager.hpp"
+
+#include "World/Area.hpp"
+#include "World/Systems/ChunkGenerationSystem.hpp"
+#include "World/Systems/ChunkMeshSystem.hpp"
+#include "World/Systems/ChunkMutationSystem.hpp"
+
+#include "Util/IVec3Hash.h"
+#include "Util/lve_frame_info.hpp"
+#include "Util/lve_util.hpp"
+#include "Util/ray.hpp"
+#include "Util/RenderStats.hpp"
+
+#include "RenderSetup.hpp"
+#include "SetupECS.hpp"
+// std
+
+#include <memory>
+#include <vector>
+
+#include "App/TextureAtlas.hpp"
+#include "Util/AppContext.hpp"
+
+namespace lve
+{
+    class FirstApp {
+      public:
+        static constexpr int WIDTH = 1280;
+        static constexpr int HEIGHT = 720;
+
+        FirstApp();
+        ~FirstApp();
+
+        FirstApp(const FirstApp &) = delete;
+        FirstApp &operator=(const FirstApp &) = delete;
+
+        void run();
+
+      private:
+        void createPipelineLayout();
+        void createPipeline();
+        // void registerECSComponents();
+        // bool getTargetBlock(glm::vec3 rayOrigin, glm::vec3 rayDirection, std::unordered_map<glm::ivec3,
+        // LveGameObject, IVec3Hash> &gameObjects, glm::ivec3 &out);
+
+        LveWindow lveWindow{WIDTH, HEIGHT, "Hello Vulkan"};
+        LveDevice lveDevice{lveWindow};
+        LveRenderer lveRenderer{lveWindow, lveDevice};
+        ImguiManager imguiManager{lveDevice, lveWindow, lveRenderer};
+        ChunkStagingPool stagingPool{lveDevice};
+        // Area area{lveDevice, 2};
+        //  glm::ivec4 hoveredID;
+        VkQueryPool queryPool;
+    };
+} // namespace lve

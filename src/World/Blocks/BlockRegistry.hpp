@@ -1,0 +1,40 @@
+#pragma once
+
+#include <array>
+#include <string>
+#include "World/Blocks/Block.hpp"
+#include "Util/Types.hpp"
+
+namespace lve
+{
+    class BlockRegistry {
+      public:
+        static constexpr size_t MAX_BLOCKS = 65536;
+
+        static BlockRegistry &Get() {
+            static BlockRegistry instance;
+            return instance;
+        }
+
+        void Register(Block block) {
+            blocksByID[block.id] = block;
+            blocksByName[block.name] = block.id;
+        }
+
+        inline const Block *GetBlockByID(u16 id) const { return &blocksByID[id]; }
+
+        u16 GetBlockIDByName(const std::string &name) const {
+            auto it = blocksByName.find(name);
+            if (it == blocksByName.end())
+                return 0;
+
+            return it->second;
+        }
+
+        const std::array<Block, MAX_BLOCKS> &returnBlockList() { return blocksByID; }
+
+      private:
+        std::array<Block, MAX_BLOCKS> blocksByID{};
+        std::unordered_map<std::string, u16> blocksByName;
+    };
+} // namespace lve

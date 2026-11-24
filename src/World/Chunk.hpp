@@ -1,0 +1,73 @@
+#pragma once
+#include <unordered_map>
+#include <memory>
+#include <iostream>
+#include <mutex>
+#include <atomic>
+#include <vector>
+#include <optional>
+
+#include <glm/ext/vector_int3.hpp>
+#include "../Util/IVec3Hash.h"
+#include "World/Generation/ChunkState.hpp"
+#include "../Rendering/Core/lve_device.hpp"
+#include "../Rendering/Core/lve_model.hpp"
+#include "World/VoxelData.hpp"
+
+namespace lve
+{
+    struct ChunkMeshData {
+        std::vector<Vertex> vertices;
+        std::vector<u32> indices;
+    };
+
+    class Chunk {
+      public:
+        Chunk(LveDevice &lveDevice, glm::vec3 offset);
+        ~Chunk();
+        static const int width = 16;
+        static const int height = 128;
+        inline static const glm::ivec3 CHUNK_SIZE{16, 128, 16};
+
+        VoxelData voxelData;
+
+        int indicies = 0;
+        int verticies = 0;
+
+        ChunkState chunkState = ChunkState::Unloaded;
+
+        glm::vec3 offset;
+        glm::vec3 rotation{0.0f};
+        glm::vec3 scale{1.0f};
+
+        glm::mat4 mat4();
+        glm::mat3 normalMatrix();
+
+        enum BlockType : u8 { Air, Solid };
+
+        struct Transform {
+            glm::mat4 mat4();
+            glm::mat3 normalMatrix();
+        };
+
+        bool hasPendingMesh() const { return hasPending.load(std::memory_order_acquire); }
+
+        void setVoxelData(VoxelData data) { this->voxelData = data; };
+
+        void applyMesh(std::unique_ptr<LveModel> model, int currentFrameIndex, LveDevice &device) {
+            if (chunkModel) {
+                auto oldModel = std::shared_ptr<LveModel>(std::move(chunkModel));
+                device.queueDeletion([oldModel]() {
+                }, currentFrameIndex);
+            }
+            chunkModel = std::move(model);
+            if (chunkState == ChunkState::PendingUpload)
+                chunkState = ChunkState::Uploaded;
+        }
+
+        std::mutex meshMutex;
+        std::optional<ChunkMeshData> pendingMesh;
+        std::atomic<bool> hasPending{false};
+        std::shared_ptr<LveModel> chunkModel{};
+    };
+} // namespace lve

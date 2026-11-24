@@ -1,0 +1,224 @@
+[
+    {
+        "name": "air",
+        "id": 0,
+        "model": "cube",
+        "isSolid": false,
+        "boundingBoxes": [],
+        "highlightBoxSize": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+        },
+        "textures": {},
+        "hardness": 0,
+        "renderType": "invisible"
+    },
+    {
+        "name": "grass",
+        "id": 1,
+        "model": "cube",
+        "isSolid": true,
+        "boundingBoxes": [],
+        "highlightBoxSize": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+        },
+        "textures": {
+            "up": "grass-top",
+            "side": "grass-side",
+            "down": "dirt"
+        },
+        "hardness": 2,
+        "renderType": "block"
+    },
+    {
+        "name": "dirt",
+        "id": 2,
+        "model": "cube",
+        "isSolid": true,
+        "boundingBoxes": [],
+        "highlightBoxSize": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+        },
+        "textures": {
+            "all": "dirt"
+        },
+        "hardness": 1,
+        "renderType": "block"
+    },
+    {
+        "name": "stone",
+        "id": 3,
+        "model": "cube",
+        "isSolid": true,
+        "boundingBoxes": [],
+        "highlightBoxSize": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+        },
+        "textures": {
+            "all": "stone"
+        },
+        "hardness": 3,
+        "renderType": "block"
+    },
+    {
+        "name": "fence",
+        "id": 4,
+        "model": "models/newFence.obj",
+        "isSolid": true,
+        "boundingBoxes": [
+            {
+                "boxSize": {
+                    "x": 0.25,
+                    "y": 1.0,
+                    "z": 0.25
+                },
+                "offset": {
+                    "x": 0.5,
+                    "y": 0.0,
+                    "z": 0.5
+                }
+            }
+        ],
+        "highlightBoxSize": { "x": 0.3125, "y": 1.0, "z": 0.3125 },
+        "highlightShape": {
+            "vertices": [
+                {
+                    "x": 0.65625,
+                    "y": 1.0,
+                    "z": 0.65625
+                },
+                {
+                    "x": 0.65625,
+                    "y": 1.0,
+                    "z": 0.34375
+                },
+                {
+                    "x": 0.65625,
+                    "y": 0.0,
+                    "z": 0.65625
+                },
+                {
+                    "x": 0.65625,
+                    "y": 0.0,
+                    "z": 0.34375
+                },
+                {
+                    "x": 0.34375,
+                    "y": 1.0,
+                    "z": 0.65625
+                },
+                {
+                    "x": 0.34375,
+                    "y": 1.0,
+                    "z": 0.34375
+                },
+                {
+                    "x": 0.34375,
+                    "y": 0.0,
+                    "z": 0.65625
+                },
+                {
+                    "x": 0.34375,
+                    "y": 0.0,
+                    "z": 0.34375
+                }
+            ],
+            "edges": [
+                [
+                    0,
+                    1
+                ],
+                [
+                    1,
+                    3
+                ],
+                [
+                    3,
+                    2
+                ],
+                [
+                    2,
+                    0
+                ],
+                [
+                    4,
+                    5
+                ],
+                [
+                    5,
+                    7
+                ],
+                [
+                    7,
+                    6
+                ],
+                [
+                    6,
+                    4
+                ],
+                [
+                    0,
+                    4
+                ],
+                [
+                    1,
+                    5
+                ],
+                [
+                    2,
+                    6
+                ],
+                [
+                    3,
+                    7
+                ]
+            ]
+        },
+        "textures": {},
+        "hardness": 2,
+        "renderType": "mesh",
+
+        "behaviour": {
+            "type": "connected"
+        }
+    },
+    {
+        "name": "oak_logs",
+        "id": 5,
+        "model": "cube",
+        "isSolid": true,
+        "boundingBoxes": [],
+        "highlightBoxSize": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+        },
+        "textures": { "all": "oaklog_side"},
+        "hardness": 2,
+        "renderType": "block"
+    },
+    {
+        "name": "oak_leaves",
+        "id": 6,
+        "model": "cube",
+        "isSolid": true,
+        "boundingBoxes": [],
+        "highlightBoxSize": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+        },
+        "textures": {
+            "all": "oakLeaves"
+        },
+        "hardness": 1,
+        "renderType": "transparent"
+    }
+]

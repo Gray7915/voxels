@@ -1,0 +1,14 @@
+#pragma once
+#include "EventQueue.hpp"
+#include "WorldEvents.hpp"
+
+namespace lve
+{
+    struct EventBus {
+        EventQueue<BlockBrokenRequest> blockBreakRequest;
+        EventQueue<BlockPlaceRequest> blockPlaceRequested;
+
+        EventQueue<BlockHarvested> blockHarvestEvent;
+        EventQueue<BlockPlaced> blockPlaced;
+    };
+}; // namespace lve
